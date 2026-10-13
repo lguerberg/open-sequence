@@ -4,7 +4,7 @@
   "description": "Typed TypeScript client for the OpenSequence API, plus Standard Webhooks verification.",
   "license": "Apache-2.0",
   "homepage": "https://opensequence.dev",
-  "repository": { "type": "git", "url": "https://github.com/open-sequence/opensequence", "directory": "packages/sdk" },
+  "repository": { "type": "git", "url": "https://github.com/lguerberg/open-sequence", "directory": "packages/sdk" },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

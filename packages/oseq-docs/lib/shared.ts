@@ -3,7 +3,7 @@ import { createGetUrl } from 'fumadocs-core/source';
 export const siteName = 'OpenSequence';
 export const siteUrl = 'https://docs.opensequence.dev';
 export const projectUrl = 'https://opensequence.dev';
-export const repoUrl = 'https://github.com/open-sequence/opensequence';
+export const repoUrl = 'https://github.com/lguerberg/open-sequence';
 export const repoBranch = 'main';
 /** Where the hand-written pages live in the repository, for the "edit on GitHub" link. */
 export const contentDir = 'packages/oseq-docs/content/docs';

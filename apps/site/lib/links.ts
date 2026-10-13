@@ -1,6 +1,6 @@
 /** Every outbound link in one place. The docs are a separate deployment; paths mirror packages/oseq-docs/content. */
 export const DOCS = 'https://docs.opensequence.dev';
-export const GITHUB = 'https://github.com/open-sequence/opensequence';
+export const GITHUB = 'https://github.com/lguerberg/open-sequence';
 
 export const links = {
   docs: DOCS,

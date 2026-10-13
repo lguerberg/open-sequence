@@ -6,7 +6,7 @@
   "homepage": "https://opensequence.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/open-sequence/opensequence",
+    "url": "https://github.com/lguerberg/open-sequence",
     "directory": "packages/mcp"
   },
   "type": "module",

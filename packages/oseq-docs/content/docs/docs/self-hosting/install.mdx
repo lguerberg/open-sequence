@@ -4,7 +4,7 @@ description: "docker compose, the image, first run, the operator token, creating
 ---
 
 ```bash
-git clone https://github.com/open-sequence/opensequence && cd opensequence
+git clone https://github.com/lguerberg/open-sequence && cd open-sequence
 docker compose up -d
 curl http://localhost:8080/readyz        # {"ok":true}
 curl -X POST http://localhost:8080/v1/admin/projects -H "Authorization: Bearer dev-admin-token" -H "Content-Type: application/json" \

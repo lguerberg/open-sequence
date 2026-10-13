@@ -62,4 +62,4 @@ Everything that comes from outside becomes a signal row, unique per `(project, s
 
 The planner checks nothing about deliverability; the executor does, at the last moment: the contact's email or phone exists, no suppression on the channel (or on all channels), the channel exists on the sender and is `active`, the daily cap and minimum gap, the sequence's send window, and for SMS also consent, an allowed country (`sms_countries`), a known recipient time zone and 08:00 to 21:00 recipient-local. A gate that cannot pass skips the step (recorded with its reason, the flow takes `skipped`); a gate that will pass later defers it (`send_window`, `daily_limit`, `min_gap`, `quiet_hours`, `kill_switch`, `credentials_needed`), and the enrollment goes back to the planner with a new `next_run_at`.
 
-Read the full design in the [architecture document](https://github.com/open-sequence/opensequence/blob/main/docs/ARCHITECTURE.md); these docs are for integrating, not for building the engine.
+Read the full design in the [architecture document](https://github.com/lguerberg/open-sequence/blob/main/docs/ARCHITECTURE.md); these docs are for integrating, not for building the engine.

@@ -1,8 +1,7 @@
 # OpenSequence: working rules for agents
 
-This folder is a self-contained pnpm workspace (own lockfile) that will move to
-`github.com/open-sequence/opensequence`. Run every command from this folder, never from the
-host repository root. The authoritative design is `docs/ARCHITECTURE.md`; build in the phase
+This repository (`github.com/lguerberg/open-sequence`) is one pnpm workspace. Run every command
+from its root. The authoritative design is `docs/ARCHITECTURE.md`; build in the phase
 order of its section 18, and a phase is done only when its acceptance test passes.
 
 ## Architecture (non-negotiable)
