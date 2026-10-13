@@ -13,7 +13,9 @@ RUN pnpm install --frozen-lockfile --filter @opensequence/server...
 COPY packages ./packages
 COPY apps/server ./apps/server
 RUN pnpm -r --filter @opensequence/server... run build
-RUN pnpm deploy --filter @opensequence/server --prod /out
+# --legacy: pnpm 10 only deploys injected workspaces by default; this copies the built workspace
+# packages into /out instead.
+RUN pnpm deploy --legacy --filter @opensequence/server --prod /out
 
 FROM node:22-alpine
 RUN addgroup -S oseq && adduser -S oseq -G oseq
