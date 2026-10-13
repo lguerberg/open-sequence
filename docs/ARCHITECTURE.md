@@ -190,7 +190,7 @@ packages/
   sequences-providers/   Adapters behind the ports: google (email + calendar), allo (sms + calls), attio (crm), mock (dev and CI).
                          Later, behind the same ports: smtp-imap, twilio, hubspot, unipile.
   sequences-sdk/         Typed client generated from the OpenAPI file.
-  oseq-docs/             The documentation site (docs.opensequence.dev): MDX guides, generated API reference, SDK and CLI pages (section 19).
+  docs/                  The documentation site (docs.opensequence.dev): MDX guides, generated API reference, SDK and CLI pages (section 19).
 apps/
   sequences/             The deployable: HTTP API, webhooks, workers (SEQ_ROLES). Dockerfile, migrations, openapi.json, the `oseq` CLI.
 
@@ -201,7 +201,7 @@ open-sequence/auth
   migrations/            auth.credentials, auth.connections (section 4.3)
 ```
 
-Folder names and published names: `sequences-core` is `@opensequence/core`, `sequences-engine` is `@opensequence/engine`, `sequences-queue` is `@opensequence/queue`, `sequences-providers` is `@opensequence/providers` (one entry point per adapter), `sequences-sdk` is `@opensequence/sdk`, `oseq-docs` is `@opensequence/docs` (private), and `apps/sequences` builds the image `opensequence/server` and the `oseq` CLI. GitHub organization: `open-sequence`.
+Folder names and published names: `sequences-core` is `@opensequence/core`, `sequences-engine` is `@opensequence/engine`, `sequences-queue` is `@opensequence/queue`, `sequences-providers` is `@opensequence/providers` (one entry point per adapter), `sequences-sdk` is `@opensequence/sdk`, `docs` is `@opensequence/docs` (private), and `apps/sequences` builds the image `opensequence/server` and the `oseq` CLI. GitHub organization: `open-sequence`.
 
 Both repositories exist from day one; nothing is developed inside a client's monorepo. Clients, Harpoon included, install `@opensequence/sdk` from npm and never share code with the service. CI in each repository publishes its packages (and, for `opensequence`, the image) on a tagged release.
 
@@ -1908,7 +1908,7 @@ Each phase ends with an acceptance test an agent can run; a phase is not done un
 | Privacy | mailbox-privacy rules, bodies off by default, retention, erase endpoint |
 | Security review before the first public release | cross-tenant suite, secret rotation, SSRF, rate limits |
 | Repository files | `LICENSE` (Apache-2.0, for the explicit patent grant), `README` with the quickstart from section 1.2, `CONTRIBUTING.md`, `SECURITY.md` with a disclosure address, `CHANGELOG.md`, issue templates |
-| Documentation | `packages/oseq-docs`: the full site of section 19, generated reference pages, snippets run in CI, `llms.txt` |
+| Documentation | `packages/docs`: the full site of section 19, generated reference pages, snippets run in CI, `llms.txt` |
 | Not in v1 | a built-in UI (a minimal admin page is phase 7), hosted offering, billing |
 
 ### 18.1 Implementation notes (where the code differs from the text above, as of 2026-10-13)
@@ -1930,9 +1930,9 @@ The first implementation (phase 1 and most of phase 2) follows this document; th
 
 Open items added by the implementation: response DTOs (and the casing decision above); Gmail `users.watch` push is accepted at `/hooks/google/{slug}` as a nudge only, polling does the reading; the SMS executor and the Allo dialer run against recorded fixtures, not yet against a live Allo workspace.
 
-## 19. Documentation: the `oseq-docs` package
+## 19. Documentation: the `docs` package
 
-A self-hosted service lives or dies by its docs. OpenSequence ships them as a package in the same repository, **`packages/oseq-docs`**, published at `docs.opensequence.dev`, with the structure of the Svix docs (a short "get started" path, task-oriented guides, a self-hosting section, a generated API reference, SDKs, a changelog) and the reading experience of Mintlify (a two-level sidebar with tabs, ⌘K search, dark mode, MDX callouts, cards, steps and code groups, and an API playground generated from the OpenAPI file).
+A self-hosted service lives or dies by its docs. OpenSequence ships them as a package in the same repository, **`packages/docs`**, published at `docs.opensequence.dev`, with the structure of the Svix docs (a short "get started" path, task-oriented guides, a self-hosting section, a generated API reference, SDKs, a changelog) and the reading experience of Mintlify (a two-level sidebar with tabs, ⌘K search, dark mode, MDX callouts, cards, steps and code groups, and an API playground generated from the OpenAPI file).
 
 ### 19.1 Tooling
 
@@ -1951,7 +1951,7 @@ A self-hosted service lives or dies by its docs. OpenSequence ships them as a pa
 ### 19.2 Repository layout
 
 ```text
-packages/oseq-docs/
+packages/docs/
   package.json               @opensequence/docs (private); scripts: dev, build, generate, test:snippets
   next.config.mjs, source.config.ts
   app/                       Fumadocs app: layout with tabs, [[...slug]] page, api route for search
@@ -2065,7 +2065,7 @@ Reference
 
 ### 19.4 The Mintlify experience, as a checklist
 
-| Mintlify behaviour | How `oseq-docs` does it |
+| Mintlify behaviour | How the `docs` package does it |
 |---|---|
 | Tabs across the top, groups and pages in the sidebar, current page highlighted, "on this page" rail on the right | Fumadocs layout with `tabs` from the four top folders; `meta.json` for order and group titles |
 | ⌘K search with results from guides and API reference | built-in index at build time |

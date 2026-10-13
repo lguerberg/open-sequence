@@ -1,7 +1,7 @@
 {
   "name": "@opensequence/site",
   "version": "0.1.0",
-  "description": "The opensequence.dev landing page. Next.js, Tailwind v4, shadcn/ui; static export. The docs live at docs.opensequence.dev (packages/oseq-docs).",
+  "description": "The opensequence.dev landing page. Next.js, Tailwind v4, shadcn/ui; static export. The docs live at docs.opensequence.dev (packages/docs).",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {

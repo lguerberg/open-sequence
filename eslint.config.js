@@ -11,7 +11,7 @@ import boundaries from 'eslint-plugin-boundaries';
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/drizzle/**', '**/*.config.*', 'packages/sdk/src/generated/**', 'packages/oseq-docs/.next/**', 'packages/oseq-docs/.source/**', 'packages/oseq-docs/out/**', 'packages/oseq-docs/generated/**', 'apps/site/.next/**', 'apps/site/out/**', 'apps/site/next-env.d.ts'],
+    ignores: ['**/dist/**', '**/node_modules/**', '**/drizzle/**', '**/*.config.*', 'packages/sdk/src/generated/**', 'packages/docs/.next/**', 'packages/docs/.source/**', 'packages/docs/out/**', 'packages/docs/generated/**', 'apps/site/.next/**', 'apps/site/out/**', 'apps/site/next-env.d.ts'],
   },
   ...tseslint.configs.recommended,
   {

@@ -6,7 +6,7 @@ export const projectUrl = 'https://opensequence.dev';
 export const repoUrl = 'https://github.com/lguerberg/open-sequence';
 export const repoBranch = 'main';
 /** Where the hand-written pages live in the repository, for the "edit on GitHub" link. */
-export const contentDir = 'packages/oseq-docs/content/docs';
+export const contentDir = 'packages/docs/content/docs';
 
 export const docsContentRoute = '/llms.mdx';
 

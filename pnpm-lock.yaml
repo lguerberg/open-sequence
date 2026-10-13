@@ -211,66 +211,7 @@ importers:
         specifier: ^5.0.4
         version: 5.0.4(@types/node@22.20.5)(msw@2.15.0(@types/node@22.20.5)(typescript@5.9.3))(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  packages/engine:
-    dependencies:
-      '@opensequence/core':
-        specifier: workspace:*
-        version: link:../core
-      drizzle-orm:
-        specifier: ^0.45.4
-        version: 0.45.4(postgres@3.4.9)
-      libphonenumber-js:
-        specifier: ^1.13.15
-        version: 1.13.15
-      postgres:
-        specifier: ^3.4.9
-        version: 3.4.9
-      ulid:
-        specifier: ^3.0.2
-        version: 3.0.2
-      zod:
-        specifier: ^4.6.7
-        version: 4.6.7
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.0
-        version: 22.20.5
-      drizzle-kit:
-        specifier: ^0.31.11
-        version: 0.31.11
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^5.0.4
-        version: 5.0.4(@types/node@22.20.5)(msw@2.15.0(@types/node@22.20.5)(typescript@5.9.3))(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-
-  packages/mcp:
-    dependencies:
-      '@opensequence/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-      '@prefecthq/fastmcp-ts':
-        specifier: ^1.7.3
-        version: 1.7.3
-      pino:
-        specifier: ^10.4.0
-        version: 10.4.0
-      zod:
-        specifier: ^4.6.7
-        version: 4.6.7
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.0
-        version: 22.20.5
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^5.0.4
-        version: 5.0.4(@types/node@22.20.5)(msw@2.15.0(@types/node@22.20.5)(typescript@5.9.3))(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-
-  packages/oseq-docs:
+  packages/docs:
     dependencies:
       fumadocs-core:
         specifier: 16.17.2
@@ -330,6 +271,65 @@ importers:
       zod:
         specifier: ^4.6.7
         version: 4.6.7
+
+  packages/engine:
+    dependencies:
+      '@opensequence/core':
+        specifier: workspace:*
+        version: link:../core
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4(postgres@3.4.9)
+      libphonenumber-js:
+        specifier: ^1.13.15
+        version: 1.13.15
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
+      ulid:
+        specifier: ^3.0.2
+        version: 3.0.2
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.0
+        version: 22.20.5
+      drizzle-kit:
+        specifier: ^0.31.11
+        version: 0.31.11
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^5.0.4
+        version: 5.0.4(@types/node@22.20.5)(msw@2.15.0(@types/node@22.20.5)(typescript@5.9.3))(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/mcp:
+    dependencies:
+      '@opensequence/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      '@prefecthq/fastmcp-ts':
+        specifier: ^1.7.3
+        version: 1.7.3
+      pino:
+        specifier: ^10.4.0
+        version: 10.4.0
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.0
+        version: 22.20.5
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^5.0.4
+        version: 5.0.4(@types/node@22.20.5)(msw@2.15.0(@types/node@22.20.5)(typescript@5.9.3))(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/providers:
     dependencies:

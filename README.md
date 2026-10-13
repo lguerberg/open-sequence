@@ -191,7 +191,7 @@ packages/providers   Google, Allo, Attio and a mock
 packages/auth        provider credentials and the OAuth token lifecycle
 packages/sdk         @opensequence/sdk, the TypeScript client and webhook verification
 packages/mcp         @opensequence/mcp, the MCP server (hosted HTTP or local stdio)
-packages/oseq-docs   docs.opensequence.dev (Fumadocs)
+packages/docs        docs.opensequence.dev (Fumadocs)
 ```
 
 Every package is split into `domain`, `application` (one file per use case) and `infrastructure`,

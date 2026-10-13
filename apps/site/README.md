@@ -3,7 +3,7 @@
 The landing page and its design system. Next.js (app router), Tailwind v4, shadcn/ui, Albert Sans
 and IBM Plex Mono (self-hosted by `next/font`), code highlighted at build time with shiki. Static
 export: `next build` writes `out/`. The docs are a separate deployment at `docs.opensequence.dev`
-(`packages/oseq-docs`); every outbound link goes through `lib/links.ts`.
+(`packages/docs`); every outbound link goes through `lib/links.ts`.
 
 ```bash
 pnpm --filter @opensequence/site dev     # http://localhost:4321, the landing at /, the design system at /design

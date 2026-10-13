@@ -24,7 +24,7 @@ Node 22 and pnpm 10. The repository is a pnpm workspace; `docs/ARCHITECTURE.md` 
 | `packages/providers` | `google`, `allo`, `attio` and `mock`, registered by name |
 | `packages/auth` | provider credentials and the token lifecycle (the `auth` schema); destined for its own repository |
 | `packages/sdk` | `@opensequence/sdk`, types generated from the OpenAPI file |
-| `packages/oseq-docs` | this site |
+| `packages/docs` | this site |
 | `apps/server` | the Fastify API, the workers, the composition root, the `oseq` CLI, `openapi.json` |
 
 Every package is DDD-shaped: `src/domain`, `src/application`, `src/infrastructure`. Dependencies point inward only, and `pnpm lint` enforces it with `eslint-plugin-boundaries`: `domain` imports nothing from `application` or `infrastructure`; `core` imports no I/O package and no workspace package; `queue`, `providers` and `auth` never import `engine`; the SDK imports nothing from the repository. A violation is a lint error, not a review comment.

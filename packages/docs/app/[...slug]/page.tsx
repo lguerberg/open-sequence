@@ -33,7 +33,7 @@ export default async function Page(props: Params) {
 
   const MDX = page.data.body;
   const isGenerated = page.absolutePath?.includes('/generated/');
-  const githubUrl = isGenerated ? `${repoUrl}/blob/${repoBranch}/packages/oseq-docs/scripts/generate.ts` : `${repoUrl}/blob/${repoBranch}/${contentDir}/${page.path}`;
+  const githubUrl = isGenerated ? `${repoUrl}/blob/${repoBranch}/packages/docs/scripts/generate.ts` : `${repoUrl}/blob/${repoBranch}/${contentDir}/${page.path}`;
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
