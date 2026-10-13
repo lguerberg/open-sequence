@@ -1,0 +1,88 @@
+---
+title: "Receiving webhooks"
+description: "Register an endpoint, the event catalogue, payloads, ordering and idempotency."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/webhooks -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"url":"https://app.acme.com/hooks/opensequence","event_types":["enrollment.exited","task.created","signal.received"]}'
+# {"endpoint":{"id":"wep_…","url":"…","event_types":[…],"status":"active"},"secret":"whsec_…"}   the secret is shown once
+```
+
+```ts title="TypeScript"
+const { endpoint, secret } = await oseq.webhooks.create({
+  url: 'https://app.acme.com/hooks/opensequence',
+  event_types: ['enrollment.exited', 'task.created', 'signal.received'],
+});
+// store `secret` next to the endpoint id; it is needed to verify deliveries
+```
+
+</CodeGroup>
+
+The service tells your backend what happened with the delivery guarantees you expect from Svix: signed, retried for three days, ordered per enrollment, replayable. Endpoints need the `admin` scope. `event_types` is a list of the types below or `["*"]` (the default). URLs must be `https`, carry no credentials and resolve to a public address (`422 UNSAFE_URL`); they are re-resolved at every delivery.
+
+## The catalogue
+
+| Event | When |
+|---|---|
+| `enrollment.created` | after a successful enroll, one per contact |
+| `enrollment.exited` | an exit by rule or by API, with `exit_reason` and the `signal` that caused it |
+| `enrollment.completed` | an `end` node or an unwired transition |
+| `enrollment.paused`, `enrollment.resumed` | a pause or resume, any cause, with `pause_reason` and `paused_until` |
+| `run.done` | an outreach step was sent: the run (node, channel, touch number, provider ref) and the enrollment |
+| `run.skipped`, `run.failed`, `run.needs_review` | a step did not execute, with `reason` or `error` |
+| `task.created`, `task.expired` | a task for a sender appeared or expired |
+| `signal.received` | any signal after processing (reply, bounce, opt-out, meeting, call, task completion, your own events), with its attribution and the contact |
+| `sender.channel_status` | a channel changed status (`credentials_needed`, `restricted`, back to `active`) |
+| `endpoint.disabled` | an endpoint was disabled after three days of failures |
+
+The generated reference lists every payload field: [Webhook events](/reference/webhook-events). `GET /v1/schema/events` returns the type list.
+
+## The payload
+
+```http
+POST /hooks/opensequence HTTP/1.1
+content-type: application/json
+user-agent: OpenSequence-Webhooks/1
+webhook-id: evt_01J9…
+webhook-timestamp: 1760346000
+webhook-signature: v1,K5oZfzN95Z9UVu1EsfQmfVuOm3Q…
+
+{
+  "id": "evt_01J9…",
+  "type": "enrollment.exited",
+  "project": "prj_01J9…",
+  "enrollment": "enr_01J9…",
+  "occurred_at": "2026-10-13T09:00:00.000Z",
+  "data": {
+    "enrollment": { "id": "enr_01J9…", "sequence": "seq_…", "version": "ver_…", "contact": "ctc_…", "sender": "snd_…", "status": "exited", "exit_reason": "replied", "touch_count": 2, "replied_at": "…", "seq": 7 },
+    "exit_reason": "replied",
+    "signal": "sig_01J9…"
+  }
+}
+```
+
+Answer any `2xx` within 10 seconds. Anything else, a timeout or a connection error counts as a failure and the delivery is retried ([Retries and recovery](/docs/webhooks/retries-and-recovery)). Verify the signature before trusting the body ([Verifying](/docs/webhooks/verifying)).
+
+## Ordering and idempotency
+
+- **Idempotent by `id`.** A delivery can arrive more than once (a retry after your `2xx` was lost). Keep the ids you processed, or make the handler idempotent on the entity (`data.enrollment.id`, `data.task.id`).
+- **Ordered per enrollment, not globally.** Deliveries for the same endpoint and enrollment are attempted one at a time in creation order; the next waits until the previous succeeded or gave up, so a failing endpoint only blocks itself. Events that carry an enrollment also carry `data.enrollment.seq`, a per-enrollment counter, so you can discard a stale event that arrives after a newer one through a replay.
+- **Processing is asynchronous.** Events are written in the same transaction as the change they describe and delivered by the worker within seconds.
+
+## Endpoint management
+
+| Call | Does |
+|---|---|
+| `GET /v1/webhooks`, `GET /v1/webhooks/{id}` | list and read (never the secret) |
+| `PATCH /v1/webhooks/{id}` | change `url` or `event_types` |
+| `DELETE /v1/webhooks/{id}` | delete the endpoint and its deliveries |
+| `POST /v1/webhooks/{id}/rotate-secret` | a new secret, shown once; deliveries from this moment are signed with it, there is no overlap window |
+| `POST /v1/webhooks/{id}/enable` | re-enable a disabled endpoint and replay what was held |
+| `POST /v1/webhooks/{id}/recover { since }` | re-send every delivery that failed for good since a time |
+| `GET /v1/webhooks/{id}/deliveries` | the log: status, attempts, last status code and error, the payload |
+| `POST /v1/webhooks/deliveries/{id}/replay` | re-send one delivery |
+
+No endpoint? Every list endpoint accepts `updated_since` so you can [poll](/docs/webhooks/polling) instead.

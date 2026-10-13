@@ -1,0 +1,6 @@
+---
+title: "Upgrades"
+description: "Additive contracts, expand-then-contract migrations, rolling deploys, rollback."
+---
+
+<Note>This page is not written yet. The rules it will state: the public API only grows and the definition `schema_version` is read forever; `api` and `worker` share the schema, migrations are expand-then-contract, so deploy the role that adds capability first; old and new replicas coexist during a rolling deploy because consumers ignore unknown fields and the tables arbitrate; roll back by redeploying the previous image of the role at fault, and in an emergency set `SEQ_PAUSED=1` or scale the worker to zero.</Note>

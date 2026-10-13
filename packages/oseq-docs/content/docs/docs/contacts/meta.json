@@ -1,0 +1,4 @@
+{
+  "title": "Contacts",
+  "pages": ["contacts", "attrs", "consent-and-suppressions", "events"]
+}

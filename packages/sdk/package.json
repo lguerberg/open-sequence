@@ -1,0 +1,27 @@
+{
+  "name": "@opensequence/sdk",
+  "version": "0.1.0",
+  "description": "Typed TypeScript client for the OpenSequence API, plus Standard Webhooks verification.",
+  "license": "Apache-2.0",
+  "homepage": "https://opensequence.dev",
+  "repository": { "type": "git", "url": "https://github.com/open-sequence/opensequence", "directory": "packages/sdk" },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist"],
+  "sideEffects": false,
+  "engines": { "node": ">=20.0.0" },
+  "scripts": {
+    "generate": "openapi-typescript ../../apps/server/openapi.json -o src/generated/openapi.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  }
+}

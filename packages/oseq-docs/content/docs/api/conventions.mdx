@@ -1,0 +1,92 @@
+---
+title: "Conventions"
+description: "Authentication, scopes, the response envelope, pagination, ids, rate limits and errors, the same on every endpoint."
+---
+
+The API lives under `/v1` on your instance (`SEQ_PUBLIC_URL`). The reference pages on this site are generated from the OpenAPI document the server itself serves; your instance also serves Swagger UI at `/docs` and the raw document at `/docs/json`.
+
+## Authentication
+
+Two kinds of callers:
+
+| Caller | Header | Covers |
+|---|---|---|
+| A project API key `sk_live_…` | `Authorization: Bearer sk_live_…` | everything except `/v1/admin/*` |
+| The operator token (`SEQ_ADMIN_TOKEN`) | `Authorization: Bearer <token>` | `/v1/admin/*` only: create projects and keys, platform-wide health |
+
+Keys are stored as SHA-256 hashes, shown once at creation, revocable, with `last_used_at`. Every request resolves to exactly one project and every query is scoped by it; another project's ids are `404`.
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/sequences -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+import { OpenSequence } from '@opensequence/sdk';
+const oseq = new OpenSequence({ baseUrl: 'https://sequences.example.com', apiKey: process.env.OSEQ_KEY! });
+const { items } = await oseq.sequences.list();
+```
+
+```python title="Python"
+import requests
+r = requests.get(f"{SEQ}/v1/sequences", headers={"Authorization": f"Bearer {KEY}"})
+items = r.json()["data"]
+```
+
+</CodeGroup>
+
+## Scopes
+
+A key has one or more of three scopes, ranked `read` < `enroll` < `admin`; a route needs one, and a key passes when it holds that scope or a higher one. A key that cannot do something gets `403 INSUFFICIENT_SCOPE`.
+
+| Scope | What it can do |
+|---|---|
+| `read` | every `GET`, `POST /v1/contacts:status`, `POST /v1/sequences:validate`, `POST .../enrollments:preview`, the `/v1/schema*` endpoints, `GET /v1/project` |
+| `enroll` | `read`, plus contacts (upsert, batch, patch, events), enroll, pause, resume, complete and cancel tasks |
+| `admin` | everything: senders and channels, sequences, versions, publish, exit, SMS consent, project settings, provider credentials, API keys, flags, engine health, webhooks |
+
+An `enroll` key can never publish, edit a sequence or grant SMS consent: give it to the part of your system that reacts to user actions, and keep `admin` for configuration.
+
+## Response envelope
+
+Every response, success or failure:
+
+```json
+{ "success": true,  "data": { … }, "meta": { "request_id": "req_…", "next_cursor": "…" } }
+{ "success": false, "error": { "code": "ALREADY_IN_SEQUENCE", "message": "…", "details": { … } }, "meta": { "request_id": "req_…" } }
+```
+
+`meta.request_id` is in every log line the request produced; quote it when you ask for help. Creation endpoints answer `201`; everything else `200`. See [Errors](/api/errors) for every code.
+
+## Ids and external ids
+
+Service ids are prefixed ULIDs: `prj_`, `key_`, `snd_`, `chn_`, `ctc_`, `seq_`, `ver_`, `enr_`, `run_`, `msg_`, `sig_`, `tsk_`, `wep_`, `wdl_`, `evt_`. Senders, contacts and sequences can also be addressed by **your** id wherever an `{id}` appears: a value with a known prefix and a 26-character ULID is a service id, anything else is an `external_id`. If your own ids could look like a service id, force the external reading with `ext:`, as in `ext:ctc_123`.
+
+## Pagination
+
+List endpoints take `limit` (1 to 200, default 50) and `cursor`, and return `meta.next_cursor` (null on the last page). Most also take `updated_since` (an ISO timestamp) so a client without a webhook endpoint can poll for changes. The SDK's `list()` returns `{ items, nextCursor }` and `listAll()` walks every page.
+
+```bash
+curl "$SEQ/v1/enrollments?status=active&limit=100&updated_since=2026-10-13T00:00:00Z" -H "Authorization: Bearer $KEY"
+```
+
+## Bodies
+
+JSON only (`Content-Type: application/json`), 2 MB at most. A `POST` with that content type and **no body** is accepted where the body is optional (`.../connections/google`, `.../publish`, `.../pause`, `.../exit`). Unknown fields are rejected on the strict schemas (contacts, senders' channel patches, sequence patches, webhook endpoints) with `400 VALIDATION_ERROR` and the offending path in `details`.
+
+## Rate limits
+
+600 requests per minute, counted per `Authorization` header value (per key), falling back to the client IP without one. Over the limit the response is `429` with a `Retry-After` header and the message `Rate limit exceeded, retry in …`. With more than one API replica and no shared store the counter is per replica.
+
+## Idempotency
+
+Writes are idempotent by design where it matters: `PUT` upserts; `POST /v1/contacts/{id}/events` is keyed by your event `id`; enrolling a contact already in a sequence is refused rather than duplicated; completing a task that is no longer open returns it unchanged; publishing a published version returns it. The `Idempotency-Key` header described in the architecture document is **not implemented yet**: a repeated `POST /v1/sequences` creates a second sequence.
+
+## Dates and time zones
+
+Timestamps are ISO 8601 in UTC. Time zones are IANA names (`Europe/London`); durations in definitions use one grammar, `^\d+(m|h|d|bd)$`. Phone numbers are E.164 (`+14155551234`) and are normalized on input; countries are ISO 3166-1 alpha-2.
+
+## Request ids and logs
+
+The service generates `req_…` for every request and returns it in `meta.request_id`. An incoming `X-Request-Id` header is not propagated yet.

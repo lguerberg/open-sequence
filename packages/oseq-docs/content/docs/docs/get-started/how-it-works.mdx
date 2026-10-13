@@ -1,0 +1,65 @@
+---
+title: "How it works"
+description: "Three loops, the database is truth and queues are hints, ownership, and what happens to one contact."
+---
+
+## One contact's life, in ten lines
+
+1. Your app upserts a sender (`PUT /v1/senders/u_42`) and connects their Google account (`POST /v1/senders/u_42/connections/google`): one consent, Gmail and Calendar.
+2. Your app upserts a contact with an email, a time zone and some `attrs` (`PUT /v1/contacts/p_7`).
+3. Someone publishes a sequence version: an email, a two-day wait, a condition, a text, a call task.
+4. Your app enrolls the contact as that sender (`POST /v1/sequences/seq_x/enrollments`). The service refuses if the contact is already in any sequence.
+5. The planner sees the enrollment is due, runs the pure interpreter, and queues the email step.
+6. The email executor checks the gates (suppressions, channel caps, send window), gets a fresh access token from the auth module, sends through the sender's Gmail with its own `Message-ID`, records the message and the run, and schedules the wait.
+7. Two business days later the planner evaluates the condition: it asks Attio for the contact's open deal and reads its stage, records the facts it read, and takes a branch.
+8. The text step is skipped (`no_consent`) because the contact never opted in; the skip is recorded and the flow continues.
+9. The call step creates a task and pushes the number into the sender's Allo dialer; when Allo reports the call, the task completes itself with the outcome, which wakes the flow.
+10. The contact replies to the first email, or books a slot that lands in the sender's Google Calendar. The signal is attributed to the email step, the enrollment exits with `replied` or `meeting_booked`, and a webhook `enrollment.exited` reaches your app.
+
+## Three loops
+
+```text
+scheduler (lease rows, every few seconds)
+   │
+   ├─ loop 1: planner ── claim due enrollments, fair per sender, advance ──► queue seq_email, seq_sms
+   │
+   ├─ loop 2: executors and pollers ── send through the sender's accounts, poll Gmail and Calendar, check health
+   │
+   └─ loop 3: signals and webhooks ── process signals (exit, pause, wake, attribute) ──► queue seq_webhooks ──► your endpoints
+                                                                                                    ▲
+   api: provider webhooks, task completions, client events ── insert signals in the same transaction ┘
+```
+
+The loops talk only through tables and queues, never by calling each other, so any loop can be stopped, restarted or scaled alone.
+
+- **The database is the truth, queue messages are hints.** A lost or duplicated message costs a delay at most: the planner re-finds anything due, and every step re-checks state under a row lock before acting.
+- **Transactional outbox.** With `SEQ_QUEUE=postgres` the enqueue is an insert in the same transaction as the state change, so "run recorded" and "message queued" cannot diverge. With Redis, the reaper re-enqueues anything recorded but never queued.
+- **Timers are rows, not process timers.** `next_run_at` on the enrollment is the timer; the scheduler wakes the planner every five seconds. Nothing is lost on restart.
+- **Logic steps run inline** (wait, condition, end, task creation) in one transaction, up to 25 steps per advance; a `crm.*` condition makes one Attio call inside that step. Only steps with an external side effect (email, SMS) hop to a queue.
+
+## The scheduler
+
+No cron extension: each periodic job has a lease row in `seq.job_locks`, and whichever replica takes the lease runs it. A lease is a few periods long, so a crashed leader is replaced within seconds, and every job is idempotent, so an overlap is harmless. Plain statements only, so a transaction pooler is fine.
+
+| Job | Period | What it does |
+|---|---|---|
+| `plan` | 5 s | claim due enrollments fairly per sender (50 per sender, 500 per tick) and advance them; resume pauses whose `paused_until` passed |
+| `signals` | 30 s | process unprocessed signals (the safety net for a lost message) |
+| `poll` | 60 s | for every active email channel: Gmail history from the stored cursor (scoped to threads the service started in the last 30 days), Calendar events from its cursor; every 15 minutes a health check that raises `sender.channel_status` on a change |
+| `reap` | 60 s | release planner claims older than 10 minutes, re-enqueue runs recorded but never queued, fail runs stuck for 2 hours, re-enqueue deliveries whose next attempt is due |
+| `webhooks` | 30 s | sweep deliveries due for a retry |
+| `retention` | daily | prune idempotency keys after a day, dead-queue rows and delivered webhook deliveries after 30 days |
+
+## Ownership, and why there is no double send
+
+While an executor works on a step, the enrollment's `owner_run_id` points at that run and `next_run_at` is null, so the planner cannot see it; only the executor that finishes the run hands the enrollment back. Every email carries a `Message-ID` derived from the run's idempotency key, and a retry first asks the provider whether that id already went out (`findSent`) before sending again. A text has no such key, so an unknown outcome searches the last ten minutes of outbound texts to that number, and if that is inconclusive the run goes to `needs_review` instead of being retried: a double text is worse than a late one.
+
+## Signals
+
+Everything that comes from outside becomes a signal row, unique per `(project, source, external id)`, so a webhook delivered twice changes nothing. Processing a signal is, per enrollment it can touch and in its own transaction: attribute (the first reply and the first meeting per enrollment, never rewritten), then exit (an opt-out, a hard bounce, a complaint or a suppression always exits; a reply or a meeting exits when `exit_on` says so), pause (an out-of-office reply pauses until its stated date or seven days), or wake a `wait_for` or a task. The effect is recorded, so a redelivered signal is a no-op. Afterwards `signal.received` is delivered to your endpoints.
+
+## Gates at execution
+
+The planner checks nothing about deliverability; the executor does, at the last moment: the contact's email or phone exists, no suppression on the channel (or on all channels), the channel exists on the sender and is `active`, the daily cap and minimum gap, the sequence's send window, and for SMS also consent, an allowed country (`sms_countries`), a known recipient time zone and 08:00 to 21:00 recipient-local. A gate that cannot pass skips the step (recorded with its reason, the flow takes `skipped`); a gate that will pass later defers it (`send_window`, `daily_limit`, `min_gap`, `quiet_hours`, `kill_switch`, `credentials_needed`), and the enrollment goes back to the planner with a new `next_run_at`.
+
+Read the full design in the [architecture document](https://github.com/open-sequence/opensequence/blob/main/docs/ARCHITECTURE.md); these docs are for integrating, not for building the engine.

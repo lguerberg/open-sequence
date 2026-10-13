@@ -1,0 +1,66 @@
+---
+title: "The journey"
+description: "Reading one contact's path: runs, facts, messages, signals, tasks, and debugging why they took No."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/enrollments/enr_01J9… -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+const journey = await oseq.enrollments.get('enr_01J9…');
+for (const run of journey.runs) console.log(run.nodeId, run.status, run.branch, run.result);
+```
+
+</CodeGroup>
+
+`GET /v1/enrollments/{id}` returns the pinned version's definition plus the enrollment's runs, messages, signals and tasks in one payload:
+
+```json
+{
+  "enrollment": { "id": "enr_01J9…", "status": "active", "currentNodeId": "call_1", "senderId": "snd_01J9…", "touchCount": 2, "repliedAt": null, "enrolledAt": "…", "seq": 5 },
+  "contact":    { "id": "ctc_01J9…", "externalId": "p_4802", "firstName": "Tom", "email": "tom@example.com", "attrs": { … } },
+  "version":    { "id": "ver_01J9…", "tag": "v1", "definition": { … } },
+  "runs": [
+    { "nodeId": "email_intro", "nodeType": "outreach", "channel": "email", "status": "done", "branch": "sent", "touchNumber": 1,
+      "result": { "message_id": "<seq.enr….@acme.com>", "rendered": { "contact.first_name": "Tom" }, "outcome": { "delivered_at": "…" } } },
+    { "nodeId": "wait_2d", "nodeType": "wait", "status": "done", "branch": "then", "result": { "until": "…" } },
+    { "nodeId": "check_stage", "nodeType": "condition", "status": "done", "branch": "no",
+      "result": { "facts": [ { "field": "history.last_task_outcome", "label": "Last task outcome", "value": "connected", "rule": "is voicemail", "matched": false } ], "mode": "all", "note": "0 of 2 rules matched, so the contact took No." } },
+    { "nodeId": "sms_follow", "nodeType": "outreach", "channel": "sms", "status": "skipped", "branch": "skipped", "result": { "skip_reason": "no_consent" } },
+    { "nodeId": "call_1", "nodeType": "task", "status": "waiting", "result": { "due_at": "…", "expires_at": "…", "rendered": { … } } }
+  ],
+  "messages": [ { "channel": "email", "direction": "out", "subject": "…", "status": "sent", "threadRef": "…", "occurredAt": "…" } ],
+  "signals":  [ { "kind": "reply", "channel": "email", "attribution": "direct", "attributedRunId": "run_…", "occurredAt": "…" } ],
+  "tasks":    [ { "id": "tsk_01J9…", "kind": "call", "status": "open", "dueAt": "…" } ]
+}
+```
+
+## Reading it
+
+- **The path** is `runs` in order: an edge is taken when its two nodes are consecutive runs, and `branch` names the transition. A canvas highlights the path by walking the runs against `version.definition`.
+- **Every outcome is a pill**: `done` with its branch, `skipped` with `result.skip_reason`, `deferred` with `result.deferred` and `retry_at`, `failed` with `error`, `needs_review`, `waiting` with `until` or `events`, `skipped_dry_run`.
+- **Every decision shows what it saw**: a condition run's `result.facts` lists each rule with the value read, the rule as a sentence and whether it matched (and `error` when the read failed). Because facts are stored when the decision was made, "why did this contact take No" is never reconstructed from today's data.
+- **Every template shows what it rendered**: `result.rendered` maps each path to the value used.
+- **Messages** are the emails and texts sent for this enrollment's runs and the replies received since it started; **signals** are what came in since it started or was attributed to one of its runs; **tasks** are its tasks.
+
+The same payload is what an agent reads to debug, and what a UI offers as "saved JSON".
+
+## Listing enrollments
+
+<CodeGroup>
+
+```bash title="curl"
+curl "$SEQ/v1/enrollments?sequence=seq_01J9…&status=active&sender=u_42&limit=100" -H "Authorization: Bearer $KEY"
+curl "$SEQ/v1/enrollments?updated_since=2026-10-13T00:00:00Z" -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+for await (const e of oseq.enrollments.listAll({ sequence: 'seq_01J9…', status: 'active' })) console.log(e.id, e.contact?.name, e.currentNodeId);
+```
+
+</CodeGroup>
+
+`GET /v1/enrollments` filters by `sequence`, `version`, `status`, `sender`, `contact`, `exit_reason` and `updated_since`; each row carries a contact summary (`id`, `external_id`, `name`, `email`), the current node, touch count, `replied_at` and `meeting_booked_at`. For one contact, `GET /v1/contacts/{id}` returns their active enrollment and `GET /v1/contacts/{id}/timeline` merges everything that ever happened to them across enrollments.

@@ -1,0 +1,48 @@
+---
+title: "Templates"
+description: "Syntax, paths, fallbacks, text and html bodies, the unsubscribe link, and what is recorded."
+---
+
+```text
+Quick question, {{ contact.first_name | "there" }}
+
+Hi {{ contact.first_name | "there" }}, {{ sender.first_name }} here from {{ sender.attrs.company | "Acme" }}.
+I saw {{ attrs.company.name | "your company" }} is hiring. Worth a chat about {{ sequence.name }}?
+
+Unsubscribe: {{ unsubscribe_url }}
+```
+
+Subjects, bodies, task titles, bodies and links are rendered by one small engine. The syntax is `{{ path }}` and `{{ path | "fallback" }}`. Nothing else: no logic, no loops, no filters, no code.
+
+## Paths
+
+| Path | Value |
+|---|---|
+| `contact.first_name`, `contact.last_name`, `contact.email`, `contact.phone`, `contact.country`, `contact.timezone`, `contact.linkedin_url` | the contact's columns |
+| `attrs.<path>` | the contact's attrs (`contact.attrs.<path>` is accepted as an alias) |
+| `sender.name`, `sender.first_name`, `sender.email`, `sender.timezone` | the sender's columns |
+| `sender.attrs.<path>` | the sender's attrs |
+| `sequence.name` | the sequence's name |
+| `unsubscribe_url` | the hosted opt-out link for this run |
+
+A path outside these roots is a publish error (`BAD_TEMPLATE`).
+
+## Missing values and fallbacks
+
+A missing or empty value renders as the fallback, or as an empty string when there is none, and never throws. Three paths **must** carry a fallback to publish, because they are empty for some contacts: `contact.first_name`, `contact.last_name`, `contact.email` (`BAD_TEMPLATE`: "can be empty for some contacts. Give it a fallback"). Everything else may be empty. A fallback is a double-quoted string; escape a quote inside it with a backslash.
+
+## Text and HTML
+
+Email bodies are `text` (default) or `html` (`params.format`). In `html`, every rendered value is HTML-escaped, and the message carries a plain-text alternative made from the HTML. In `text`, values are inserted as is. SMS bodies and task fields are plain text.
+
+## The unsubscribe link
+
+`{{ unsubscribe_url }}` renders `SEQ_PUBLIC_URL/u/{token}`, a signed link valid for 90 days that writes an email suppression and exits the enrollment with one click; every email also carries `List-Unsubscribe` and `List-Unsubscribe-Post` headers for the same token. An email body without it publishes with the warning `NO_UNSUBSCRIBE`. See [Consent and suppressions](/docs/contacts/consent-and-suppressions).
+
+## What is recorded
+
+Every run that rendered something stores the values it used in `result.rendered` (`{ "contact.first_name": "Dana", "attrs.company.name": null }`), so the journey shows what the contact received. Task titles and bodies are stored on the task itself.
+
+## Preview
+
+Render a definition against a sample contact before publishing: the `POST /v1/sequences:simulate` endpoint the architecture document describes is **not implemented yet**. Use `POST /v1/sequences:validate` for the template path and fallback checks, and a `dry_run` enrollment ([Enrolling](/docs/enrollments/enrolling)) to see rendered outreach steps recorded as `skipped_dry_run`.

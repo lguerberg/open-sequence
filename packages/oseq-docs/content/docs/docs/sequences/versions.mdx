@@ -1,0 +1,65 @@
+---
+title: "Versions"
+description: "Drafts, the optimistic lock, publishing, immutability, new versions, archiving, and what enrolled contacts do when a new version ships."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/sequences -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"name":"UK intro","description":"First touch for UK facilities managers"}'
+# {"sequence":{"id":"seq_…","status":"active","defaultVersionId":null},"version":{"id":"ver_…","tag":"v1","status":"draft","lockVersion":0}}
+curl -X PUT  $SEQ/v1/sequences/seq_…/versions/ver_…/draft   -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"definition":{…},"lock_version":0}'
+curl -X POST $SEQ/v1/sequences/seq_…/versions/ver_…/publish -H "Authorization: Bearer $KEY" -H "Content-Type: application/json"
+curl -X POST $SEQ/v1/sequences/seq_…/versions -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"from_version":"ver_…","tag":"v2"}'
+curl -X POST $SEQ/v1/sequences/seq_…/versions/ver_…/archive -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+const { sequence, version } = await oseq.sequences.create({ name: 'UK intro' });
+const saved = await oseq.sequences.versions.saveDraft(sequence.id, version.id, { definition, lock_version: version.lockVersion });
+await oseq.sequences.versions.publish(sequence.id, version.id);
+const v2 = await oseq.sequences.versions.create(sequence.id, { from_version: version.id, tag: 'v2' });
+await oseq.sequences.versions.archive(sequence.id, version.id);
+```
+
+</CodeGroup>
+
+## Lifecycle
+
+```text
+POST /v1/sequences ──► v1 draft ──PUT …/draft (edit)──► ──POST …/publish──► published (immutable, the default) ──POST …/archive──► archived
+                                                                                   │
+                                                              POST /v1/sequences/{id}/versions {from_version, tag} ──► v2 draft …
+```
+
+| Status | Meaning |
+|---|---|
+| `draft` | editable with `PUT .../draft`; deletable with `DELETE .../versions/{vid}`; cannot enroll |
+| `published` | frozen; the sequence's default version for new enrollments; cannot be edited (`409 VERSION_NOT_EDITABLE`) |
+| `archived` | no new enrollments into it; people already in it finish on it |
+
+Creating a sequence makes `v1` as a draft; pass `definition` in the create body to start from your own document instead of the empty `start → end`. `external_id` lets you address the sequence by your own id, and `labels` is free JSON for your UI.
+
+## Saving a draft
+
+`PUT /v1/sequences/{id}/versions/{vid}/draft` takes `{ definition, lock_version }`. The version's `lockVersion` increments on every save; sending a stale one is `409 STALE_LOCK` ("someone else saved this draft after you loaded it"), so two editors cannot overwrite each other. Saving accepts a definition with **errors**: they come back as `problems` so a canvas can show them while the user works. Only publishing refuses them.
+
+## Publishing
+
+`POST .../publish` validates (errors block with `422 INVALID_DEFINITION` and `details.problems`; warnings pass and are returned), freezes the definition, records `published_by` (the body's `published_by`, else the key id) and makes the version the sequence's default. Publishing a published version is a no-op that returns it.
+
+## A new version
+
+`POST /v1/sequences/{id}/versions` with `{ from_version?, tag }` copies any version (default: the sequence's default, else the latest) into a new draft. Tags are unique per sequence (`409 TAG_TAKEN`), up to 24 letters, digits, dots and dashes (`BAD_TAG`).
+
+## What enrolled contacts do when a new version ships
+
+Nothing changes for them: an enrollment is pinned to its version id, the definition is immutable, and the journey shows the definition the contact actually ran. New enrollments (and `POST .../enrollments` without an explicit `version`) use the new default. To move people, exit them (`POST /v1/enrollments:exit { sequence, status: "active" }`) and enroll them again; the re-enrollment rule (`settings.reenroll`) applies, so `never` will skip them.
+
+## Pausing and archiving a sequence
+
+`PATCH /v1/sequences/{id}` with `status: "paused"` stops planning for every version (enrollments keep their state and resume when the sequence is active again); `status: "archived"` is refused with `409 HAS_ACTIVE_ENROLLMENTS` while contacts are in it, unless `exit_active: true`, which exits them with reason `manual` and the label `sequence archived`. The same `PATCH` renames (`name`), describes (`description`) and relabels (`labels`).
+
+## Reading
+
+`GET /v1/sequences` lists sequences with their versions (`id`, `tag`, `status`) and headline counts (enrolled, active, replies, meetings); `GET /v1/sequences/{id}` adds `published_at`; `GET /v1/sequences/{id}/versions/{vid}` returns the definition and its current validation problems.

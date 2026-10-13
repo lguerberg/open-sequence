@@ -1,0 +1,6 @@
+---
+title: "Recipes"
+description: "Move a deal on reply, log sent emails in your timeline, show tasks in your CRM, alert Slack on a call task."
+---
+
+<Note>This page is not written yet. Each recipe is a handler on one event: `signal.received` with `kind: "reply"` to move a deal; `run.done` with `channel: "email"` to log the sent email (the subject and the message id are in `data.run` and the journey); `task.created` to mirror the task into your CRM; `task.created` with `kind: "call"` to post to Slack. Verify the signature first ([Verifying](/docs/webhooks/verifying)).</Note>

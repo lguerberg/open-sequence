@@ -1,0 +1,47 @@
+# One command to a running OpenSequence: `docker compose up`.
+#
+# Development defaults: mock providers (no Google, Allo or Attio account needed), one process
+# running both roles, and a fixed operator token. Production turns the mock off, splits the roles,
+# and sets real SEQ_ENCRYPTION_KEYS and SEQ_ADMIN_TOKEN (see docs: self-hosting/configuration).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: oseq
+      POSTGRES_PASSWORD: oseq
+      POSTGRES_DB: opensequence
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U oseq -d opensequence']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  opensequence:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    image: opensequence/server:dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SEQ_DB_DSN: postgres://oseq:oseq@postgres:5432/opensequence
+      SEQ_QUEUE: postgres
+      SEQ_ROLES: all
+      SEQ_RUN_MIGRATIONS: '1'
+      SEQ_PUBLIC_URL: http://localhost:8080
+      SEQ_PORT: '8080'
+      # Development only. Generate real ones with `oseq secrets new-key` and a long random token.
+      SEQ_ENCRYPTION_KEYS: 'dev:ZGV2ZWxvcG1lbnQta2V5LW5vdC1mb3ItcHJvZHVjdGlvbi0hIQ=='
+      SEQ_ADMIN_TOKEN: dev-admin-token
+      SEQ_DEV_MOCK_PROVIDERS: '1'
+      SEQ_LOG_LEVEL: info
+    ports:
+      - '8080:8080'
+
+volumes:
+  pgdata:

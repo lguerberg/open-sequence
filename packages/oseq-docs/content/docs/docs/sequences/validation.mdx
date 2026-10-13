@@ -1,0 +1,32 @@
+---
+title: "Validation"
+description: "Every validation code with its fix. Warnings on save, errors on publish."
+---
+
+Validation runs on `POST /v1/sequences:validate`, on every draft save (problems are returned, the save goes through) and on publish (errors block). Every problem is `{ path, code, message, severity }` with a JSON path into the definition and a sentence a person or an agent can act on:
+
+```json
+{ "path": "nodes.sms_follow.params.body", "code": "TOO_LONG", "message": "The SMS is 412 characters (3 segments).", "severity": "warning" }
+```
+
+| Code | Severity | When | Fix |
+|---|---|---|---|
+| `INVALID_DEFINITION` | error | the document does not match the schema: a wrong type, a missing required param, a bad duration, an id that is not `lower_snake_case`, over 200 nodes or 256 KB, a transition key the node type does not emit, a `next` on an `end` node | follow the `path`; the message is the schema's own |
+| `UNKNOWN_NODE_TYPE` | error | `type` is not registered | one of `start`, `outreach`, `wait`, `wait_for`, `condition`, `task`, `end` |
+| `UNKNOWN_CHANNEL`, `UNKNOWN_ACTION` | error | an `outreach` node without a channel, with an unknown one, or with an action the channel does not have | `channel: "email"` or `"sms"`, `action: "send"` |
+| `UNKNOWN_NODE` | error | `entry`, a `next` target or a `branches_by_outcome` target names a node that does not exist | fix the id |
+| `MISSING_TRANSITION` | error | a required transition is unwired (`then` on `start` and `wait`, `yes` and `no` on `condition`) | wire it |
+| `UNREACHABLE_NODE` | error | a node no path from `entry` reaches | wire it or delete it |
+| `CYCLE` | error | a loop with no timed step on it (a `wait`, a `task`, or a `wait_for` with a `timeout`) | put a wait on the loop, or break it |
+| `TOO_MANY_SMS` | error | more than one `sms send` | one text per sequence |
+| `UNKNOWN_FIELD` | error | a condition names a field the registry does not know | pick one from `GET /v1/schema/fields` |
+| `BAD_OPERATOR` | error | the operator does not fit the field's type (`gte` on text, `contains` on a bool) | see the operators per type in [Conditions](/docs/sequences/conditions) |
+| `BAD_VALUE` | error | a missing value where the operator needs one, a non-number for a number field, a value outside an enum | fix the value |
+| `BAD_EVENT` | error | a `wait_for` lists an event with no transition | wire `next.<event>` |
+| `BAD_TEMPLATE` | error | a `{{ path }}` outside the known roots, or `contact.first_name`, `contact.last_name`, `contact.email` without a fallback | use `contact.*`, `attrs.*`, `sender.*`, `sequence.name`, `unsubscribe_url`; add `\| "fallback"` |
+| `NO_UNSUBSCRIBE` | warning | an email body without `{{ unsubscribe_url }}` | add it; recipients cannot opt out with one click otherwise |
+| `TOO_LONG` | warning | an SMS body over 320 characters (three or more segments) | shorten it; the hard limit is 1000 |
+
+Problems that stop a publish are also what the engine refuses at enrollment time, so a published version never fails for a reason validation could have caught. The generated list of every code, including the HTTP ones, is in the [reference](/reference/error-codes).
+
+<Note>The architecture document also lists `NO_END`, `TOO_MANY_CONNECTS` and `BAD_EXIT`. The code has none of them: a path may end on an unwired transition (the enrollment completes), LinkedIn connects are tasks, and `exit_on` is checked by the schema as `INVALID_DEFINITION`.</Note>

@@ -1,0 +1,6 @@
+{
+  "title": "SDKs and CLI",
+  "description": "@opensequence/sdk, @opensequence/auth and oseq",
+  "root": true,
+  "pages": ["typescript", "auth-package", "python", "go", "cli"]
+}

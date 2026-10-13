@@ -1,0 +1,72 @@
+---
+title: "Attributes"
+description: "Use attrs in conditions and templates, keep them fresh, and declare attrs_schema so pickers can show them."
+---
+
+`attrs` is free JSON on a contact (and on a sender). It is the bridge between your data model and the engine: conditions read `attrs.<path>`, templates render `{{ attrs.<path> }}`.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PATCH $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"attrs":{"deal":{"stage":"proposal","value":12000},"plan":"pro"}}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.patch('p_7', { attrs: { deal: { stage: 'proposal', value: 12000 }, plan: 'pro' } });
+```
+
+</CodeGroup>
+
+```json title="In a condition and a template"
+"check": { "type": "condition", "params": { "mode": "all", "rules": [
+  { "field": "attrs.deal.stage", "op": "is", "value": "proposal" },
+  { "field": "attrs.plan", "op": "is_not_empty" } ] },
+  "next": { "yes": "email_exec", "no": "email_std" } },
+"email_exec": { "type": "outreach", "channel": "email", "action": "send",
+  "params": { "subject": "Your {{ attrs.plan | \"\" }} proposal", "body": "…" }, "next": { "sent": "end" } }
+```
+
+## Merge rules
+
+Every upsert and patch merges `attrs` into what is stored **by top-level key** (Postgres `jsonb ||`): a key you send replaces that key's whole value, nested objects included; a key you do not send is kept. So `{ "attrs": { "deal": { "stage": "won" } } }` keeps `attrs.company` but drops `attrs.deal.value` if it was there. Send the whole object for a key you update, and `null` to clear one.
+
+<Warning>The architecture document describes a deep merge. The code merges one level deep.</Warning>
+
+## Freshness is your job
+
+The service never reads your database. A condition on `attrs.deal.stage` sees the value you last sent, and the run records that value in `result.facts`, so the journey shows exactly what the decision used. Send a `PATCH` whenever the fields your conditions depend on change (a CRM webhook, a nightly sync), or branch on live CRM data with [`crm.*` conditions](/docs/sequences/crm-conditions) instead.
+
+## Types and `attrs_schema`
+
+Every `attrs.*` field is validated as **text** by the server: the operators a rule may use are `is`, `is_not`, `contains`, `is_empty` and `is_not_empty`, and a number operator (`gte`) on an attrs field fails validation with `BAD_OPERATOR`. Numbers and booleans you store compare after `String()`, so `attrs.plan is "pro"` and `attrs.seats is "12"` work; a numeric range does not. To give a picker labels, types and value lists, declare the field on the project:
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/project/settings -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{
+  "attrs_schema": {
+    "deal.stage": { "type": "enum", "label": "Deal stage", "values": ["lead", "contacting", "proposal", "won", "lost"] },
+    "deal.value": { "type": "number", "label": "Deal value" },
+    "plan": { "type": "text", "label": "Plan" }
+  }
+}'
+```
+
+```ts title="TypeScript"
+await oseq.project.updateSettings({
+  attrs_schema: {
+    'deal.stage': { type: 'enum', label: 'Deal stage', values: ['lead', 'contacting', 'proposal', 'won', 'lost'] },
+    'deal.value': { type: 'number', label: 'Deal value' },
+    plan: { type: 'text', label: 'Plan' },
+  },
+});
+```
+
+</CodeGroup>
+
+`GET /v1/schema/fields` then returns these under `attrs` next to the built-in sources, so a canvas can build its picker from one call. The declared `type` drives your picker only: the server-side validator still treats every `attrs.*` field as text, so a picker that offers `gte` on a declared `number` attrs field produces a definition the service refuses. Use `is`/`is_not` with enum-like values, or branch on live [`crm.*` facts](/docs/sequences/crm-conditions) for numeric comparisons.
+
+## Sender attrs
+
+Senders have `attrs` too: `{{ sender.attrs.calendar_link }}` in a template, `sender.attrs.team` in a condition.

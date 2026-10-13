@@ -1,0 +1,82 @@
+---
+title: "Install"
+description: "docker compose, the image, first run, the operator token, creating a project."
+---
+
+```bash
+git clone https://github.com/open-sequence/opensequence && cd opensequence
+docker compose up -d
+curl http://localhost:8080/readyz        # {"ok":true}
+curl -X POST http://localhost:8080/v1/admin/projects -H "Authorization: Bearer dev-admin-token" -H "Content-Type: application/json" \
+  -d '{"slug":"acme","name":"Acme CRM"}'   # -> the project and its first admin key (shown once)
+```
+
+The compose file runs Postgres 16 and one OpenSequence container with `SEQ_ROLES=all`, `SEQ_DEV_MOCK_PROVIDERS=1`, migrations on boot, a fixed development encryption key and the operator token `dev-admin-token`. It is the development setup; production changes four things: real secrets, mock providers off, provider credentials registered, and (optionally) the roles split.
+
+## The image
+
+`opensequence/server` is built from `apps/server/Dockerfile` (`docker build -f apps/server/Dockerfile -t opensequence/server .`): Node 22 on Alpine, a non-root user, `node dist/main.js`, port 8080, a `HEALTHCHECK` on `/healthz`. One image runs every role; `SEQ_ROLES` picks one. The `oseq` CLI is inside at `dist/cli.js`.
+
+<Steps>
+<Step title="Provision Postgres">
+
+Postgres 14 or newer, no extensions. A transaction pooler (PgBouncer, Supabase's pooler) is fine: the service uses no session-level features. Give the service its own database or at least its own schemas: it creates `seq` and `auth`.
+
+</Step>
+<Step title="Generate the secrets">
+
+```bash
+docker run --rm opensequence/server node dist/cli.js secrets new-key   # -> k1abc:…base64…   for SEQ_ENCRYPTION_KEYS
+openssl rand -base64 32                                                # for SEQ_ADMIN_TOKEN
+```
+
+`SEQ_ENCRYPTION_KEYS` encrypts every stored secret (Google client secret, refresh tokens, Allo and Attio keys, webhook secrets). **Back it up with the database**: without it those rows are unreadable and every credential must be re-entered.
+
+</Step>
+<Step title="Run the api role">
+
+```bash
+docker run -d --name oseq-api -p 8080:8080 \
+  -e SEQ_DB_DSN=postgres://oseq:…@db.internal:5432/opensequence \
+  -e SEQ_ENCRYPTION_KEYS=k1abc:… -e SEQ_ADMIN_TOKEN=… \
+  -e SEQ_PUBLIC_URL=https://sequences.example.com \
+  -e SEQ_ROLES=api -e SEQ_RUN_MIGRATIONS=1 -e NODE_ENV=production \
+  opensequence/server
+```
+
+Migrations run at boot behind a row lock, so several replicas starting together do not race. `SEQ_PUBLIC_URL` is what providers call back and what the opt-out links point at: it must be reachable from the internet over HTTPS (Google's OAuth return, Allo's webhook, the links in your emails). Put a TLS terminator in front; the service speaks plain HTTP.
+
+</Step>
+<Step title="Run the worker role">
+
+The same image with `SEQ_ROLES=worker`, not exposed. It listens on `SEQ_PORT` for `/healthz` and `/readyz` only. For a small install, `SEQ_ROLES=all` in one container is fine.
+
+</Step>
+<Step title="Create the first project">
+
+```bash
+docker exec oseq-api node dist/cli.js projects create acme --name "Acme CRM"
+# or
+curl -X POST https://sequences.example.com/v1/admin/projects -H "Authorization: Bearer $SEQ_ADMIN_TOKEN" -H "Content-Type: application/json" -d '{"slug":"acme","name":"Acme CRM"}'
+```
+
+The response carries the project id and its first `admin` key. Create narrower keys for your application with `POST /v1/api-keys` (`{ name, scopes: ["enroll"] }`) and keep the admin key for configuration.
+
+</Step>
+<Step title="Register the providers">
+
+With `SEQ_DEV_MOCK_PROVIDERS` off, every project needs its own [Google OAuth client](/docs/senders/connect-google) before senders can connect, an [Allo key](/docs/senders/connect-allo) for texts and calls, and an [Attio key](/docs/senders/connect-attio) for `crm.*` conditions. `GET /v1/project` shows the webhook URLs to expect (`/hooks/allo/{slug}`, `/hooks/google/{slug}`) and the Google redirect URI.
+
+</Step>
+</Steps>
+
+## Health
+
+| Path | Answers |
+|---|---|
+| `/healthz` | `{ ok: true }` while the process runs (liveness) |
+| `/readyz` | `503` until the database answers and migrations are at the expected version; for `worker` and `all` also `503` when the scheduler has not run a job in the last 2 minutes |
+| `GET /v1/admin/engine/health` | queue depths per queue and the last run of every job, platform-wide, with the operator token |
+| `GET /v1/engine/health` | the same for one project plus its flags, with an admin key |
+
+Logs are Pino JSON on stdout (pretty in development); every line about an enrollment carries its ids. See [Observability](/docs/self-hosting/observability), [Configuration](/docs/self-hosting/configuration) for every variable, and [Security hardening](/docs/self-hosting/security-hardening) before you expose it.

@@ -1,0 +1,52 @@
+---
+title: "CRM conditions"
+description: "Branch on Attio: person, company and deal facts read live at decision time, deal selection, and what happens when the CRM is down."
+---
+
+```json
+"check_deal": {
+  "type": "condition",
+  "params": { "mode": "all", "rules": [
+    { "field": "crm.deal.exists", "op": "is_true" },
+    { "field": "crm.deal.stage", "op": "is", "value": "Lead" },
+    { "field": "crm.company.employee_count", "op": "is_not_empty" } ] },
+  "next": { "yes": "call_1", "no": "email_2" }
+}
+```
+
+`crm.*` facts come from the project's Attio key ([Connect Attio](/docs/senders/connect-attio)) at the moment the condition runs: no sync, no staleness, and no write.
+
+## The lookup
+
+One lookup per contact per step, shared by every `crm.*` rule in the condition:
+
+1. the **person** by the contact's email;
+2. the **company** by the email's domain, or the person's company when the domain matches nothing;
+3. the **deals** associated with the person or the company; the open ones (a stage whose title does not start with `closed`, `won`, `lost` or `churn`, and that Attio does not flag as won) are counted into `crm.deal.count_open`, and one is **selected** by `settings.crm.deal_selection`: `newest_open` (default), `highest_value`, or `any_open` (the oldest).
+
+A contact without an email has no person and no company; `crm.*.exists` is false and every attribute is `null`.
+
+## What you can read
+
+| Field | Value |
+|---|---|
+| `crm.person.exists`, `crm.company.exists`, `crm.deal.exists` | bool |
+| `crm.deal.count_open` | number |
+| `crm.deal.stage` | the selected deal's stage title (`Lead`, `In Progress`, …), text |
+| `crm.person.<slug>`, `crm.company.<slug>`, `crm.deal.<slug>` | any attribute by its Attio slug, flattened to a scalar: status and select give their title, a name its full name, an email its address, a number its value, a date its ISO string, a list its items joined with commas |
+
+The slugs, labels, types and the values of status and select attributes come from `GET /v1/project/providers/attio/schema`; a picker should show that list. The server validates any `crm.<path>` as text, so use `is`, `is_not`, `contains`, `is_empty`, `is_not_empty` (and compare numbers as strings).
+
+## When the CRM is down
+
+A failed lookup (Attio unreachable, rate-limited, the key invalid) records the fact as `null` with the error message, so the rule does not match and the contact takes `no`; the run's `facts` say why. Nothing is retried and nothing blocks: design the `no` branch as the safe default. The lookup is cached per step, so one failure does not cost several calls.
+
+## With mock providers
+
+The mock CRM reads `settings.mock.crm` on the project, keyed by email or domain:
+
+```bash
+curl -X PUT $SEQ/v1/project/settings -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{
+  "mock": { "crm": { "byEmail": { "dana@example.com": { "person": { "job_title": "CFO" }, "deal": { "stage": "Lead", "value": 12000 }, "openDeals": 1 } } } }
+}'
+```

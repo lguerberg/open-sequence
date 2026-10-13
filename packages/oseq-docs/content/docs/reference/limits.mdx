@@ -1,0 +1,36 @@
+---
+title: "Limits"
+description: "Caps on definitions, batches, requests and retention, as enforced by the code."
+---
+
+| What | Limit | Where it is enforced |
+|---|---|---|
+| Definition size | 256 KB | `INVALID_DEFINITION` on save and publish |
+| Nodes per definition | 200 | `INVALID_DEFINITION` |
+| Node id | `^[a-z][a-z0-9_]*$`, 1 to 64 characters | schema |
+| Rules per condition | 1 to 20 | schema |
+| SMS body | 1000 characters; a warning (`TOO_LONG`) above 320 | schema and validator |
+| SMS sends per sequence | 1 (`TOO_MANY_SMS`) | validator |
+| Email subject and body | 300 and 100,000 characters | schema |
+| Task title, body, link, kind | 200, 4000, 2000 and 32 characters | schema |
+| Logic steps per advance | 25 before the enrollment is handed back to the planner | engine |
+| Contacts per batch upsert, per `:status`, per `:events` | 500 (`BATCH_TOO_LARGE`) | API |
+| Contacts per enroll call | 5,000 (`BATCH_TOO_LARGE`) | API |
+| Enrollments per `POST /v1/enrollments:exit` by sequence | 200 per call | API |
+| List page size | 1 to 200, default 50 | API |
+| Request body | 2 MB | API (`413`) |
+| Requests | 600 per minute per key (`429` with `Retry-After`) | API |
+| Timeline and journey | the last 200 messages and signals, 100 tasks | API |
+| Email send retries | 5 reads of the queue message, then `failed` | executor |
+| SMS send retries | none without a provider confirmation: an unknown outcome is `needs_review` | executor |
+| Webhook delivery attempts | 9, over about 3 days (0 s, 5 s, 5 min, 30 min, 2 h, 5 h, 10 h, 10 h, 10 h); 10 s timeout per attempt | delivery |
+| Endpoint disabled after | every delivery failing for 3 days | delivery |
+| Webhook timestamp tolerance | 5 minutes | receivers (SDK default) |
+| OAuth `state` | 10 minutes | auth module |
+| Opt-out link | 90 days | opt-out token |
+| Planner claim | 50 per sender, 500 per tick, released after 10 minutes if not advanced | planner |
+| Poll scope | threads started in the last 30 days, 500 channels per tick | poll job |
+| Default channel caps | email 30 a day with a 60 s gap, SMS 100 a day, LinkedIn 15 a day | new channels |
+| Idempotency keys kept | 1 day | retention |
+| Dead-letter queue rows and delivered deliveries kept | 30 days | retention |
+| `retention_days` setting | accepted (7 to 3650, default 365) but **not enforced yet**: runs, messages and signals are kept | see [Data retention](/docs/security/data-retention) |

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "out",
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }] },
+    { "source": "/opengraph-image", "headers": [{ "key": "Content-Type", "value": "image/png" }, { "key": "Cache-Control", "value": "public, max-age=86400" }] }
+  ]
+}

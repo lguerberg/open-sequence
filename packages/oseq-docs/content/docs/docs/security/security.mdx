@@ -1,0 +1,33 @@
+---
+title: "Security"
+description: "The threat model: tenants, keys, secrets, webhooks, mailbox privacy, and what the service will never do."
+---
+
+OpenSequence sends on behalf of real people from their own accounts and reads their replies, so the controls below are the ones that matter. Report a vulnerability privately (see [Support](/docs/community/support)).
+
+| Concern | Control |
+|---|---|
+| Operator vs project | `SEQ_ADMIN_TOKEN` (env, high entropy, constant-time compare) protects `/v1/admin/*` only. Project API keys protect everything else and never reach other projects' data |
+| Authentication | keys `sk_live_…` with 256 bits of entropy, stored as SHA-256 hashes, shown once, revocable, with `last_used_at`; every request resolves to exactly one project; every query is scoped by `project_id`; another project's ids are `404` |
+| Scopes | `read` < `enroll` < `admin`; an `enroll` key can never publish, edit a sequence or grant consent |
+| Secrets at rest | the Google client secret, per-sender refresh tokens, Allo and Attio keys and webhook secrets are AES-256-GCM under `SEQ_ENCRYPTION_KEYS` and **write-only**: no endpoint returns them; responses show status, key id, last four and timestamps. Never logged |
+| Google OAuth | the project's own client; `state` signed and valid ten minutes, bound to the sender and connection; refresh tokens encrypted per connection; disconnect revokes at Google; only the auth module touches tokens |
+| Mailbox privacy | only threads the service started are read (history scoped to its own thread and message ids, last 30 days), bodies stored only with `store_inbound_bodies`; from the calendar only the event id, start and matched attendee of events with an enrolled attendee |
+| Inbound webhooks | Allo: Standard Webhooks signature with the secret Allo issued, timestamp tolerance, idempotent by event id, always `2xx` once accepted. Google push: acknowledged only; polling is the source of truth |
+| Outbound webhooks | Standard Webhooks signatures, HTTPS only, public addresses only (re-resolved per attempt), no redirects, 10 s timeout |
+| Do not contact | suppressions from your reports, opt-out clicks, STOP texts, bounces and complaints, checked at enrollment and again at execution |
+| SMS | consent default false and settable only with `admin`, with `source` and `at`; no text without consent, a known recipient time zone and 08:00 to 21:00 recipient-local; a country allow-list (`sms_countries`, default `["US"]`) |
+| Opt-out | always exits the sequence (not configurable) and suppresses the channel; emails carry `List-Unsubscribe` and `List-Unsubscribe-Post` |
+| LinkedIn | tasks only; no automation ships |
+| Data in runs | facts and rendered template values are stored at decision time; erase on request with `DELETE /v1/contacts/{id}` |
+| Audit | every enrollment records `enrolled_by` and its kind; every exit its reason and signal; flag changes record the key that made them |
+| Input limits | definition 256 KB and 200 nodes; Zod on every body; batches of 500; 600 requests a minute per key; bodies of 2 MB |
+| Dependencies | Postgres 14+ with no extensions; Node 22; Redis 7+ only for `SEQ_QUEUE=redis` |
+
+## What the service never does
+
+It never calls your application except at the webhook endpoints you registered; never reads your database; never sends from an address a sender did not connect; never texts without consent; never reads mail outside its own threads; never returns a secret it stored; and never writes to your CRM (the CRM port is read-only).
+
+## Known gaps
+
+The `Idempotency-Key` header, the `/metrics` endpoint, propagation of `X-Request-Id`, enforcement of `retention_days`, and a per-replica rather than global rate limit. See the [roadmap](/docs/community/roadmap).

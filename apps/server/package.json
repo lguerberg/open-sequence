@@ -1,0 +1,43 @@
+{
+  "name": "@opensequence/server",
+  "version": "0.1.0",
+  "description": "OpenSequence server: the public API, provider webhooks, workers and the oseq CLI, in one image selected by SEQ_ROLES.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "private": true,
+  "bin": { "oseq": "./dist/cli.js" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "oseq": "tsx src/cli.ts",
+    "openapi": "tsx src/openapi.ts > openapi.json"
+  },
+  "dependencies": {
+    "@fastify/rate-limit": "^11.2.1",
+    "@fastify/sensible": "^6.0.7",
+    "@fastify/swagger": "^9.9.2",
+    "@fastify/swagger-ui": "^6.1.2",
+    "@opensequence/auth": "workspace:*",
+    "@opensequence/core": "workspace:*",
+    "@opensequence/engine": "workspace:*",
+    "@opensequence/providers": "workspace:*",
+    "@opensequence/queue": "workspace:*",
+    "commander": "^15.0.0",
+    "drizzle-orm": "^0.45.4",
+    "fastify": "^5.12.7",
+    "fastify-type-provider-zod": "^7.0.0",
+    "pino": "^10.4.0",
+    "postgres": "^3.4.9",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "pino-pretty": "^13.2.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  }
+}

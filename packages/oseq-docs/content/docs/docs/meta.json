@@ -1,0 +1,6 @@
+{
+  "title": "Docs",
+  "description": "Guides, from the quickstart to self-hosting",
+  "root": true,
+  "pages": ["index", "get-started", "senders", "contacts", "sequences", "enrollments", "webhooks", "analytics", "self-hosting", "security", "tutorials", "community"]
+}

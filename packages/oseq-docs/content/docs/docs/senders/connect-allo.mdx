@@ -1,0 +1,67 @@
+---
+title: "Connect Allo"
+description: "One Allo API key per project; map each sender to an Allo user and number for texts and call tasks."
+---
+
+[Allo](https://withallo.com) provides SMS and the power dialer. One workspace API key per project; no OAuth and no per-sender consent.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/project/providers/allo -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"api_key":"allo_…"}'
+# {"success":true,"data":{"provider":"allo","method":"api_key","status":"active","key_id":"k1","last_four":"…","config":{"scopes":[…]}}}
+
+curl $SEQ/v1/project/providers/allo/users   -H "Authorization: Bearer $KEY"   # [{id, email, name}]
+curl $SEQ/v1/project/providers/allo/numbers -H "Authorization: Bearer $KEY"   # [{address:"+1415…", ref, country, capabilities:["SMS","CALL"], users:[…]}]
+
+curl -X PUT $SEQ/v1/senders/u_42/channels/sms -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"allo_user_id":"usr-…","number":"+14155551234"}'
+```
+
+```ts title="TypeScript"
+await oseq.project.setProvider('allo', { api_key: 'allo_…' });
+
+const users = await oseq.project.alloUsers();
+const numbers = await oseq.project.alloNumbers();
+const max = users.find((u) => u.email === 'max@acme.com')!;
+const line = numbers.find((n) => n.users.some((u) => u.id === max.id) && n.capabilities.includes('SMS'))!;
+
+await oseq.senders.setSms('u_42', { allo_user_id: max.id, number: line.address });
+```
+
+</CodeGroup>
+
+## The key
+
+`PUT /v1/project/providers/allo` probes the key against Allo (`GET /v2/api/me`) before storing it and refuses one that is rejected or lacks a scope. The scopes it needs: `SMS_SEND`, `DIALING_QUEUE_READ_WRITE`, `PHONE_NUMBERS_READ`, `USERS_READ`, `WEBHOOKS_READ_WRITE`, `CONVERSATIONS_READ`. The service then **registers its own webhook at Allo** (`POST /v2/api/webhooks`, topics `sms.received`, `sms.sent`, `call.completed`, URL `SEQ_PUBLIC_URL/hooks/allo/{slug}`) and keeps the signing secret Allo returns, so there is nothing to configure in Allo's UI. Both secrets are encrypted and write-only.
+
+## Mapping a sender
+
+`PUT /v1/senders/{id}/channels/sms` takes `allo_user_id` and `number`. The number must be one the key can see (`422 UNKNOWN_NUMBER`) and must have the `SMS` capability (`422 NUMBER_HAS_NO_SMS`). The pickers for your UI are `GET /v1/project/providers/allo/users` and `.../numbers` (each number lists the users who can use it). The `sms` channel is also the sender's **Allo identity for calls**: dialer pushes and call matching use it, so set it even for senders who only call.
+
+## Texts
+
+An `outreach` step with `channel: "sms"` sends through the sender's number. The SMS executor gates are legal requirements and are not configurable: the contact has `sms_consent` (set only with an `admin` key, see [Consent and suppressions](/docs/contacts/consent-and-suppressions)), has a `phone`, is in an allowed country (`settings.sms_countries`, default `["US"]`), has a known time zone (`timezone`, or inferred from the phone's area code and country), and it is between 08:00 and 21:00 in that zone. A gate that cannot pass skips the step with `no_consent`, `no_phone`, `country_not_allowed`, `no_timezone` or `suppressed`; the quiet-hours gate defers it to 08:00.
+
+Allo has no idempotency key for texts. A retry first searches the last ten minutes of outbound texts to that number for the same body; if the outcome is still unknown the run goes `needs_review` rather than risk a double text. A reply made only of `STOP`, `QUIT`, `END`, `CANCEL`, `UNSUBSCRIBE`, `OPT OUT` or `STOPALL` is an opt-out: it suppresses SMS for the contact and exits the enrollment. Any other inbound text from a contact's number to a sender's number is a reply.
+
+## Call tasks and the dialer
+
+A `task` node with `kind: "call"` and `dialer: true` creates the task and pushes the contact's number (with their name and email) into the sender's Allo power-dialer queue; a number already in the queue counts as pushed. When Allo reports `call.completed` for an **outbound** call from the sender's number to the contact's number, the open call task is completed with the mapped outcome and the call summary as the note, so a rep who simply dials from Allo never marks anything by hand. Set `auto_complete: false` on the node to keep completion manual.
+
+| Allo result | Task outcome (default) |
+|---|---|
+| `ANSWERED`, `TRANSFERRED_AI`, `TRANSFERRED_EXTERNAL` | `connected` |
+| `VOICEMAIL` | `voicemail` |
+| anything else | `no_answer` |
+
+Override with `settings.allo.outcome_map` (`PUT /v1/project/settings`), for example `{ "allo": { "outcome_map": { "VOICEMAIL": "no_answer" } } }`. An outcome listed in the node's `connected_outcomes` (default `["connected"]`) counts as a reply for exits and analytics.
+
+## The inbound webhook
+
+`POST /hooks/allo/{slug}` verifies the Standard Webhooks signature with the stored secret, maps the envelope to events, and always answers `2xx` once the signature passes (an internal error is logged and answered `200 { deferred: true }` so Allo never disables the endpoint). Events are idempotent by Allo's ids. `sms.sent` marks the matching run and message as delivered.
+
+## With mock providers
+
+Nothing reaches Allo: `setSms` accepts any number, texts land in the contact's timeline, and dialer pushes are recorded in memory. Simulate a call through the mock hook with a `call_completed` event (`direction: "outbound"`, `from` the sender's number, `to` the contact's number, `result: "ANSWERED"`).

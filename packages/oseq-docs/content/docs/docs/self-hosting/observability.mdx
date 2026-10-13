@@ -1,0 +1,55 @@
+---
+title: "Observability"
+description: "Logs, the health endpoints, alerts worth setting, needs_review runs, and what is not there yet."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/admin/engine/health -H "Authorization: Bearer $SEQ_ADMIN_TOKEN"
+# {"paused":false,"disabled_channels":[],"queues":[{"queue":"seq_email","depth":3,…},…],"jobs":[{"job":"plan","lastRunAt":"…"},…]}
+curl $SEQ/v1/engine/health -H "Authorization: Bearer $ADMIN_KEY"
+# {"flags":[…],"queues":[…],"jobs":[…],"paused":false}
+```
+
+```ts title="TypeScript"
+const platform = await admin.engineHealth();
+const project = await oseq.project.health();
+```
+
+</CodeGroup>
+
+## Logs
+
+Pino JSON on stdout (pretty-printed when `NODE_ENV` is not `production`), level `SEQ_LOG_LEVEL`. Every request line carries `reqId` (the `req_…` returned in `meta.request_id`); every engine line carries the ids it touched (`projectId`, `enrollmentId`, `runId`, `contactId`, `senderId`, `channel`, `nodeId`, `deliveryId`, `endpointId`) so one grep follows a contact through the system. Every scheduler tick logs a one-line summary of counts (`claimed`, `advanced`, `events`, `requeuedRuns`, …). Secrets are never logged.
+
+## Health
+
+| Where | What |
+|---|---|
+| `GET /healthz` | liveness |
+| `GET /readyz` | database reachable, migrations applied, and for workers a scheduler job in the last 2 minutes |
+| `GET /v1/admin/engine/health` | platform-wide: `paused`, `disabled_channels`, `queues` (depth per queue), `jobs` (last run per job) |
+| `GET /v1/engine/health` | the same for a project, plus its `flags` |
+| `oseq health` | the queues and jobs from the CLI |
+
+## Alerts worth setting
+
+| Signal | Why |
+|---|---|
+| `/readyz` failing on a worker | the scheduler stopped |
+| a queue's depth growing for ten minutes | the worker is behind, or a provider is failing |
+| the `plan` job's last run older than a minute | no planner is running |
+| `run.needs_review` webhooks, or runs in `needs_review` in the journey | an SMS with an unknown outcome waits for a human |
+| `run.failed` and `enrollment.paused` with `step_failed` | a step ran out of retries with no `failed` branch wired |
+| `endpoint.disabled` | your own receiver has been down for three days |
+| `sender.channel_status` with `credentials_needed` | a sender must reconnect Google |
+| `5xx` rate on the API, `INTERNAL_ERROR` in responses | search the logs by `request_id` |
+
+## needs_review
+
+A text whose outcome Allo could not confirm is recorded as `needs_review` and the enrollment stops at that step. Today you resolve it by hand: check in Allo whether the text left, then either exit the enrollment or complete the step's flow by exiting and re-enrolling. The `GET /v1/engine/needs-review` and `resolve` endpoints described in the architecture document are not implemented yet.
+
+## Not there yet
+
+`SEQ_METRICS` is accepted but no Prometheus `/metrics` endpoint is served; there is no per-channel circuit breaker, and an incoming `X-Request-Id` is not propagated. Use the health endpoints and the logs.

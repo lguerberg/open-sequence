@@ -1,0 +1,209 @@
+---
+title: "TypeScript SDK"
+description: "@opensequence/sdk: install, configure, every resource with an example, and webhook verification."
+---
+
+```bash
+npm install @opensequence/sdk
+```
+
+```ts
+import { OpenSequence, OpenSequenceAdmin, OpenSequenceError, verifyWebhook } from '@opensequence/sdk';
+
+const oseq = new OpenSequence({ baseUrl: 'https://sequences.example.com', apiKey: process.env.OSEQ_KEY! });
+
+await oseq.senders.upsert('u_42', { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' });
+await oseq.contacts.upsert('p_7', { first_name: 'Dana', email: 'dana@example.com' });
+const { enrollments } = await oseq.sequences.enroll('seq_01J9…', { contacts: ['p_7'], sender: 'u_42' });
+```
+
+A typed, fetch-based client with zero runtime dependencies (global `fetch` and `node:crypto`), Node 20 or newer, ESM. The types come from the server's OpenAPI file, so a route that does not exist cannot be called.
+
+## Configuration
+
+| Option | Meaning |
+|---|---|
+| `baseUrl` | your instance, without `/v1` |
+| `apiKey` | a project key `sk_live_…` |
+| `fetch` | a fetch implementation (tests inject one) |
+| `timeoutMs` | abort after this long; default 30,000, `0` disables |
+| `userAgent` | sent as `user-agent`; default `opensequence-sdk/<version>` |
+
+`oseq.http` is the HTTP core for an endpoint the SDK has no method for yet: `oseq.http.request({ method, path, query, body })`.
+
+## Errors
+
+Every failure, from the API or on the way to it, is one `OpenSequenceError` with `status` (0 when nothing arrived), `code` (the API's stable code, or `NETWORK_ERROR`, `TIMEOUT`, `INVALID_RESPONSE`), `message`, `details` and `requestId`.
+
+```ts
+try {
+  await oseq.sequences.enroll(seqId, { contacts, sender });
+} catch (err) {
+  if (err instanceof OpenSequenceError && err.is('ALREADY_IN_SEQUENCE')) {
+    const { conflicts } = err.details as { conflicts: Array<{ external_id: string; sequence_name: string }> };
+    // show them; nobody was enrolled
+  } else throw err;
+}
+```
+
+## Lists
+
+List methods return one page, `{ items, nextCursor }`, and take `{ limit, cursor, updated_since }` plus the endpoint's filters. `listAll()` walks every page as an async iterator.
+
+```ts
+const page = await oseq.enrollments.list({ sequence: seqId, status: 'active', limit: 200 });
+for await (const task of oseq.tasks.listAll({ sender: 'u_42', status: 'open' })) render(task);
+```
+
+## Resources
+
+<AccordionGroup>
+<Accordion title="senders">
+
+```ts
+await oseq.senders.upsert('u_42', { name, email, timezone, attrs });
+await oseq.senders.get('u_42');                                  // with channels, readiness, connections
+await oseq.senders.list({ limit: 50 });
+await oseq.senders.readiness('u_42');                            // { email: { ok, reason }, sms, linkedin, task }
+await oseq.senders.connectGoogle('u_42', { return_url });        // { auth_url, connection_id } (mock: { status: 'active' })
+await oseq.senders.connections('u_42');
+await oseq.senders.disconnectGoogle('u_42');
+await oseq.senders.setSms('u_42', { allo_user_id, number });
+await oseq.senders.setLinkedin('u_42', { address });
+await oseq.senders.patchChannel('u_42', 'email', { daily_limit: 50, min_gap_seconds: 90, status: 'active' });
+await oseq.senders.deleteChannel('u_42', 'sms');
+await oseq.senders.disable('u_42');
+await oseq.senders.tasks('u_42', { status: 'open' });
+```
+
+</Accordion>
+<Accordion title="contacts">
+
+```ts
+await oseq.contacts.upsert('p_7', { first_name, last_name, email, phone, linkedin_url, country, timezone, attrs });
+await oseq.contacts.batch([{ external_id: 'p_7', email }, { external_id: 'p_8', email }]);
+await oseq.contacts.list({ email: 'dana@example.com' });
+await oseq.contacts.get('p_7');                                  // with suppressions and the active enrollment
+await oseq.contacts.timeline('p_7');
+await oseq.contacts.patch('p_7', { attrs: { deal: { stage: 'won' } } });
+await oseq.contacts.statuses(['p_7', 'p_8']);
+await oseq.contacts.reportEvent('p_7', { id: 'cal_1', type: 'meeting_booked', occurred_at: new Date() });
+await oseq.contacts.reportEvents([{ contact: 'p_7', id: 'dnc-1', type: 'suppressed', reason: 'do_not_contact' }]);
+await oseq.contacts.setSmsConsent('p_7', { consent: true, source: 'web form' });   // admin
+await oseq.contacts.delete('p_7');                                                  // admin
+```
+
+</Accordion>
+<Accordion title="sequences and versions">
+
+```ts
+const { sequence, version } = await oseq.sequences.create({ name: 'UK intro', definition });
+await oseq.sequences.list(); await oseq.sequences.get(sequence.id);
+await oseq.sequences.update(sequence.id, { status: 'paused' });
+await oseq.sequences.validate(definition);                       // { ok, problems }
+await oseq.sequences.versions.list(sequence.id);
+await oseq.sequences.versions.get(sequence.id, version.id);      // { version, problems }
+await oseq.sequences.versions.saveDraft(sequence.id, version.id, { definition, lock_version: 0 });
+await oseq.sequences.versions.publish(sequence.id, version.id);
+await oseq.sequences.versions.create(sequence.id, { from_version: version.id, tag: 'v2' });
+await oseq.sequences.versions.archive(sequence.id, version.id);
+await oseq.sequences.versions.delete(sequence.id, draftId);
+await oseq.sequences.previewEnrollment(sequence.id, { contacts, sender });
+await oseq.sequences.enroll(sequence.id, { contacts, sender, mode: 'dry_run' });
+```
+
+</Accordion>
+<Accordion title="enrollments">
+
+```ts
+await oseq.enrollments.list({ sequence, status: 'active', updated_since });
+await oseq.enrollments.get('enr_…');                             // the journey
+await oseq.enrollments.pause('enr_…', { reason: 'on_hold', until });
+await oseq.enrollments.resume('enr_…');
+await oseq.enrollments.exit('enr_…', { label: 'Closed by phone' });   // admin
+await oseq.enrollments.exitMany({ sequence, status: 'active' });     // admin
+```
+
+</Accordion>
+<Accordion title="tasks">
+
+```ts
+await oseq.tasks.list({ sender, status: 'open', kind: 'call' });
+await oseq.tasks.get('tsk_…');
+await oseq.tasks.complete('tsk_…', { outcome: 'connected', note });
+await oseq.tasks.cancel('tsk_…');
+```
+
+</Accordion>
+<Accordion title="webhooks">
+
+```ts
+const { endpoint, secret } = await oseq.webhooks.create({ url, event_types: ['*'] });
+await oseq.webhooks.list(); await oseq.webhooks.get(endpoint.id);
+await oseq.webhooks.update(endpoint.id, { event_types: ['enrollment.exited'] });
+await oseq.webhooks.rotateSecret(endpoint.id);                   // { endpoint, secret }
+await oseq.webhooks.enable(endpoint.id);
+await oseq.webhooks.recover(endpoint.id, { since: new Date('2026-10-12') });
+await oseq.webhooks.deliveries(endpoint.id, { limit: 50 });
+await oseq.webhooks.replay('wdl_…');
+await oseq.webhooks.delete(endpoint.id);
+```
+
+</Accordion>
+<Accordion title="analytics">
+
+```ts
+await oseq.analytics.summary(seqId, { from, to, version, sender, country });
+await oseq.analytics.exits(seqId);
+await oseq.analytics.nodes(seqId);
+await oseq.analytics.channels(seqId);
+await oseq.analytics.sequences({ min_enrolled: 20 });
+```
+
+</Accordion>
+<Accordion title="project and schema">
+
+```ts
+await oseq.project.get();                                        // settings, credential status, webhook URLs, the Google redirect URI
+await oseq.project.updateSettings({ attribution_days: 14, sms_countries: ['US', 'GB'] });
+await oseq.project.setProvider('google', { client_id, client_secret });
+await oseq.project.setProvider('allo', { api_key });
+await oseq.project.setProvider('attio', { api_key });
+await oseq.project.alloNumbers(); await oseq.project.alloUsers(); await oseq.project.attioSchema();
+await oseq.project.apiKeys.list(); await oseq.project.apiKeys.create({ name: 'app', scopes: ['enroll'] }); await oseq.project.apiKeys.revoke('key_…');
+await oseq.project.flags.set('channel:sms', { value: false });
+await oseq.project.health();
+await oseq.schema.definition(); await oseq.schema.fields(); await oseq.schema.events();
+```
+
+</Accordion>
+<Accordion title="the operator client">
+
+```ts
+const admin = new OpenSequenceAdmin({ baseUrl, adminToken: process.env.SEQ_ADMIN_TOKEN! });
+const { project, api_key } = await admin.projects.create({ slug: 'acme', name: 'Acme CRM' });
+await admin.projects.list();
+await admin.projects.createApiKey(project.id, { name: 'app', scopes: ['enroll'] });
+await admin.engineHealth();
+```
+
+</Accordion>
+</AccordionGroup>
+
+## Webhooks
+
+`verifyWebhook({ secret, headers, body })` checks the Standard Webhooks signature and timestamp and returns the parsed event, or throws `WebhookVerificationError`. Pass the raw body, and an array of secrets during a rotation. `signWebhook` signs a test event. Details and framework examples: [Verifying](/docs/webhooks/verifying).
+
+```ts
+import { verifyWebhook } from '@opensequence/sdk';
+
+const event = verifyWebhook({ secret: process.env.OSEQ_WEBHOOK_SECRET!, headers: req.headers, body: rawBody });
+switch (event.type) {
+  case 'enrollment.exited': /* event.data.enrollment, event.data.exit_reason */ break;
+  case 'task.created':      /* event.data.task */ break;
+}
+```
+
+## Types
+
+Every request and response type is exported (`Contact`, `Enrollment`, `Journey`, `Task`, `WebhookEvent<T>`, …), plus `paths` from the generated OpenAPI types for anything else.

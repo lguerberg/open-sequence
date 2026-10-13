@@ -1,0 +1,37 @@
+---
+title: "Scaling"
+description: "Replicas, roles, capacity numbers, when to switch to Redis, and what actually limits throughput."
+---
+
+| Setting | `api` | `worker` |
+|---|---|---|
+| Instances | 1 to N, scale on CPU or request rate | 1 to N, scale on queue depth or oldest-due lag |
+| Resources to start | 500 mCPU, 512 MB | 500 mCPU, 512 MB |
+| Ports | 8080, public | 8080 for `/healthz` and `/readyz` only, private |
+| Shutdown | `SIGTERM`: stop accepting, finish in-flight requests | stop reading queues, finish in-flight work for up to 30 s, exit; leftovers reappear when their visibility timeout expires |
+
+## Replicas are safe
+
+Several workers can run at once: the planner claims enrollments under one token per tick with `FOR UPDATE SKIP LOCKED`, an executor owns a run while it works (the enrollment's `owner_run_id`), scheduler jobs run on whichever replica takes the lease, and every write re-checks state under a row lock. Two replicas never double-send. The API is stateless except the per-replica rate-limit counter and the per-replica access-token cache.
+
+## What limits throughput
+
+Not the engine: 30 sequences with about 500 active contacts and a step every one to three days is 5,000 to 15,000 step executions a day, a few hundred an hour at peak, small for Postgres and a single worker. The binding limits are external: each sender's email `daily_limit` (30 by default, 60-second gap), SMS throughput and 10DLC, LinkedIn caps. Raising capacity means more senders or higher caps, not more replicas.
+
+## Knobs
+
+| Knob | Default | Raise when |
+|---|---|---|
+| `SEQ_CONCURRENCY` | 8 per queue per replica | queues have depth and the database has headroom |
+| worker replicas | 1 | the same, or for availability |
+| `SEQ_DB_POOL` | 10 | `SEQ_CONCURRENCY` is high (the pool must cover in-flight messages plus the scheduler) |
+| planner claim | 50 per sender, 500 per tick, every 5 s | thousands of enrollments come due at the same second (constants in the engine config, not env yet) |
+| `SEQ_QUEUE=redis` | `postgres` | the queue table itself becomes hot: many thousands of messages a minute. For most installs, never |
+
+## When the numbers get big
+
+At a hundred times the target load the same tables still work; the planned changes are `SEQ_QUEUE=redis`, more worker replicas, and a daily analytics rollup behind the same endpoints once an analytics query crosses a second (expected past a few million runs). Watch `oldest-due lag` (how long enrollments wait past their `next_run_at`; target under 2 minutes) and queue depth.
+
+## Zero is a valid number
+
+Scaling the worker to zero is a hard stop that loses nothing: steps, signals and deliveries wait in the tables and queues, and resume when a worker comes back. `SEQ_PAUSED=1` does the same without a deploy.

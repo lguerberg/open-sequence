@@ -1,0 +1,14 @@
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Fumadocs MDX collections (compiled at build)
+/.source/
+
+# Written by `pnpm generate` from the sources of truth; never edited by hand.
+/generated/
+
+# Written by `next dev` (Next 16); not part of the package.
+/AGENTS.md

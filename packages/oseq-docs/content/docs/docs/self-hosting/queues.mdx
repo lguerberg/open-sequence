@@ -1,0 +1,34 @@
+---
+title: "Queues"
+description: "postgres vs redis vs memory, and what \"queues are hints\" means for you."
+---
+
+```bash
+SEQ_QUEUE=postgres                  # default: nothing else to run
+SEQ_QUEUE=redis SEQ_REDIS_DSN=redis://redis.internal:6379
+SEQ_QUEUE=memory                    # development and tests only
+```
+
+There are four queues: `seq_email` and `seq_sms` (one per registered channel, consumed by the executors), `seq_signals` (the signal processor) and `seq_webhooks` (deliveries). The interface is `send`, `read` with a visibility timeout, `release`, `delete`, `archive` (dead-letter) and `stats`; everything above it is identical across backends.
+
+| `SEQ_QUEUE` | Extra infrastructure | Properties |
+|---|---|---|
+| `postgres` | none | the table `seq.queue_messages` read with `FOR UPDATE SKIP LOCKED`; an enqueue **joins the transaction** that records the work (a transactional outbox), so "run recorded" and "message queued" cannot diverge; dead letters go to `seq.queue_dead` |
+| `redis` | Redis 7+ with persistence | higher throughput for large installs; an enqueue cannot join the database transaction, so the reaper's sweep re-enqueues anything recorded but never queued, and a message can be delivered again after a crash |
+| `memory` | none | one process only; lost on restart, which is safe because the planner and the reaper rebuild work from the tables |
+
+## Queues are hints
+
+The database is the truth. A queue message says "there may be work here"; the consumer locks the row, checks the state, and does nothing when the state says the work is done or owned by someone else. So:
+
+- A **lost** message costs a delay: the reaper re-enqueues runs recorded but not queued after two minutes, re-enqueues deliveries whose next attempt is due, and the `signals` job sweeps unprocessed signals every 30 seconds.
+- A **duplicated** message costs nothing: the second consumer finds the run finished or owned (`stale`), or the delivery `busy`.
+- Switching backends, flushing Redis, or scaling the worker to zero and back loses no work.
+
+## Visibility timeouts and retries
+
+A message read by a consumer is invisible for a timeout (2 minutes for steps, 1 minute for signals, 30 seconds for deliveries); a consumer that dies lets it reappear. An email step is retried on the next read, up to 5 reads (`maxReads`), then the run fails. A signal that keeps throwing is released with a growing delay and archived after 10 reads. A delivery is released with its backoff delay.
+
+## Watching them
+
+`GET /v1/engine/health` (admin key) and `GET /v1/admin/engine/health` (operator token) return `queues` (depth per queue, from `stats`) and `jobs` (the last run of each scheduler job). A depth that grows while the worker is up, or an `oldest` that keeps ageing, means the worker is behind: add a replica or raise `SEQ_CONCURRENCY`. See [Scaling](/docs/self-hosting/scaling).

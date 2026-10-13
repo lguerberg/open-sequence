@@ -1,0 +1,31 @@
+{
+  "name": "@opensequence/auth",
+  "version": "0.1.0",
+  "description": "Provider credentials and the token lifecycle for OpenSequence: OAuth2 connections (Google) and workspace API keys (Allo, Attio), encrypted and write-only. Its own repository later.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "drizzle"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "google-auth-library": "^11.3.0",
+    "postgres": "^3.4.9",
+    "ulid": "^3.0.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "drizzle-kit": "^0.31.11",
+    "msw": "^2.12.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  }
+}

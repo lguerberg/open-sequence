@@ -1,0 +1,6 @@
+---
+title: "Integrate your CRM"
+description: "End to end: senders, contacts, a sequence, enroll, a webhook receiver, a task inbox, analytics."
+---
+
+<Note>This page is not written yet. The minimal integration is seven calls: `PUT /v1/senders/{id}` and `POST .../connections/google`; `PUT /v1/contacts/{id}` or `POST /v1/contacts:batch`; `POST /v1/sequences`, `PUT .../draft`, `POST .../publish`; `POST /v1/sequences/{id}/enrollments`; `POST /v1/webhooks` once (or poll `updated_since`); `POST /v1/contacts/{id}/events` for what the service cannot see and `DELETE /v1/contacts/{id}` on deletion; `GET .../analytics/summary` and `GET /v1/enrollments/{id}` to show results. Each has its own guide in the sidebar.</Note>

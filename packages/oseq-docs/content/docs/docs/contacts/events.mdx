@@ -1,0 +1,69 @@
+---
+title: "Contact events"
+description: "Tell the service what it cannot see: meetings booked elsewhere, replies seen in another tool, opt-outs and do-not-contact flags."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/contacts/p_7/events -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"id":"cal_evt_8812","type":"meeting_booked","occurred_at":"2026-10-13T14:00:00Z","data":{"starts_at":"2026-10-15T09:00:00Z"}}'
+# 201 {"success":true,"data":{"signal":"sig_…","created":true}}   (200 and created:false on a repeat of the same id)
+```
+
+```ts title="TypeScript"
+const r = await oseq.contacts.reportEvent('p_7', {
+  id: 'cal_evt_8812',
+  type: 'meeting_booked',
+  occurred_at: new Date('2026-10-13T14:00:00Z'),
+  data: { starts_at: '2026-10-15T09:00:00Z' },
+});
+```
+
+</CodeGroup>
+
+`POST /v1/contacts/{id}/events`, scope `enroll`. The event becomes a signal and takes effect on every active enrollment of the contact (exit, attribute, wake), exactly like a signal the service detected itself. Idempotent by `id`: a retry returns the same signal with `created: false`. Processing is asynchronous (within about 30 seconds); the webhook `signal.received` tells you when it is done.
+
+| Field | Meaning |
+|---|---|
+| `id` | your idempotency key, up to 200 characters; a calendar event id, a CRM activity id, `dnc-<contact>-<date>` |
+| `type` | `meeting_booked`, `opt_out`, `suppressed`, `reply` |
+| `occurred_at` | when it happened (default now); attribution uses it |
+| `channel` | `email`, `sms`, `linkedin` or `all`. For `opt_out` the channel to suppress (default `all`); for `reply` the channel the reply arrived on |
+| `reason` | for `suppressed`: `do_not_contact`, `bad_number`, `invalid_email`, `left_company`, or your own (default `client`) |
+| `data` | anything you want on the signal payload |
+
+## The four types
+
+| Type | What it does |
+|---|---|
+| `meeting_booked` | counts as a meeting for the enrollment whose last touch is within the attribution window (14 days by default), credited to the latest touch; exits when `exit_on` contains `meeting_booked`. Idempotent with calendar detection: a booking the sender's Google Calendar already showed does not count twice for the same enrollment (the first meeting per enrollment is attributed, later ones are `none`) |
+| `reply` | a reply you saw elsewhere (a LinkedIn inbox, a shared mailbox, a form): credited to the latest touch on that channel, exits when `exit_on` contains `reply`, wakes a `wait_for reply` |
+| `opt_out` | writes a suppression on the channel (or `all`), exits every active enrollment with `opt_out` |
+| `suppressed` | writes an `all` suppression with your reason, exits with `suppressed` |
+
+## In bulk
+
+`POST /v1/contacts:events` takes up to 500 events, each with a `contact` (id or external id) next to the fields above, for a nightly sync of your CRM's do-not-contact list or a calendar backfill. It returns `[{ id, signal, created }]` in order.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/contacts:events -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"events":[
+  {"contact":"p_7","id":"dnc-p_7","type":"suppressed","reason":"do_not_contact"},
+  {"contact":"p_9","id":"dnc-p_9","type":"suppressed","reason":"left_company"}
+]}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.reportEvents([
+  { contact: 'p_7', id: 'dnc-p_7', type: 'suppressed', reason: 'do_not_contact' },
+  { contact: 'p_9', id: 'dnc-p_9', type: 'suppressed', reason: 'left_company' },
+]);
+```
+
+</CodeGroup>
+
+## These calls are not optional
+
+The service detects replies only in threads it started, bounces, STOP texts, unsubscribe clicks, out-of-office messages, calendar bookings on connected calendars, and Allo call results. A meeting booked through another tool, a person marked do-not-contact in your CRM, someone who left the company, a reply that landed in a shared inbox: all invisible, all yours to report. Treat the `suppressed` and `opt_out` reports as mandatory in your integration, and `DELETE /v1/contacts/{id}` on deletion.

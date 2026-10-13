@@ -1,0 +1,57 @@
+---
+title: "Retries and recovery"
+description: "The retry schedule, disabled endpoints, recover and replay, and the deliveries log."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl "$SEQ/v1/webhooks/wep_01J9…/deliveries?limit=50" -H "Authorization: Bearer $ADMIN_KEY"
+curl -X POST $SEQ/v1/webhooks/wep_01J9…/recover -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{"since":"2026-10-12T00:00:00Z"}'
+curl -X POST $SEQ/v1/webhooks/wep_01J9…/enable  -H "Authorization: Bearer $ADMIN_KEY"
+curl -X POST $SEQ/v1/webhooks/deliveries/wdl_01J9…/replay -H "Authorization: Bearer $ADMIN_KEY"
+```
+
+```ts title="TypeScript"
+const { items } = await oseq.webhooks.deliveries('wep_01J9…', { limit: 50 });
+await oseq.webhooks.recover('wep_01J9…', { since: new Date('2026-10-12T00:00:00Z') }); // { replayed: n }
+await oseq.webhooks.enable('wep_01J9…');                                                // { endpoint, replayed: n }
+await oseq.webhooks.replay('wdl_01J9…');
+```
+
+</CodeGroup>
+
+## The schedule
+
+A delivery is attempted at once, then after each failure with this backoff, about three days in total:
+
+| Attempt | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|
+| Delay before it | 0 | 5 s | 5 min | 30 min | 2 h | 5 h | 10 h | 10 h | 10 h |
+
+Each attempt waits up to 10 seconds for your response. A `2xx` ends it (`delivered`); after the ninth failure the delivery is `failed` for good and only a recover or a replay sends it again. The delivery row records every attempt, the last status code and the last error.
+
+## Disabled endpoints
+
+An endpoint whose deliveries have **all** failed for three days (the oldest pending delivery is older than that) is set to `disabled`, with `disabled_reason` and `disabled_at`; its remaining deliveries are held, not lost; and `endpoint.disabled` is delivered to the project's other endpoints. An endpoint whose signing secret can no longer be decrypted (the encryption key was removed from `SEQ_ENCRYPTION_KEYS`) is disabled the same way: rotate the secret, then enable.
+
+`POST /v1/webhooks/{id}/enable` sets it back to `active` and re-queues every held delivery, oldest first. Nothing was lost.
+
+## Recover and replay
+
+- `POST /v1/webhooks/{id}/recover { since }` re-sends every delivery of the endpoint that **failed for good** since that time, with a fresh attempt counter.
+- `POST /v1/webhooks/deliveries/{id}/replay` re-sends one delivery whatever its state (delivered, failed, pending), with a fresh counter. The endpoint must be active (`409 ENDPOINT_DISABLED`).
+
+A replayed delivery keeps its `webhook-id`, so an idempotent receiver ignores a duplicate.
+
+## The deliveries log
+
+`GET /v1/webhooks/{id}/deliveries` (paginated, `updated_since`) returns, per delivery: `id`, `event_id`, `event_type`, `enrollment`, `status` (`pending`, `delivered`, `failed`, `disabled`), `attempts`, `next_attempt_at`, `last_status_code`, `last_error`, `payload`, `created_at`, `delivered_at`. Delivered rows are pruned after 30 days.
+
+## Ordering during failures
+
+Deliveries for the same endpoint and enrollment go one at a time in creation order: while one is retrying, the ones behind it wait (`waiting`), and go out as soon as it succeeds or gives up. Other enrollments and other endpoints are not affected.
+
+## What to alert on
+
+An endpoint with `status: "disabled"`, a delivery with `attempts >= 5`, or `last_error` repeating across deliveries. The operator's `GET /v1/admin/engine/health` and the project's `GET /v1/engine/health` show the `seq_webhooks` queue depth.

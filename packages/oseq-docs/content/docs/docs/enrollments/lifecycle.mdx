@@ -1,0 +1,77 @@
+---
+title: "Lifecycle"
+description: "The status machine, pause, resume, exit, bulk exit, and the re-enrollment rule."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/enrollments/enr_01J9…/pause  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"reason":"on_hold","until":"2026-10-20T09:00:00Z"}'
+curl -X POST $SEQ/v1/enrollments/enr_01J9…/resume -H "Authorization: Bearer $KEY"
+curl -X POST $SEQ/v1/enrollments/enr_01J9…/exit   -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{"label":"Deal closed by phone"}'
+curl -X POST $SEQ/v1/enrollments:exit -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{"sequence":"seq_01J9…","status":"active","label":"Retiring this sequence"}'
+```
+
+```ts title="TypeScript"
+await oseq.enrollments.pause('enr_01J9…', { reason: 'on_hold', until: new Date('2026-10-20T09:00:00Z') });
+await oseq.enrollments.resume('enr_01J9…');
+await oseq.enrollments.exit('enr_01J9…', { label: 'Deal closed by phone' });
+await oseq.enrollments.exitMany({ sequence: 'seq_01J9…', status: 'active', label: 'Retiring this sequence' });
+```
+
+</CodeGroup>
+
+## Statuses
+
+```text
+                 ┌──────────── resume / paused_until ────────────┐
+                 ▼                                               │
+  enroll ──► active ──── pause, ooo reply, step_failed ────► paused
+               │  ▲                                              
+               │  └──── cap lifted ──── waiting_limit (over daily_limit)
+               │
+               ├──► completed   (an end node, an unwired transition, a task with no next step)
+               ├──► exited      (reply or meeting per exit_on, opt-out, bounce, suppression, manual, deleted)
+               └──► failed      (reserved)
+```
+
+| Status | Meaning | Counts as "in a sequence" |
+|---|---|---|
+| `active` | running, or waiting on a timer or an event | yes |
+| `paused` | nothing happens until resumed; `pause_reason` says why (`manual`, `ooo`, `step_failed`), `paused_until` when it ends by itself | yes |
+| `waiting_limit` | the next send is deferred by the sender's daily cap | yes |
+| `completed` | reached the end | no |
+| `exited` | ended early; `exit_reason` says why | no |
+| `failed` | reserved; not produced today (a failed step pauses with `step_failed` instead) | no |
+
+## Pause and resume
+
+`POST /v1/enrollments/{id}/pause` (scope `enroll`) takes an optional `reason` (up to 40 characters, default `manual`) and `until`. Pausing an already paused enrollment is a no-op; pausing a finished one is `409 NOT_ACTIVE`. A step an executor is already running finishes; nothing more happens until resume. `resume` needs `paused` or `waiting_limit` (`409 NOT_PAUSED`) and makes the step that was due run on the next tick; a `paused_until` in the past resumes by itself.
+
+The service pauses on its own in two cases: an out-of-office auto-reply (`ooo`, until the stated return date or 7 days) and a step that failed with no `failed` transition (`step_failed`, with `run.failed` and `enrollment.paused` delivered so you can look).
+
+## Exit
+
+`POST /v1/enrollments/{id}/exit` (scope `admin`) ends the enrollment with `exit_reason` `manual` (or the `reason` you pass, up to 40 characters) and your `label`, closes the step it was waiting on, cancels its open task, and delivers `enrollment.exited`. Exiting a finished enrollment returns it unchanged.
+
+`POST /v1/enrollments:exit` exits by selector: `{ "contact": "p_7" }` exits the contact's active enrollment; `{ "sequence": "seq_…", "status": "active" }` exits up to 200 enrollments of the sequence in that status (call again for more). `PATCH /v1/sequences/{id}` with `status: "archived", exit_active: true` does the same for a whole sequence.
+
+## Exit reasons
+
+| `exit_reason` | Cause |
+|---|---|
+| `replied` | a reply or a connected call, with `reply` in `exit_on` |
+| `meeting_booked` | a calendar booking or a reported meeting, with `meeting_booked` in `exit_on` |
+| `opt_out` | STOP, the opt-out link, or a reported opt-out |
+| `bounced` | a hard bounce or a complaint |
+| `suppressed` | a reported suppression (do not contact, left company, …) |
+| `manual` | an API exit, or a sequence archived with `exit_active` |
+| `deleted` | the contact was erased |
+
+## Re-enrollment
+
+A contact who finished or exited a sequence can be enrolled in it again according to that version's `settings.reenroll`: `never` (default) skips them with `already_enrolled_before`, `always` allows it, `after_<n>d` allows it n days after the previous enrollment finished (`reenroll_before_<n>d` otherwise). The rule is checked at enrollment, per sequence, not per version. A contact can always be enrolled in a different sequence once the previous enrollment is no longer active.
+
+## Disabled senders
+
+`DELETE /v1/senders/{id}` refuses new enrollments as that sender; enrollments already running keep going on the sender's channels as long as those channels are active. To stop them, exit by selector or remove the channels.

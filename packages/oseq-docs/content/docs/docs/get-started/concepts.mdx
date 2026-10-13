@@ -1,0 +1,70 @@
+---
+title: "Concepts"
+description: "Project, sender, contact, sequence, version, enrollment, run, task, signal, webhook endpoint, in one paragraph each."
+---
+
+```text
+project ─┬─ api keys (read | enroll | admin)
+         ├─ provider credentials (google client, allo key, attio key)   write-only
+         ├─ senders ──┬─ channels (email from a Google connection, sms from an Allo number, linkedin manual)
+         │            └─ tasks
+         ├─ contacts ─┬─ suppressions
+         │            └─ enrollments ──┬─ runs (one per node, append-only)
+         │                             ├─ messages (sent and received)
+         │                             ├─ signals (reply, bounce, opt-out, meeting, call, task_completed, …)
+         │                             └─ tasks
+         ├─ sequences ─── versions (draft → published → archived; the definition is JSON)
+         └─ webhook endpoints ─── deliveries
+```
+
+## Project
+
+A tenant. Owns its senders, contacts, sequences, provider credentials, webhook endpoints and API keys. Every table carries `project_id`, every query is scoped by it, and a key from one project can never see another project's data (a cross-tenant request is a `404`). The operator creates projects with `SEQ_ADMIN_TOKEN` (`POST /v1/admin/projects` or `oseq projects create`); the response carries the first `admin` key, shown once. Ids are `prj_…`.
+
+## Sender
+
+The acting user an enrollment runs as: a name, an email, a time zone and `attrs`. A sender has **channels**: `email` once a Google account is connected (Gmail and Calendar under one consent), `sms` once an Allo number is set, `linkedin` once a profile URL is set (manual, no provider). Each channel has limits (`daily_limit`, `weekly_limit`, `min_gap_seconds`) and a status (`active`, `paused`, `credentials_needed`, `restricted`, `disconnected`). You address a sender by your own id: `PUT /v1/senders/u_42`. Ids are `snd_…`; channels `chn_…`.
+
+## Connection
+
+A sender's authorized account at an OAuth provider, with its tokens, owned by the auth module (`@opensequence/auth`). Google is the only OAuth provider today; API-key providers (Allo, Attio) have no connections, one workspace key per project. Tokens are encrypted and never returned.
+
+## Contact
+
+The person who receives a sequence: `first_name`, `last_name`, `email`, `phone` (E.164), `linkedin_url`, `country`, `timezone`, `sms_consent`, and free `attrs` JSON. Addressed by your own id (`PUT /v1/contacts/p_7`), `attrs` deep-merged on every upsert. A contact can be in **at most one active sequence per project**. Ids are `ctc_…`.
+
+## Sequence and version
+
+A sequence is a named container of versions. A version holds one JSON **definition**; it is a `draft` while you edit it (optimistic lock on `lock_version`), `published` and immutable once validation passes, `archived` when you stop new enrollments into it. Publishing makes the version the sequence's default. Ids are `seq_…` and `ver_…`; versions also have a tag (`v1`, `v2`, free text).
+
+## Node (step)
+
+One box in the definition: `start`, `outreach` (with a `channel` and an `action`: `email send`, `sms send`), `wait`, `wait_for`, `condition`, `task`, `end`. Nodes have human-readable string ids chosen by you, named transitions (`sent`, `skipped`, `failed`, `then`, `yes`, `no`, `completed`, `no_answer`, one per waited event, `timeout`), and a closed vocabulary with no expressions or code.
+
+## Enrollment
+
+One contact running one version, as one sender. It has a status (`active`, `paused`, `waiting_limit`, `completed`, `exited`, `failed`), a current node, a timer (`next_run_at`), and the record of what happened: touches, the first reply and the first meeting, the exit reason. Ids are `enr_…`.
+
+## Run
+
+One execution of one node for one enrollment, in an append-only ledger: node, status (`done`, `skipped`, `deferred`, `failed`, `needs_review`, `waiting`, `skipped_dry_run`), the branch taken, and `result` (the facts a condition read, the values a template rendered, the message id of a send). The journey is this ledger. Ids are `run_…`.
+
+## Message
+
+One email or text the service sent or received: direction, addresses, subject, body (inbound bodies only when the project opts in), provider ids and the thread reference replies are matched on. Ids are `msg_…`.
+
+## Task
+
+A manual step for a human (a call, a LinkedIn invitation, anything you define), created by a `task` node with a `kind`, a rendered title and body, a link, a due date and an expiry. Your application shows it and completes it with an outcome; a `call` task with `dialer: true` is also pushed into the sender's Allo dialer and completes itself from the call result. Ids are `tsk_…`.
+
+## Signal
+
+A normalized fact from outside: `reply`, `bounce`, `complaint`, `opt_out`, `ooo` (out of office), `meeting_booked`, `call_connected`, `task_completed`, `connection_accepted`, `contact_suppressed`. Produced by provider webhooks and polls, task completions, or your own reports (`POST /v1/contacts/{id}/events`). Each signal is idempotent by its external id, attributed to a run, and applied to every enrollment it can touch (exit, pause, wake). Ids are `sig_…`.
+
+## Facts
+
+The values a condition reads at decision time: contact columns and `attrs`, sender columns, history (`history.touches`, `history.last_task_outcome`, …) and live CRM values (`crm.deal.stage`). Stored on the run as `result.facts`, so "why did they take No" is answered from what the decision saw, not from today's data.
+
+## Webhook endpoint
+
+A URL of yours the service calls when something happens, signed with [Standard Webhooks](https://www.standardwebhooks.com) headers, retried for three days, replayable. Ids are `wep_…`; deliveries `wdl_…`.

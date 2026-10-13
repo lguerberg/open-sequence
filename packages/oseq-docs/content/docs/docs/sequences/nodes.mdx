@@ -1,0 +1,116 @@
+---
+title: "Nodes"
+description: "Every node type with its params and transitions, one example each."
+---
+
+| `type` | Params | Transitions | Runs |
+|---|---|---|---|
+| `start` | none | `then` (required) | inline |
+| `outreach` `email` `send` | `subject`, `body`, `format` (`text` or `html`), `reply_in_thread`, `name` | `sent`, `skipped`, `failed` | queue `seq_email` |
+| `outreach` `sms` `send` | `body`, `name` | `sent`, `skipped`, `failed` | queue `seq_sms` |
+| `wait` | `duration` | `then` (required) | inline timer |
+| `wait_for` | `events[]`, `timeout` | one per event, `timeout` | timer and signal |
+| `condition` | `mode`, `rules[]` | `yes`, `no` (both required) | inline |
+| `task` | `kind`, `title`, `body`, `link`, `due`, `expire`, `connected_outcomes`, `dialer`, `auto_complete` | `completed`, `no_answer`, plus `branches_by_outcome` | inline, then waits |
+| `end` | `label` | none | inline |
+
+Exact schemas, defaults and limits are generated from the registries: [Nodes and channels](/reference/nodes). An unwired transition that is taken ends the enrollment as `completed`.
+
+## `start`
+
+Optional. A no-op that makes the entry obvious on a canvas.
+
+```json
+"start": { "type": "start", "next": { "then": "email_intro" } }
+```
+
+## `outreach` email
+
+```json
+"email_intro": {
+  "type": "outreach", "channel": "email", "action": "send",
+  "params": {
+    "name": "Intro",
+    "subject": "Quick question, {{ contact.first_name | \"there\" }}",
+    "body": "<p>Hi {{ contact.first_name | \"there\" }},</p><p>…</p><p><a href=\"{{ unsubscribe_url }}\">Unsubscribe</a></p>",
+    "format": "html",
+    "reply_in_thread": false
+  },
+  "next": { "sent": "wait_2d", "skipped": "wait_2d", "failed": "end_failed" }
+}
+```
+
+Sends through the sender's Gmail with the service's own `Message-ID`. `format: "html"` sends the body as HTML with a text alternative and HTML-escapes every rendered value; `text` (default) sends plain text. `reply_in_thread: true` replies in the thread of the previous email of this enrollment (`In-Reply-To` and the same Gmail thread), which is how a follow-up shows under the first message. A body without `{{ unsubscribe_url }}` publishes with the warning `NO_UNSUBSCRIBE`.
+
+`sent` is taken after the provider accepted the message; `skipped` after a gate refused it (no email, suppressed, channel missing or not active, country, and so on; `skipped` falls back to `sent` when unwired); `failed` after the retries ran out (five reads of the queue message), and when `failed` is unwired the enrollment pauses with `step_failed`. Caps and windows **defer** rather than skip. Limits: subject 300, body 100,000 characters.
+
+## `outreach` sms
+
+```json
+"sms_follow": {
+  "type": "outreach", "channel": "sms", "action": "send",
+  "params": { "body": "Hi {{ contact.first_name | \"there\" }}, this is {{ sender.first_name }} from Acme. Did you see my email? Reply STOP to opt out." },
+  "next": { "sent": "wait_1d", "skipped": "wait_1d" }
+}
+```
+
+At most one SMS send per sequence (`TOO_MANY_SMS`). Gates that skip: `no_consent`, `no_phone`, `country_not_allowed`, `no_timezone`, `suppressed`, `no_sms_channel`; the quiet-hours gate (08:00 to 21:00 recipient-local) defers. Over 320 characters the validator warns (`TOO_LONG`, it is more than two segments); the hard limit is 1000. An unknown send outcome is never retried: the run goes `needs_review`.
+
+## `wait`
+
+```json
+"wait_2d": { "type": "wait", "params": { "duration": "2bd" }, "next": { "then": "check_stage" } }
+```
+
+A timer. `bd` counts business days in the contact's zone (the sender's when the contact has none), ending at the same time of day; the next outreach step is then pushed into the send window.
+
+## `wait_for`
+
+```json
+"wait_reply": {
+  "type": "wait_for",
+  "params": { "events": ["reply:email", "meeting_booked"], "timeout": "5bd" },
+  "next": { "reply:email": "end_replied", "meeting_booked": "end_booked", "timeout": "call_1" }
+}
+```
+
+The only event wait. Events: `reply`, `reply:email`, `reply:sms`, `reply:linkedin`, `connection_accepted`, `call_connected`, `meeting_booked`. Each waited event needs a transition (`BAD_EVENT`); `timeout` is optional, and without one the enrollment waits forever (or until something exits it). A `reply` on any channel matches `reply` and `reply:<channel>`; a connected call matches `call_connected` and `reply`. Details in [Wait for](/docs/sequences/wait-for).
+
+## `condition`
+
+```json
+"check_stage": {
+  "type": "condition",
+  "params": { "mode": "any", "rules": [
+    { "field": "history.replied_since_enrollment", "op": "is_true" },
+    { "field": "crm.deal.stage", "op": "is", "value": "Proposal" } ] },
+  "next": { "yes": "end_done", "no": "sms_follow" }
+}
+```
+
+`all` or `any` over 1 to 20 rules; `yes` and `no` both required. Evaluation is lazy (stops at the first decisive rule) and every value read is recorded on the run. Missing data never matches. Fields and operators: [Conditions](/docs/sequences/conditions).
+
+## `task`
+
+```json
+"call_1": {
+  "type": "task",
+  "params": { "kind": "call", "title": "Call {{ contact.first_name | \"them\" }} about {{ attrs.company.name | \"their company\" }}", "body": "Last email: {{ sequence.name }}", "due": "1bd", "expire": "3bd", "dialer": true },
+  "next": { "completed": "wait_3d", "no_answer": "email_2" },
+  "branches_by_outcome": { "connected": "end_connected", "voicemail": "sms_follow" }
+}
+```
+
+Creates a task for the sender and waits. Completing it with an outcome takes `branches_by_outcome[outcome]`, else `completed`; expiry takes `no_answer`. Everything about kinds, outcomes and the dialer: [The task node](/docs/sequences/task-node).
+
+## `end`
+
+```json
+"end_connected": { "type": "end", "params": { "label": "Connected" } }
+```
+
+Ends the enrollment as `completed`. The label shows in the journey and in your canvas; several `end` nodes make the per-step analytics tell the paths apart.
+
+## Which node types count as touches
+
+Only outreach sends (`email send`, `sms send`) are touches: they increment the enrollment's `touch_count`, set `last_touch_at` and are the denominators of the delivered rates. A task is not a touch; a connected call is credited to the task's run as a reply.

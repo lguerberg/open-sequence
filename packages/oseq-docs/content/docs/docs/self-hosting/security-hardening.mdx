@@ -1,0 +1,58 @@
+---
+title: "Security hardening"
+description: "Encryption keys and rotation, the admin token, network layout, SSRF rules, rate limits, and what to lock down before going live."
+---
+
+```bash
+SEQ_ENCRYPTION_KEYS=k2new:…,k1old:…     # first encrypts, every entry decrypts
+SEQ_ADMIN_TOKEN=$(openssl rand -base64 32)
+NODE_ENV=production                      # refuses SEQ_DEV_MOCK_PROVIDERS, plain JSON logs
+```
+
+## Encryption keys
+
+Every stored secret (Google client secret, per-sender refresh tokens, Allo and Attio keys, webhook signing secrets) is AES-256-GCM under `SEQ_ENCRYPTION_KEYS`, a list of `id:base64key` where the first entry encrypts and every entry decrypts; each row records the key id it was written with. The opt-out link signer derives its key from the same variable.
+
+**Rotation**: generate a new entry (`oseq secrets new-key`), put it **first** and keep the old ones; restart; re-encrypt the rows under the new key; then drop the old entries. The re-encryption step is the auth module's `rotateKeys()`; the `oseq secrets rotate` command the architecture document describes is not implemented yet, so until it is, call it from a small script or keep the old keys in the list. Webhook secrets are re-encrypted on `rotate-secret`; an endpoint whose key is gone is disabled with a reason and recovers after a rotate and enable. Rotating the first key also invalidates opt-out links already sent.
+
+## The operator token
+
+`SEQ_ADMIN_TOKEN` protects `/v1/admin/*` only: creating projects and keys, platform health. It is compared in constant time, never stored, and should be long and random. Keep it out of application code; the application uses project keys. Rotate by changing the variable and restarting the api role.
+
+## Project keys and scopes
+
+Keys are SHA-256 hashed at rest (256 bits of entropy, no slow hash needed), shown once, revocable (`DELETE /v1/api-keys/{id}`), with `last_used_at`. Give your application the narrowest scope: `enroll` for the part that reacts to user actions, `read` for dashboards, `admin` only for configuration jobs. An `enroll` key cannot publish a sequence, grant SMS consent or read another project.
+
+## Network layout
+
+| Component | Exposure |
+|---|---|
+| `api` | public over HTTPS behind a TLS terminator; needs inbound from Google (OAuth return), Allo (webhooks), mail clients (opt-out links) and your application |
+| `worker` | private; its port serves health only. Needs outbound to Google, Allo, Attio and your webhook endpoints |
+| Postgres, Redis | private |
+
+`SEQ_PUBLIC_URL` must be the HTTPS origin the world sees; it is embedded in opt-out links and used to register webhooks at Allo.
+
+## Outbound webhooks and SSRF
+
+Endpoint URLs must be `https`, carry no credentials, not point at `localhost`, `.local` or `.internal`, and resolve to public addresses (loopback, private, link-local including cloud metadata, CGNAT, multicast and reserved ranges are refused, for IPv4, IPv6 and mapped forms). The host is re-resolved at every delivery, redirects are not followed, and each attempt times out after 10 seconds.
+
+## Inbound webhooks
+
+`/hooks/allo/{slug}` verifies Standard Webhooks signatures with the secret Allo issued when the service registered the endpoint and rejects stale timestamps; `/hooks/google/{slug}` only acknowledges (polling does the reading); `/hooks/mock/{slug}` exists only with mock providers on, which `NODE_ENV=production` refuses.
+
+## Rate limits and body size
+
+600 requests per minute per `Authorization` value (per IP without one), `429` with `Retry-After`. Bodies over 2 MB are refused. With several API replicas the counter is per replica; put a shared limiter at the edge if you need an exact global cap.
+
+## Tenant isolation
+
+`project_id` on every table and in every query; a key resolves to one project; ids from another project are `404`. The per-project health endpoint shows only that project's flags; queue depths are platform-wide numbers.
+
+## Before going live
+
+- `NODE_ENV=production`, mock providers off, real `SEQ_ENCRYPTION_KEYS` and `SEQ_ADMIN_TOKEN`, both in a secret store and in your backups.
+- TLS in front of the api, the worker port not routable.
+- A webhook endpoint registered and verifying signatures ([Verifying](/docs/webhooks/verifying)).
+- Keys with the narrowest scopes in your application.
+- Google's app verification for Gmail scopes if senders are outside your Workspace domain.

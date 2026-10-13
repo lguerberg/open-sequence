@@ -1,0 +1,70 @@
+---
+title: "Verifying signatures"
+description: "Standard Webhooks signatures, with the SDK and by hand."
+---
+
+Every delivery carries three headers following the [Standard Webhooks](https://www.standardwebhooks.com) specification. Verify them before you trust the body; otherwise anyone who finds your URL can enroll a fake "reply" into your CRM.
+
+<CodeGroup>
+
+```ts title="TypeScript"
+import { verifyWebhook, WebhookVerificationError } from '@opensequence/sdk';
+import express from 'express';
+
+const app = express();
+// the RAW body is required: a parsed and re-serialized body will not verify
+app.post('/hooks/opensequence', express.raw({ type: 'application/json' }), (req, res) => {
+  try {
+    const event = verifyWebhook({ secret: process.env.OSEQ_WEBHOOK_SECRET!, headers: req.headers, body: req.body });
+    // event.id, event.type, event.project, event.enrollment, event.occurred_at, event.data
+    handle(event);
+    res.sendStatus(200);
+  } catch (err) {
+    if (err instanceof WebhookVerificationError) return res.status(401).send(err.code);
+    res.sendStatus(500); // the service retries
+  }
+});
+```
+
+```python title="Python"
+import base64, hashlib, hmac, time
+
+def verify(secret: str, headers: dict, raw_body: bytes, tolerance=300) -> dict:
+    msg_id = headers["webhook-id"]; ts = headers["webhook-timestamp"]; sig = headers["webhook-signature"]
+    if abs(time.time() - int(ts)) > tolerance:
+        raise ValueError("timestamp outside tolerance")
+    key = base64.b64decode(secret.removeprefix("whsec_"))
+    expected = hmac.new(key, f"{msg_id}.{ts}.".encode() + raw_body, hashlib.sha256).digest()
+    for part in sig.split(" "):
+        if part.startswith("v1,") and hmac.compare_digest(base64.b64decode(part[3:]), expected):
+            import json; return json.loads(raw_body)
+    raise ValueError("no signature matched")
+```
+
+```bash title="By hand"
+# secret=whsec_<base64>; id and ts from the headers; body.json is the raw body
+printf '%s.%s.' "$ID" "$TS" | cat - body.json \
+  | openssl dgst -sha256 -mac HMAC -macopt hexkey:$(echo "${SECRET#whsec_}" | base64 -d | xxd -p -c 256) -binary \
+  | base64
+# compare with the part after "v1," in webhook-signature
+```
+
+</CodeGroup>
+
+## The scheme
+
+| Header | Value |
+|---|---|
+| `webhook-id` | the event id (`evt_…`), the same on every retry of the same delivery |
+| `webhook-timestamp` | Unix seconds when this attempt was signed |
+| `webhook-signature` | `v1,<base64>` where the MAC is `HMAC-SHA256(secret, "<id>.<timestamp>.<raw body>")` and the key is the base64-decoded part of the secret after `whsec_`. Several space-separated `v1,…` values may appear |
+
+Reject timestamps more than five minutes from your clock (the SDK's default `toleranceSeconds` is 300) to blunt replays. Compare MACs in constant time. Use the **raw** request bytes: the service signs the exact JSON it sends, and a body that went through a JSON parser and back will not match.
+
+## Rotation
+
+`POST /v1/webhooks/{id}/rotate-secret` returns a new secret; deliveries from that moment are signed with it and there is no overlap window on the service side. The SDK's `verifyWebhook` accepts `secret: [newSecret, oldSecret]`, so switch your handler to accept both, rotate, then drop the old one. A retry of a delivery first attempted before the rotation is re-signed with the current secret at each attempt.
+
+## Errors the SDK throws
+
+`WebhookVerificationError` with `code` `MISSING_HEADERS`, `BAD_TIMESTAMP`, `TIMESTAMP_OUT_OF_TOLERANCE`, `NO_MATCHING_SIGNATURE` or `INVALID_BODY`. Answer a `4xx` to a bad signature: the delivery is still retried by the service (it does not know your reason), so a persistently rejected endpoint ends up disabled after three days, which is what you want for a stolen URL. `signWebhook(secret, id, timestamp, body)` is exported for your own tests.

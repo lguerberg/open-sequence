@@ -1,0 +1,35 @@
+---
+title: "LinkedIn"
+description: "LinkedIn steps are tasks by default; the automated adapter, its opt-in and its caps come later."
+---
+
+In v1 a LinkedIn step is a **task** the sender performs by hand. Set the sender's profile URL so readiness and conditions know they have LinkedIn, then use `task` nodes with `kind: "linkedin_connect"` or `kind: "linkedin_message"`.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/senders/u_42/channels/linkedin -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"address":"https://www.linkedin.com/in/maxrivera"}'
+```
+
+```ts title="TypeScript"
+await oseq.senders.setLinkedin('u_42', { address: 'https://www.linkedin.com/in/maxrivera' });
+```
+
+</CodeGroup>
+
+```json title="A connect task, then wait for the acceptance"
+"li_connect": {
+  "type": "task",
+  "params": { "kind": "linkedin_connect", "title": "Connect with {{ contact.first_name | \"them\" }} on LinkedIn", "link": "{{ contact.linkedin_url }}", "due": "1bd", "expire": "5bd" },
+  "next": { "completed": "wait_accept", "no_answer": "email_2" },
+  "branches_by_outcome": { "already_connected": "li_message" }
+},
+"wait_accept": { "type": "wait_for", "params": { "events": ["connection_accepted"], "timeout": "7d" }, "next": { "connection_accepted": "li_message", "timeout": "email_2" } }
+```
+
+The two kinds have one extra behaviour: completing `linkedin_connect` with outcome `accepted` records a `connection_accepted` signal (which wakes a `wait_for connection_accepted`), and completing `linkedin_message` with `replied` records a `reply` on the `linkedin` channel (which counts as a reply for exits and analytics). Any other kind and outcome is yours to define.
+
+## Why there is no automation yet
+
+Automated LinkedIn actions run against LinkedIn's terms and put the sender's account at risk of restriction. The architecture leaves room for an adapter behind a vendor's hosted auth (registered as a channel, off by default behind the `channel:linkedin_auto` flag, per-sender written opt-in, conservative daily and weekly caps, auto-pause on any restriction signal). None of it ships today; the `linkedin` fact source (`linkedin.connection_state`) and the `linkedin_connections` table exist for it. Tasks have no automation risk.

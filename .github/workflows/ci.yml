@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, lint, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: oseq
+          POSTGRES_PASSWORD: oseq
+          POSTGRES_DB: opensequence_test
+        ports: ['54329:5432']
+        options: >-
+          --health-cmd "pg_isready -U oseq"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      SEQ_TEST_DB_DSN: postgres://oseq:oseq@127.0.0.1:54329/opensequence_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - name: OpenAPI file matches the routes
+        run: |
+          pnpm --filter @opensequence/server openapi
+          git diff --exit-code -- apps/server/openapi.json || { echo "apps/server/openapi.json is stale: run 'pnpm --filter @opensequence/server openapi' and commit it."; exit 1; }
+
+  image:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          push: false
+          tags: opensequence/server:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

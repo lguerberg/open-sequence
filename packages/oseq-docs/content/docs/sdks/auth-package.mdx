@@ -1,0 +1,56 @@
+---
+title: "The auth package"
+description: "Using @opensequence/auth on its own: connect Google with your client id, get access tokens, rotate keys."
+---
+
+`@opensequence/auth` is the part of OpenSequence that stores provider credentials and runs the OAuth token lifecycle. It has no idea what a sequence is: tenants and owners are opaque strings, so it works for any application that lets users connect their Google account and needs fresh access tokens, encrypted at rest, with refresh and `invalid_grant` handling done right.
+
+```ts
+import { createAuth, runAuthMigrations } from '@opensequence/auth';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+const db = drizzle(postgres(process.env.DATABASE_URL!));
+await runAuthMigrations(db);                                       // creates the `auth` schema
+
+const auth = createAuth({
+  db,
+  encryptionKeys: process.env.SEQ_ENCRYPTION_KEYS!,                // "id:base64key[,id:base64key…]"
+  publicUrl: 'https://app.example.com',
+  googleCallbackPath: '/oauth/google/callback',                    // default /v1/connections/google/callback
+});
+
+// once per tenant: the tenant's own Google OAuth client
+await auth.registerCredential({ tenantId: 'acme', provider: 'google', method: 'oauth2', secrets: { client_id, client_secret } });
+
+// per user: the consent URL, then the callback
+const { authUrl, connectionId } = await auth.connect({ tenantId: 'acme', ownerId: 'u_42', returnUrl: 'https://app.example.com/settings' });
+// … the user consents; Google redirects to publicUrl + googleCallbackPath with ?state&code …
+const done = await auth.handleCallback({ state, code });           // { tenantId, ownerId, connectionId, account, returnUrl }
+
+// whenever you call Google
+const accessToken = await auth.getAccessToken(connectionId);
+```
+
+## What it does
+
+| Area | Behaviour |
+|---|---|
+| Credentials (tenant level) | `registerCredential({ tenantId, provider, method: 'oauth2' \| 'api_key', secrets, probe? })` stores the secret encrypted; an optional `probe` validates an API key against the provider before it is accepted. `credentialStatus`, `listCredentials` return status, key id, last four and timestamps, never the secret. `credentialsFor(tenantId, provider)` returns the decrypted map for adapters only |
+| Connections (owner level) | `connect` builds the consent URL with `access_type=offline` and `prompt=consent` and a signed, ten-minute `state` bound to the tenant, owner and connection row (one connection per owner and provider, reused on reconnect). `handleCallback` verifies the state, exchanges the code, requires the Gmail scopes, stores the refresh token encrypted and the consenting account's email |
+| Tokens | `getAccessToken(connectionId)` serves from a per-process cache while the token has more than two minutes left, otherwise refreshes once per connection at a time (concurrent callers share the refresh). An `invalid_grant` marks the connection `credentials_needed` and throws an error whose message starts with `credentials_needed` |
+| Health | `health(connectionId)` forces a refresh to learn whether the grant still works; `connectionStatus`, `listConnections(tenantId, ownerId?)` |
+| Revoke | `revoke(connectionId)` revokes the token at Google and sets the connection `disconnected` |
+| Key rotation | `rotateKeys()` re-encrypts every credential and connection not under the first key of `encryptionKeys`, so older entries can be removed from the list |
+
+Scopes requested: `gmail.send`, `gmail.readonly`, `calendar.readonly`, `userinfo.email`; the two Gmail scopes are required (`SCOPES_MISSING` otherwise). `GOOGLE_SCOPES`, `GOOGLE_REQUESTED_SCOPES` and `GOOGLE_REQUIRED_SCOPES` are exported.
+
+## Errors
+
+`AuthError` with a stable `code` and an HTTP status: `PROVIDER_NOT_CONFIGURED` (409, no Google client for the tenant), `INVALID_STATE` and `STATE_EXPIRED` (400), `SCOPES_MISSING`, `NO_REFRESH_TOKEN`, `NO_ACCOUNT` (422), `CREDENTIAL_INVALID` (409), `MISSING_SECRET` (422), `NOT_FOUND` (404).
+
+## Storage
+
+Two tables in the `auth` schema, `credentials` and `connections`, created by `runAuthMigrations(db)` (idempotent). Secrets are AES-256-GCM under the first key; each row carries its key id. The exported `authSchema`, `credentialsTable` and `connectionsTable` let you join from your own Drizzle code. `AesGcmCipher`, `parseEncryptionKeys` and `GoogleOAuthClient` are exported for tests and custom wiring; pass your own `google: OAuthClient` and `clock` to `createAuth` to fake Google.
+
+The package is destined for its own repository (`open-sequence/auth`); it never imports the engine.

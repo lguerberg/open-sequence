@@ -1,0 +1,98 @@
+---
+title: "The definition"
+description: "One JSON document holds the whole sequence: shape, ids, transitions, settings and exit_on."
+---
+
+A sequence is one JSON document: nodes, transitions, settings and the exit choice. It is what you save into a draft version and what the engine runs once published. Validate one without saving:
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/sequences:validate -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d "{\"definition\": $(cat definition.json)}"
+# {"success":true,"data":{"ok":true,"problems":[{"path":"nodes.email_intro.params.body","code":"NO_UNSUBSCRIBE","message":"…","severity":"warning"}]}}
+```
+
+```ts title="TypeScript"
+const { ok, problems } = await oseq.sequences.validate(definition);
+```
+
+</CodeGroup>
+
+## Shape
+
+```json
+{
+  "schema_version": 1,
+  "entry": "email_intro",
+  "settings": {
+    "send_window": { "days": ["mon", "tue", "wed", "thu", "fri"], "from": "08:00", "to": "18:00", "tz": "contact" },
+    "jitter": "15m",
+    "reenroll": "after_90d"
+  },
+  "exit_on": ["reply", "meeting_booked"],
+  "nodes": {
+    "email_intro": {
+      "type": "outreach", "channel": "email", "action": "send",
+      "params": { "name": "Intro email", "subject": "Quick question, {{ contact.first_name | \"there\" }}", "body": "…\n\n{{ unsubscribe_url }}", "reply_in_thread": false },
+      "next": { "sent": "wait_2d", "skipped": "wait_2d", "failed": "end_failed" }
+    },
+    "wait_2d": { "type": "wait", "params": { "duration": "2bd" }, "next": { "then": "check_stage" } },
+    "check_stage": {
+      "type": "condition",
+      "params": { "mode": "all", "rules": [
+        { "field": "history.last_task_outcome", "op": "is", "value": "voicemail" },
+        { "field": "attrs.deal.stage", "op": "is", "value": "contacting" } ] },
+      "next": { "yes": "call_1", "no": "sms_follow" }
+    },
+    "sms_follow": { "type": "outreach", "channel": "sms", "action": "send", "params": { "body": "Hi {{ contact.first_name | \"there\" }}, did you see my email? Reply STOP to opt out." }, "next": { "sent": "call_1", "skipped": "call_1" } },
+    "call_1": {
+      "type": "task",
+      "params": { "kind": "call", "title": "Call {{ contact.first_name | \"them\" }}", "due": "1bd", "expire": "3bd", "dialer": true },
+      "next": { "completed": "end_done", "no_answer": "email_2" },
+      "branches_by_outcome": { "connected": "end_connected" }
+    },
+    "email_2": { "type": "outreach", "channel": "email", "action": "send", "params": { "subject": "Re: Quick question", "body": "…\n\n{{ unsubscribe_url }}", "reply_in_thread": true }, "next": { "sent": "end_done" } },
+    "end_done": { "type": "end", "params": { "label": "Done" } },
+    "end_connected": { "type": "end", "params": { "label": "Connected" } },
+    "end_failed": { "type": "end", "params": { "label": "Email failed" } }
+  }
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `schema_version` | always `1` today. Bumped only for breaking changes; the service keeps reading every version it has ever published |
+| `entry` | the id of the first node. Most sequences start with an `outreach` or a `start` node; `start` is optional |
+| `settings.send_window` | days and hours outside which outreach steps wait, in the contact's zone (`tz: "contact"`, the default, falling back to the sender's when the contact has none) or the sender's (`"sender"`). Time is `HH:MM`, 24-hour; the window is `[from, to)` |
+| `settings.jitter` | a random delay added to each outreach step so sends do not burst on the hour, pushed back inside the window if it lands outside |
+| `settings.reenroll` | `never` (default: a contact who was ever in this sequence is skipped), `always`, or `after_<n>d` (skipped while the last enrollment finished less than n days ago) |
+| `exit_on` | `reply`, `meeting_booked`, both, or none (default `[]`). See below |
+| `nodes` | a flat map from id to node. Ids are `lower_snake_case`, up to 64 characters, chosen by you |
+
+A node is `{ type, name?, channel?, action?, params?, next, branches_by_outcome? }`. `next` maps each transition key the node emits to a node id; a key left unwired ends the enrollment (`completed`) when taken, except the keys a node type requires (`then`, `yes`, `no`). `branches_by_outcome` is for `task` nodes only. The full list of node types, params and transitions: [Nodes](/docs/sequences/nodes) and the generated [catalogue](/reference/nodes).
+
+## Durations
+
+One grammar everywhere, `^\d+(m|h|d|bd)$`: `m` minutes, `h` hours, `d` calendar days, `bd` business days (Monday to Friday in the relevant zone; holidays are not modelled). Waits, timeouts, task due and expiry, jitter.
+
+## Exit rules
+
+`exit_on` is the only exit configuration: **Replied** (on any channel; a connected call counts) and **Meeting booked**. Everything else is built in and not configurable:
+
+| Always on | Behaviour | Who detects it |
+|---|---|---|
+| Opt-out (a STOP text, a click on the hosted opt-out link) | exits, suppresses the channel | the service |
+| Hard bounce, complaint | exits, suppresses email | the service |
+| Out-of-office auto-reply | **pauses** until the stated date or 7 days; never exits | the service |
+| Opt-out recorded elsewhere | exits, suppresses | you, `events { type: "opt_out" }` |
+| Do not contact, bad number, invalid email, left the company | exits | you, `events { type: "suppressed" }` |
+| Contact deleted or merged | exits with `deleted` and erases | you, `DELETE /v1/contacts/{id}` |
+| Sender disabled | steps skip; the enrollment runs on | you, `DELETE /v1/senders/{id}` |
+| Exit through the API | exits with reason `manual` and your label | you |
+
+An exit ends the enrollment and emits `enrollment.exited`. A reply that arrives when `exit_on` does not list `reply` is still attributed and can wake a `wait_for`; it just does not end the flow.
+
+## Conventions that keep it safe to edit by hand or by an agent
+
+Human-readable string ids; a flat node map with named transitions; a closed vocabulary (node types, transition keys, event names, field names, operators); one duration grammar; no expressions and no code. The JSON Schema is served at `GET /v1/schema` and reproduced in the [reference](/reference/definition-schema); the limits are 200 nodes and 256 KB.

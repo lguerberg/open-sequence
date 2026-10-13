@@ -1,0 +1,52 @@
+---
+title: "Extending"
+description: "Adding a provider, a channel, a node type, a fact source or an event: the registries, with LinkedIn as the example."
+---
+
+A new module is a set of registrations, not a set of edits. Every extension point is a registry the engine reads at boot, and nothing in the planner, `advance`, the signal pipeline, the API, the SDK or the webhooks changes when a module is added.
+
+```ts title="A node type, in core"
+import { registry } from '@opensequence/core';
+import { z } from 'zod';
+
+registry.registerNode({
+  type: 'split',
+  label: 'Split',
+  params: z.object({ cohorts: z.array(z.object({ key: z.string(), pct: z.number() })) }).strict(),
+  transitions: { keys: ['a', 'b'], required: [] },
+  interpret: async (node, ctx) => {
+    const branch = ctx.timing.random() < 0.5 ? 'a' : 'b';
+    return [{ kind: 'record', run: { nodeId: node.id, nodeType: node.type, touch: false, next: node.next, result: { branch } }, status: 'done', branch }, { kind: 'goto', nodeId: node.next[branch]! }];
+  },
+});
+```
+
+## Extension points
+
+| To add | Where it goes | What already handles the rest |
+|---|---|---|
+| **A provider for an existing port** (a second SMS vendor, a second CRM) | a module in `packages/providers` implementing the port (`EmailProvider`, `SmsProvider`, `DialerProvider`, `CalendarProvider`, `CrmProvider`), registered with `registerProvider(name, factory)`; a credential method in `@opensequence/auth` (`api_key` or `oauth2`); contract tests with recorded fixtures | credentials and tokens, the pickers, the executors, readiness, health, the kill switches |
+| **A channel** (WhatsApp, automated LinkedIn) | `registry.registerChannel({ name, label, queue, actions })`: each action has a Zod `params` schema, `transitions`, `touch`, and an optional `validate`; an executor for its queue in the engine; a migration if `sender_channels.channel` is constrained | the interpreter (an `outreach` node routes to the channel's queue), the queue consumers (`SEQ_ROLES=worker` consumes every registered channel queue), the flags (`channel:<name>`), readiness, `GET /v1/schema`, these docs' [node catalogue](/reference/nodes) |
+| **A node type** | `registry.registerNode({ type, label, params, transitions, terminal?, validate?, interpret })` in core: `interpret` returns effects from the existing set (`record`, `goto`, `wait`, `enqueue`, `create_task`, `exit`, `complete`) | `advance` applies effects and never looks at node types; the journey; analytics per `node_id`; a canvas reading `GET /v1/schema` |
+| **A fact source** | `registry.registerFacts({ prefix, label, fields, open? })` in core plus a reader in the engine's fact reader (SQL) or a port (like the CRM) | the evaluator, the picker (`GET /v1/schema/fields`), the validator, `result.facts`, the journey |
+| **A signal kind** | the enum (a migration), a producer (a webhook route, a poll, or the client events endpoint), and its rule in the signal processor (exit, pause, wake, attribute) | the pipeline, idempotency, outbound webhooks (`signal.received` carries any kind) |
+| **A webhook event** | one entry in `EVENT_TYPES` and a use case that raises it inside its transaction | delivery, signing, retries, `GET /v1/schema/events`, these docs' [event catalogue](/reference/webhook-events) |
+
+A new effect kind is the only change that touches `advance`, and it is a single case. A `task` with a new `kind` needs no code at all: your application sends the kind and renders it.
+
+## The worked example: LinkedIn automation
+
+| Step | Where | Touches the core? |
+|---|---|---|
+| 1 | `packages/providers/<vendor>`: implement a `LinkedInProvider` (connect through the vendor's hosted auth, `invite`, `message`, `connectionState`, webhook verification or a poll) | no |
+| 2 | `@opensequence/auth`: register the vendor as an `oauth2`-style provider whose connection stores the vendor's account id and token | no |
+| 3 | `registerChannel('linkedin', …)`: actions `connect` (param `note`, 200 characters) and `message` (`text`); gates (the `channel:linkedin_auto` flag, the sender's `opted_in_at`, the contact's `linkedin_url`, a connection state that fits the action); throttle (daily and weekly invite caps, working hours) | no |
+| 4 | a migration: allow a `linkedin` channel with a connection (today it is manual with none) | a migration, no code |
+| 5 | contract tests with recorded vendor fixtures; the guard test "cannot send with the flag off" | no |
+| 6 | docs: the [LinkedIn](/docs/senders/connect-linkedin) page gains the automated section; the node catalogue regenerates | no |
+
+Unchanged: the planner, `advance`, the signal processor, every API route, the SDK, the outbound webhooks, and the task-based LinkedIn flow that already works. The manual `linkedin_connect` and `linkedin_message` task kinds keep working side by side.
+
+## What makes this hold
+
+Channels, node types, fact sources, providers and events are looked up by name at boot; the engine has no list of channels anywhere. Effects are the only contract between the interpreter and the shell. Queues are named by convention (`seq_<channel>`) and the queue table accepts any name. Everything client-facing is generated from the registries: `GET /v1/schema`, `/v1/schema/fields`, `/v1/schema/events`, the OpenAPI file, the SDK types, and the reference pages of this site.

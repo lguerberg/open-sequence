@@ -1,0 +1,57 @@
+---
+title: "Consent and suppressions"
+description: "SMS consent, do-not-contact, the hosted opt-out link, STOP, bounces and complaints, and where each one is enforced."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+# consent needs an admin key
+curl -X PUT $SEQ/v1/contacts/p_7/sms-consent -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"consent":true,"source":"web form","at":"2026-10-01T09:12:00Z"}'
+# a do-not-contact recorded in your app
+curl -X POST $SEQ/v1/contacts/p_7/events -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"id":"dnc-p_7-2026-10-13","type":"suppressed","reason":"do_not_contact"}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.setSmsConsent('p_7', { consent: true, source: 'web form', at: new Date('2026-10-01T09:12:00Z') });
+await oseq.contacts.reportEvent('p_7', { id: 'dnc-p_7-2026-10-13', type: 'suppressed', reason: 'do_not_contact' });
+```
+
+</CodeGroup>
+
+## SMS consent
+
+`contacts.sms_consent` is false by default and can only be set with an `admin`-scoped key (`PUT /v1/contacts/{id}/sms-consent`, with `source` and `at` for your records). No text leaves for a contact without it: the SMS executor skips the step with `no_consent`, and the `contact.sms_consent` fact is there for conditions that route non-consenting contacts elsewhere. The other SMS gates, also not configurable: a phone, a country in `settings.sms_countries` (default `["US"]`), a known recipient time zone, and 08:00 to 21:00 in it.
+
+## Suppressions
+
+A suppression is a mark on a contact for one channel (`email`, `sms`, `linkedin`) or `all`, with a reason. It is checked **at enrollment** (`all` suppressions exclude the contact from the batch with `suppressed:<reason>`) and **again at execution** (an email step skips with `suppressed` when the contact is suppressed on `email` or `all`; the same for SMS). `GET /v1/contacts/{id}` lists them.
+
+| Source | Channel | Reason | Also |
+|---|---|---|---|
+| The hosted opt-out link in an email (`{{ unsubscribe_url }}`, `List-Unsubscribe` headers) | `email` | `opt_out` | exits the enrollment with `opt_out` |
+| A `STOP` text (`STOP`, `QUIT`, `END`, `CANCEL`, `UNSUBSCRIBE`, `OPT OUT`, `STOPALL`) | `sms` | `opt_out` | exits |
+| A hard bounce | `email` | `hard_bounce` | exits with `bounced`; a soft bounce suppresses nothing |
+| A complaint | `email` | `complaint` | exits with `bounced` |
+| Your report `{ type: "opt_out", channel }` (`channel` defaults to `all`) | the channel | `opt_out` | exits |
+| Your report `{ type: "suppressed", reason }` | `all` | your reason (`do_not_contact`, `bad_number`, `invalid_email`, `left_company`, …) | exits with `suppressed` |
+
+Suppressions are never removed by the API today; erase the contact and create it again if a suppression was wrong.
+
+## The opt-out link
+
+Every email body should contain `{{ unsubscribe_url }}` (publishing without it is the warning `NO_UNSUBSCRIBE`). It renders a signed link on your instance, `SEQ_PUBLIC_URL/u/{token}`, valid for 90 days, that shows a one-click page; the click (or the `List-Unsubscribe-Post` one-click that mail clients send) writes the `email` suppression and exits the enrollment. Every email also carries `List-Unsubscribe` and `List-Unsubscribe-Post` headers pointing at the same token. The token is derived from `SEQ_ENCRYPTION_KEYS`; rotating the first key invalidates links already sent.
+
+## What exits, what pauses
+
+| Signal | Effect on the contact's active enrollments |
+|---|---|
+| opt-out, hard bounce, complaint, suppression | **exits**, whatever the definition says |
+| reply, connected call | exits when `exit_on` contains `reply`; otherwise may wake a `wait_for` |
+| meeting booked | exits when `exit_on` contains `meeting_booked` |
+| out-of-office auto-reply | **pauses** until the stated return date or 7 days; never exits |
+| sender channel `credentials_needed` | the step is deferred; the enrollment waits for the reconnect |
+
+The service only sees its own channels: replies in threads it started, bounces, STOP texts, unsubscribe clicks, out-of-office messages. Everything in your world (a meeting booked in another tool, a do-not-contact flag in the CRM, a person who left) must be [reported](/docs/contacts/events), or the service keeps emailing people your users already excluded.

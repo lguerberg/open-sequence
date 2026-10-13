@@ -1,0 +1,6 @@
+{
+  "title": "API reference",
+  "description": "Every endpoint, generated from the OpenAPI file",
+  "root": true,
+  "pages": ["conventions", "errors", "---Endpoints---", "operator", "project", "engine", "senders", "contacts", "sequences", "schema", "enrollments", "tasks", "analytics", "webhooks"]
+}

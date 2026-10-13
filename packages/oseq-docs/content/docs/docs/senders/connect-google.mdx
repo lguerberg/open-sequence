@@ -1,0 +1,84 @@
+---
+title: "Connect Google"
+description: "Register your own OAuth client once, then let each sender consent to Gmail and Calendar in one step."
+---
+
+Each project brings its **own** Google OAuth client; the service owns the token lifecycle. Register the client once, then start the consent flow per sender.
+
+<CodeGroup>
+
+```bash title="curl"
+# once per project
+curl -X PUT $SEQ/v1/project/providers/google -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"client_id":"1234-abc.apps.googleusercontent.com","client_secret":"GOCSPX-…"}'
+# per sender: returns the URL the sender opens once
+curl -X POST $SEQ/v1/senders/u_42/connections/google -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"return_url":"https://app.acme.com/settings/mailbox?connected=1"}'
+# {"success":true,"data":{"auth_url":"https://accounts.google.com/o/oauth2/v2/auth?…","connection_id":"con_…"}}
+```
+
+```ts title="TypeScript"
+await oseq.project.setProvider('google', { client_id: '1234-abc.apps.googleusercontent.com', client_secret: 'GOCSPX-…' });
+
+const { auth_url } = await oseq.senders.connectGoogle('u_42', { return_url: 'https://app.acme.com/settings/mailbox?connected=1' });
+// redirect the sender's browser to auth_url
+```
+
+</CodeGroup>
+
+<Steps>
+<Step title="Create the OAuth client in Google Cloud Console">
+
+In a Google Cloud project, enable the **Gmail API** and the **Google Calendar API**, configure the OAuth consent screen, and create an OAuth client of type **Web application**. Add the redirect URI your instance reports:
+
+```bash
+curl $SEQ/v1/project -H "Authorization: Bearer $KEY"
+# data.google_redirect_uri == "https://sequences.example.com/v1/oauth/google/callback"
+```
+
+It is `SEQ_PUBLIC_URL` + `/v1/oauth/google/callback`.
+
+</Step>
+<Step title="Store the client in the project">
+
+`PUT /v1/project/providers/google` with `client_id` and `client_secret`. The secret is encrypted under `SEQ_ENCRYPTION_KEYS` and never returned: `GET /v1/project` shows the provider's status, key id, last four characters and timestamps. Rotate by calling the same endpoint again.
+
+</Step>
+<Step title="Start the consent flow for a sender">
+
+`POST /v1/senders/{id}/connections/google` returns `auth_url` and a `connection_id`. Send the sender's browser there. The URL asks for `access_type=offline` and `prompt=consent`, so Google issues a refresh token every time, and carries a signed `state` naming the project, the sender and the connection, valid for ten minutes, so a callback cannot be replayed or pointed at another sender. `return_url` is where the sender lands afterwards (otherwise a plain "Google connected" page).
+
+</Step>
+<Step title="The callback creates the email channel">
+
+Google redirects to `/v1/oauth/google/callback`. The auth module checks the state, exchanges the code, stores the refresh token encrypted, records the consenting account, and the service creates the sender's `email` channel at that address with status `active`. From then on `readiness.email.ok` is true.
+
+</Step>
+</Steps>
+
+## The scopes
+
+| Scope | Why |
+|---|---|
+| `gmail.send` | send as the sender |
+| `gmail.readonly` | read replies and bounces in the threads the service started (history polling) |
+| `calendar.readonly` | detect bookings: events with an enrolled contact as attendee |
+| `userinfo.email` | learn which account consented, to set the channel address |
+
+`gmail.send` and `gmail.readonly` are required; a consent without them fails with `422 SCOPES_MISSING` (`details.missing` lists them) and the sender must connect again and allow every box. Gmail scopes are "sensitive" in Google's terms: an app used by accounts outside your Workspace domain needs Google's verification before the consent screen stops warning users.
+
+## What the service reads, and never reads
+
+Only threads the service started are read: the poll job asks Gmail's history API for new inbox messages and keeps only those whose thread or `In-Reply-To` matches a message it sent in the last 30 days. Everything else in the mailbox is ignored and never stored. Reply bodies are stored only when the project sets `store_inbound_bodies: true`. From the calendar it stores only the event id, its start and the matched attendee's email, for events with an enrolled contact as attendee, never the title, the description or the other attendees.
+
+## Token renewal and `credentials_needed`
+
+Access tokens are cached per replica and refreshed two minutes before they expire, one refresh at a time per connection. When Google answers `invalid_grant` (the user revoked access, changed their password with certain policies, or the token aged out), the connection goes `credentials_needed`, the email channel too, that sender's email steps are deferred, calendar polling stops, and `sender.channel_status` is delivered to your endpoints. Readiness then says `email_credentials_needed`: start the connect flow again. Disconnecting (`DELETE /v1/senders/{id}/connections/google`) revokes the token at Google and sets the channel `disconnected`.
+
+## Pub/Sub push (optional)
+
+Replies are found by polling Gmail history every minute. `POST /hooks/google/{slug}` exists for a Pub/Sub push subscription and is acknowledged, but it is only a nudge: the poller still does the reading. Registering a `watch` and the `pubsub_topic` setting are not wired yet; the minute poll is the mechanism today.
+
+## With mock providers
+
+`SEQ_DEV_MOCK_PROVIDERS=1` skips Google entirely: the connect call answers `{ "status": "active", "mock": true, "channel": … }` and the mailbox is active at the sender's `email` (or `<id>@mock.local`).

@@ -1,0 +1,42 @@
+---
+title: "Contributing"
+description: "The repository, the package layout, the import-lint rule, and running the tests with the mock provider."
+---
+
+```bash
+git clone https://github.com/open-sequence/opensequence && cd opensequence
+pnpm install
+pnpm typecheck && pnpm lint && pnpm test
+pnpm dev                      # the server with SEQ_ROLES=all and mock providers
+pnpm oseq -- --help           # the CLI
+pnpm --filter @opensequence/docs dev   # these docs
+```
+
+Node 22 and pnpm 10. The repository is a pnpm workspace; `docs/ARCHITECTURE.md` is the authoritative design and `CLAUDE.md` the working rules.
+
+## Layout
+
+| Package | What |
+|---|---|
+| `packages/core` | the pure domain: the definition schema, validation, templates, conditions, timing, the interpreter and every port interface. No I/O, no package imports |
+| `packages/engine` | entities, use cases (one file each) and the Drizzle persistence of the `seq` schema |
+| `packages/queue` | the queue port: `postgres`, `redis`, `memory` |
+| `packages/providers` | `google`, `allo`, `attio` and `mock`, registered by name |
+| `packages/auth` | provider credentials and the token lifecycle (the `auth` schema); destined for its own repository |
+| `packages/sdk` | `@opensequence/sdk`, types generated from the OpenAPI file |
+| `packages/oseq-docs` | this site |
+| `apps/server` | the Fastify API, the workers, the composition root, the `oseq` CLI, `openapi.json` |
+
+Every package is DDD-shaped: `src/domain`, `src/application`, `src/infrastructure`. Dependencies point inward only, and `pnpm lint` enforces it with `eslint-plugin-boundaries`: `domain` imports nothing from `application` or `infrastructure`; `core` imports no I/O package and no workspace package; `queue`, `providers` and `auth` never import `engine`; the SDK imports nothing from the repository. A violation is a lint error, not a review comment.
+
+## Tests
+
+`pnpm test` runs Vitest across every package. Core tests are pure. Engine integration tests and the server's quickstart test need a throwaway Postgres: `scripts/test-db.sh` starts one on port 54329, or set `SEQ_TEST_DB_DSN`. Provider tests use recorded fixtures (`msw`); the `mock` provider runs everything else. CI (`.github/workflows/ci.yml`) runs build, typecheck, lint and test against a Postgres service, checks that `apps/server/openapi.json` matches the routes (`pnpm --filter @opensequence/server openapi`), and builds the Docker image.
+
+## Conventions
+
+TypeScript strict, ESM. Zod 4 for every boundary; Fastify with the Zod type provider so the routes **are** the OpenAPI file. Prefixed ULID ids; `project_id` on every tenant-owned table. Drizzle for all persistence, migrations generated with `pnpm db:generate` and applied by the server at boot. Registries, not switch statements: channels, node types, fact sources, providers and events are registered by name ([Extending](/docs/community/extending)). Plain-English error messages with a stable `code`. Secrets are write-only.
+
+## Sending a change
+
+Open a pull request against `main` with the tests that prove it; CI must be green. A change to a route regenerates `openapi.json` (commit it); a change to the env schema, the registries, the event list or the error codes regenerates these docs' reference pages at build (`pnpm --filter @opensequence/docs generate`), so nothing to commit there.

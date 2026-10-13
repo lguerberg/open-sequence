@@ -1,0 +1,218 @@
+@import 'tailwindcss';
+
+/*
+  OpenSequence design system.
+
+  Classic, architectural, dev-first. The page is a framed ledger: a fixed-width column with
+  hairline rails, sections stacked on full-width rules, content in cells that share their borders.
+  Monochrome by default; the primary action is ink on paper (or paper on ink). One quiet azure,
+  used only for state: what was sent, what is live, what is selected.
+
+  Type: Albert Sans for everything you read, at regular weight with tight tracking for headings.
+  IBM Plex Mono for code, identifiers and the uppercase labels that name each cell.
+
+  Themes: dark is the default. Tokens are defined for `.light` (and bare :root) and for `.dark`, so
+  a panel can force either theme inside the other (the design-system page does).
+*/
+
+@custom-variant dark (&:is(.dark *));
+
+:root,
+.light {
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f2f4f7;
+  --code: #ffffff;
+  --foreground: #0e1114;
+  --muted-foreground: #5b626c;
+  --subtle-foreground: #8a919b;
+  --border: #d9dfe7;
+  --brand: #1677c7;
+  --brand-soft: rgba(22, 119, 199, 0.1);
+  --ok: #15803d;
+  --warn: #dc2626;
+  --ring: #1677c7;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0b0b0c;
+  --surface: #111113;
+  --surface-2: #18181b;
+  --code: #070708;
+  --foreground: #f4f4f5;
+  --muted-foreground: #a1a1aa;
+  --subtle-foreground: #71717a;
+  --border: #242427;
+  --brand: #5cb6f2;
+  --brand-soft: rgba(92, 182, 242, 0.12);
+  --ok: #4ade80;
+  --warn: #f87171;
+  --ring: #5cb6f2;
+  color-scheme: dark;
+}
+
+/* A light panel inside a dark page must win over the page. */
+.dark .light {
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f2f4f7;
+  --code: #ffffff;
+  --foreground: #0e1114;
+  --muted-foreground: #5b626c;
+  --subtle-foreground: #8a919b;
+  --border: #d9dfe7;
+  --brand: #1677c7;
+  --brand-soft: rgba(22, 119, 199, 0.1);
+  --ok: #15803d;
+  --warn: #dc2626;
+  --ring: #1677c7;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-code: var(--code);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-ring: var(--ring);
+  /* shadcn names, mapped onto the system */
+  --color-primary: var(--foreground);
+  --color-primary-foreground: var(--background);
+  --color-accent: var(--surface-2);
+  --color-accent-foreground: var(--foreground);
+  --color-input: var(--border);
+  --font-sans: var(--font-albert), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 { text-wrap: balance; font-weight: 400; }
+  p { text-wrap: pretty; }
+  ::selection { background: var(--brand-soft); }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* Type scale: five steps and two utility faces. Nothing else. */
+@layer components {
+  .t-display { font-size: clamp(40px, 5.2vw, 58px); line-height: 1.04; letter-spacing: -0.045em; font-weight: 400; }
+  .t-h2 { font-size: clamp(28px, 3.2vw, 38px); line-height: 1.12; letter-spacing: -0.035em; font-weight: 400; }
+  .t-h3 { font-size: 18px; line-height: 1.35; letter-spacing: -0.01em; font-weight: 500; }
+  .t-lead { font-size: clamp(17px, 1.5vw, 19px); line-height: 1.6; color: var(--muted-foreground); }
+  .t-body { font-size: 15px; line-height: 1.65; color: var(--muted-foreground); }
+  .t-label { font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.4; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+  .t-code { font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.7; }
+
+  /* The frame: a fixed column with hairline rails. Sections stack on full-width rules. */
+  .frame { margin-inline: auto; width: 100%; max-width: 1120px; }
+  @media (min-width: 1152px) { .frame { border-inline: 1px solid var(--border); } }
+  .band { height: 64px; border-bottom: 1px solid var(--border); }
+
+  /* Cells that share their borders: the grid's gap is the hairline. */
+  .cells { display: grid; gap: 1px; background: var(--border); }
+  .cells > * { background: var(--background); min-width: 0; }
+  .cells > .cells { background: var(--border); }
+
+  /* Code, highlighted at build time with two themes; the page decides which one shows. */
+  .shiki { margin: 0; background: transparent !important; overflow-x: auto; }
+  .shiki code { display: block; padding: 18px 20px; font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.7; white-space: pre; }
+  .shiki, .shiki span { color: var(--shiki-light); }
+  .dark .shiki, .dark .shiki span { color: var(--shiki-dark); }
+  .dark .light .shiki, .dark .light .shiki span { color: var(--shiki-light); }
+
+  /* Copy buttons: the inline script toggles data-copied. */
+  [data-copy] .copy-done { display: none; }
+  [data-copy][data-copied] .copy-done { display: inline; }
+  [data-copy][data-copied] .copy-idle { display: none; }
+
+  /* Theme toggle icons. */
+  .icon-sun { display: none; }
+  .dark .icon-sun { display: block; }
+  .dark .icon-moon { display: none; }
+
+  /* FAQ on native details: no script, keyboard and search friendly. */
+  .faq summary { list-style: none; cursor: pointer; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq details[open] .faq-plus { transform: rotate(45deg); }
+
+  /* Flip cards: the problem on the front, how it is handled on the back. Hover, focus or tap flips. */
+  .flip { perspective: 1400px; outline: none; }
+  .flip-inner { position: relative; height: 100%; transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); transform-style: preserve-3d; }
+  .flip:hover .flip-inner, .flip:focus-visible .flip-inner, .flip:focus .flip-inner { transform: rotateY(180deg); }
+  .flip:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+  .flip-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .flip-back { transform: rotateY(180deg); }
+
+  /* The agent transcript: native details for the thinking blocks, a blinking caret in the composer,
+     and, where the browser supports scroll timelines, each message settles in as it scrolls into view. */
+  .chat-in summary { list-style: none; }
+  .chat-in summary::-webkit-details-marker { display: none; }
+  .chat-caret { display: inline-block; width: 1px; height: 1em; margin-left: 2px; vertical-align: -2px; background: var(--brand); animation: chat-blink 1.1s steps(1) infinite; }
+  @keyframes chat-blink { 50% { opacity: 0; } }
+  @supports (animation-timeline: view()) {
+    .chat-in { animation: chat-settle linear both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+  }
+  @keyframes chat-settle { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* The ledger: the first rows are there at rest, the reply arrives on a loop. */
+  .ledger-row.is-live { animation: ledger-in 9s ease-in-out infinite both; }
+  @keyframes ledger-in {
+    0%, 22% { opacity: 0; transform: translateY(6px); }
+    30%, 92% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(0); }
+  }
+}
+
+/* Scrollbars: none on scrolling rows, none on phones, thin and themed elsewhere. */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+html { scrollbar-width: thin; scrollbar-color: var(--border) var(--background); }
+@media (max-width: 768px) {
+  html { scrollbar-width: none; }
+  html::-webkit-scrollbar { display: none; }
+}
+
+/* Unlayered on purpose: a host page (a preview frame) may style body; ours must win. */
+html body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .flip:hover .flip-inner, .flip:focus .flip-inner, .flip:focus-visible .flip-inner { transform: none; }
+  .flip-back { transform: none; opacity: 0; transition: opacity 0.2s; }
+  .flip-front { transition: opacity 0.2s; }
+  .flip:hover .flip-back, .flip:focus .flip-back { opacity: 1; }
+  .flip:hover .flip-front, .flip:focus .flip-front { opacity: 0; }
+  .ledger-row.is-live, .chat-in, .chat-caret { animation: none; opacity: 1; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}

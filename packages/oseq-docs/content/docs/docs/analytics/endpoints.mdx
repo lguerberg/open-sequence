@@ -1,0 +1,82 @@
+---
+title: "Analytics endpoints"
+description: "Summary, exits, nodes, channels and the cross-sequence table; what each number means."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/sequences/seq_01J9…/analytics/summary  -H "Authorization: Bearer $KEY"
+curl $SEQ/v1/sequences/seq_01J9…/analytics/exits    -H "Authorization: Bearer $KEY"
+curl $SEQ/v1/sequences/seq_01J9…/analytics/nodes    -H "Authorization: Bearer $KEY"
+curl $SEQ/v1/sequences/seq_01J9…/analytics/channels -H "Authorization: Bearer $KEY"
+curl "$SEQ/v1/analytics/sequences?min_enrolled=20"  -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+const [summary, exits, nodes, channels, all] = await Promise.all([
+  oseq.analytics.summary('seq_01J9…'),
+  oseq.analytics.exits('seq_01J9…'),
+  oseq.analytics.nodes('seq_01J9…'),
+  oseq.analytics.channels('seq_01J9…'),
+  oseq.analytics.sequences({ min_enrolled: 20 }),
+]);
+```
+
+</CodeGroup>
+
+All five take `version`, `from`, `to`, `sender` and `country`; scope `read`. Rates are per 100 and rounded to one decimal; a rate with no denominator is `null`, never `NaN`.
+
+## Summary
+
+`GET /v1/sequences/{id}/analytics/summary`
+
+| Field | Meaning |
+|---|---|
+| `enrolled` | enrollments created (in the filter) |
+| `active`, `exited`, `completed` | by current status (`active` includes `paused` and `waiting_limit`) |
+| `touches_delivered` | outreach runs whose message was delivered (sent at for Gmail, which has no receipt; Allo's `sms.sent`); the second denominator |
+| `replies`, `meetings` | enrollments with a first reply or a first meeting |
+| `reply_rate_per_100_enrolled`, `meeting_rate_per_100_enrolled` | per enrolled |
+| `reply_rate_per_100_delivered`, `meeting_rate_per_100_delivered` | per delivered touch |
+| `replies_by_channel` | `{ email, sms, call, linkedin }` counts of attributed replies |
+
+## Exits
+
+`GET /v1/sequences/{id}/analytics/exits` returns `exits: [{ reason, count }]` largest first: `replied`, `meeting_booked`, `opt_out`, `bounced`, `suppressed`, `manual`, `deleted`.
+
+## Nodes
+
+`GET /v1/sequences/{id}/analytics/nodes` returns one row per step:
+
+| Field | Meaning |
+|---|---|
+| `node_id`, `node_type`, `channel` | the step |
+| `reached` | runs of this node |
+| `executed` | outreach runs that were sent |
+| `skipped`, `skipped_by_reason` | runs a gate refused, with `{ no_consent: 12, suppressed: 3, … }` |
+| `failed` | runs that ran out of retries |
+| `delivered`, `bounced` | from the run's recorded outcome |
+| `replies`, `meetings` | signals attributed to this step's runs |
+| `reply_rate_per_100_delivered` | |
+| `median_time_to_reply_seconds` | median of reply time minus send time |
+
+## Channels
+
+`GET /v1/sequences/{id}/analytics/channels` returns one row per `(channel, touch_number)`: `reached`, `sent`, `skipped`, `delivered`, `bounced`, `replies`, `meetings`, `reply_rate_per_100_sent`, `meeting_rate_per_100_sent`. The split by touch number is deliberate: SMS usually comes later and to warmer contacts, so an email-versus-SMS chart is only fair at the same position in the sequence.
+
+## Cross-sequence
+
+`GET /v1/analytics/sequences?min_enrolled=` returns every sequence of the project with `enrolled`, `replies`, `meetings`, `replies_per_100_enrolled`, `meetings_per_100_enrolled`, ranked by replies then meetings per 100 enrolled; `min_enrolled` hides tiny samples.
+
+<Note>The architecture document also lists `GET /v1/analytics/channels` (all sequences compared by channel) and a 60-second cache. Neither exists in the code today.</Note>
+
+## What a client can show
+
+| Screen | Numbers | Endpoint |
+|---|---|---|
+| Sequence overview | replies and meetings (rate vs enrolled and delivered), replies by channel, exit reasons | `summary`, `exits` |
+| Per step | reached, executed, skipped by reason, failed, delivered, bounced, replies, meetings, median time to reply | `nodes` |
+| Channel comparison | per channel and touch number | `channels` |
+| By version | any of the above with `?version=` | |
+| Cross-sequence | sequences ranked by replies and meetings per 100 enrolled | `/v1/analytics/sequences` |

@@ -1,0 +1,47 @@
+---
+title: "Outcomes and attribution"
+description: "Replies and meetings, from Google Calendar or reported; direct and assisted attribution; the 14-day window; counted once per enrollment."
+---
+
+<CodeGroup>
+
+```bash title="curl"
+curl "$SEQ/v1/sequences/seq_01J9…/analytics/summary?from=2026-09-01&to=2026-10-01" -H "Authorization: Bearer $KEY"
+# {"sequence":"seq_…","enrolled":412,"active":140,"exited":230,"completed":42,"touches_delivered":980,"replies":61,"meetings":12,
+#  "reply_rate_per_100_enrolled":14.8,"meeting_rate_per_100_enrolled":2.9,"reply_rate_per_100_delivered":6.2,"meeting_rate_per_100_delivered":1.2,
+#  "replies_by_channel":{"email":44,"sms":9,"call":8}}
+```
+
+```ts title="TypeScript"
+const summary = await oseq.analytics.summary('seq_01J9…', { from: new Date('2026-09-01'), to: new Date('2026-10-01') });
+```
+
+</CodeGroup>
+
+**The only two outcomes are replies and meetings booked**, attributed to a sequence, a channel and a step. There is no goal, no funnel and no score.
+
+## Definitions
+
+- **Reply**: an inbound email in a thread the service started, an inbound text, a LinkedIn reply reported through a task (`linkedin_message` completed with `replied`), a reply you report, or a task completed with an outcome in its `connected_outcomes` (a `call_connected` signal). Out-of-office auto-replies, bounces and opt-outs are not replies.
+- **Meeting booked**: a new event on the sender's Google Calendar with the contact as a non-declined attendee (detected by the minute poll), or a `meeting_booked` you report. Both are idempotent by their ids and counted once per enrollment, so reporting a booking the calendar already showed creates no second meeting.
+- **Attribution window**: the signal is matched to enrollments whose last touch is within `settings.attribution_days` (14 by default) before it occurred.
+- **Counted once per enrollment**: the **first** reply and the **first** meeting are attributed and set `replied_at` / `meeting_booked_at` on the enrollment, never rewritten; later ones are stored with `attribution: "none"` and appear only in the timeline.
+
+## Attribution rules
+
+| Signal | Credited run | Attribution |
+|---|---|---|
+| reply on channel X | the latest sent touch on channel X before the reply, in this enrollment | `direct` |
+| reply on channel X, no touch on X | the latest sent touch on any channel | `assisted` |
+| connected call | the task's own run | `direct` |
+| meeting booked | the most recently touched enrollment of the contact in the window, even one that already exited (a reply often exits it; the meeting comes later); then the latest touch before the booking | `direct` |
+
+The result is written once on the signal (`attributed_run`, `attribution`) and on the enrollment, and shows in the journey and in `signal.received`.
+
+## Filters
+
+Every analytics endpoint accepts `version` (a version id), `from` and `to` (ISO dates, on the enrollment's creation), `sender` (a sender id) and `country` (the contact's). Responses are not cached.
+
+## What the numbers are made from
+
+The endpoints read the ledgers directly (enrollments, runs, signals) with no pre-aggregation to keep correct, which is fine at the volumes the service targets. See [Endpoints](/docs/analytics/endpoints) for each one.

@@ -1,0 +1,208 @@
+---
+title: "Quickstart"
+description: "From docker compose up to a first enrollment, a sent email and a reply, in six calls."
+---
+
+You need Docker and `curl`. The compose file starts Postgres and one OpenSequence process with **mock providers** on: nothing reaches Google, Allo or Attio, sends land in the contact's timeline, and a hook lets you simulate a reply. The operator token is `dev-admin-token`.
+
+<Steps>
+<Step title="Run it">
+
+```bash
+git clone https://github.com/open-sequence/opensequence && cd opensequence
+docker compose up
+# in another shell
+export SEQ=http://localhost:8080
+curl $SEQ/readyz          # {"ok":true}
+```
+
+</Step>
+<Step title="Create a project and its API key">
+
+The operator token creates the tenant and returns its first `admin`-scoped key. The key is shown once.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/admin/projects \
+  -H "Authorization: Bearer dev-admin-token" -H "Content-Type: application/json" \
+  -d '{"slug":"acme","name":"Acme CRM"}'
+# {"success":true,"data":{"project":{"id":"prj_…","slug":"acme",…},"api_key":"sk_live_…"},"meta":{"request_id":"req_…"}}
+export KEY=sk_live_…
+```
+
+```ts title="TypeScript"
+import { OpenSequence, OpenSequenceAdmin } from '@opensequence/sdk';
+
+const admin = new OpenSequenceAdmin({ baseUrl: 'http://localhost:8080', adminToken: 'dev-admin-token' });
+const { project, api_key } = await admin.projects.create({ slug: 'acme', name: 'Acme CRM' });
+
+const oseq = new OpenSequence({ baseUrl: 'http://localhost:8080', apiKey: api_key });
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="A sender, and connect their Google account">
+
+A sender is the acting user an enrollment runs as. In production the connect call returns a consent URL the sender opens once (Gmail and Calendar). With mock providers the mailbox is active at once.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/senders/u_42 -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"name":"Max Rivera","email":"max@acme.com","timezone":"America/New_York"}'
+curl -X POST $SEQ/v1/senders/u_42/connections/google -H "Authorization: Bearer $KEY" -H "Content-Type: application/json"
+# mock: {"success":true,"data":{"status":"active","mock":true,"channel":{"channel":"email","address":"max@acme.com",…}}}
+# real: {"success":true,"data":{"auth_url":"https://accounts.google.com/o/oauth2/v2/auth?…","connection_id":"con_…"}}
+```
+
+```ts title="TypeScript"
+await oseq.senders.upsert('u_42', { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' });
+const connection = await oseq.senders.connectGoogle('u_42');
+// mock: { status: 'active', mock: true, channel: {…} }   real: { auth_url, connection_id }
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="A contact">
+
+`PUT` by your own id; `attrs` is free JSON that conditions and templates can read.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"first_name":"Dana","email":"dana@example.com","timezone":"Europe/London","attrs":{"company":{"country":"UK"}}}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.upsert('p_7', { first_name: 'Dana', email: 'dana@example.com', timezone: 'Europe/London', attrs: { company: { country: 'UK' } } });
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="A sequence: create, save the definition, publish">
+
+Creating a sequence makes a draft version `v1`. Save a definition into it, then publish: validation errors block a publish, warnings do not.
+
+```json title="definition.json"
+{
+  "schema_version": 1,
+  "entry": "start",
+  "settings": { "reenroll": "never" },
+  "exit_on": ["reply", "meeting_booked"],
+  "nodes": {
+    "start": { "type": "start", "next": { "then": "email_intro" } },
+    "email_intro": {
+      "type": "outreach", "channel": "email", "action": "send",
+      "params": {
+        "subject": "Quick question, {{ contact.first_name | \"there\" }}",
+        "body": "Hi {{ contact.first_name | \"there\" }}, from {{ sender.name }}.\n\nUnsubscribe: {{ unsubscribe_url }}"
+      },
+      "next": { "sent": "wait_reply", "skipped": "wait_reply", "failed": "end" }
+    },
+    "wait_reply": { "type": "wait_for", "params": { "events": ["reply", "meeting_booked"], "timeout": "3d" }, "next": { "reply": "end", "meeting_booked": "end", "timeout": "call" } },
+    "call": { "type": "task", "params": { "kind": "call", "title": "Call {{ contact.first_name | \"them\" }}", "due": "1d", "dialer": true }, "next": { "completed": "end", "no_answer": "end" } },
+    "end": { "type": "end" }
+  }
+}
+```
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/sequences -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"name":"UK intro"}'
+# {"success":true,"data":{"sequence":{"id":"seq_…"},"version":{"id":"ver_…","tag":"v1","status":"draft","lockVersion":0}}}
+export SEQ_ID=seq_… VER_ID=ver_…
+curl -X PUT $SEQ/v1/sequences/$SEQ_ID/versions/$VER_ID/draft -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d "{\"definition\": $(cat definition.json), \"lock_version\": 0}"
+# {"success":true,"data":{"version":{…},"problems":[]}}
+curl -X POST $SEQ/v1/sequences/$SEQ_ID/versions/$VER_ID/publish -H "Authorization: Bearer $KEY" -H "Content-Type: application/json"
+# {"success":true,"data":{"version":{"status":"published",…},"problems":[]}}
+```
+
+```ts title="TypeScript"
+import definition from './definition.json' with { type: 'json' };
+
+const { sequence, version } = await oseq.sequences.create({ name: 'UK intro' });
+const saved = await oseq.sequences.versions.saveDraft(sequence.id, version.id, { definition, lock_version: 0 });
+if (saved.problems.length) console.log(saved.problems); // warnings are allowed, errors block the publish
+await oseq.sequences.versions.publish(sequence.id, version.id);
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Enroll">
+
+Enroll the contact as the sender. A contact can be in one active sequence per project; a second enroll of the same contact is a `409 ALREADY_IN_SEQUENCE` and nobody is enrolled.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/sequences/$SEQ_ID/enrollments -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"contacts":["p_7"],"sender":"u_42"}'
+# {"success":true,"data":{"accepted":[{"contact_id":"ctc_…","external_id":"p_7","first_touch_at":"…"}],"skipped":[],"capacity":{"per_day":30,"days_to_first_touches":1},"enrollments":[{"id":"enr_…","status":"active",…}]}}
+export ENR_ID=enr_…
+```
+
+```ts title="TypeScript"
+const { enrollments } = await oseq.sequences.enroll(sequence.id, { contacts: ['p_7'], sender: 'u_42' });
+const enrollmentId = enrollments[0].id;
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Read the journey and the sent email">
+
+Within a few seconds the planner claims the enrollment and the email executor sends through the mock mailbox. The journey shows the runs, the message and the waiting step.
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/enrollments/$ENR_ID -H "Authorization: Bearer $KEY"
+# data.enrollment.currentNodeId == "wait_reply"; data.runs: start done, email_intro done, wait_reply waiting
+# data.messages[0]: {"direction":"out","subject":"Quick question, Dana","status":"sent","threadRef":"mock-thread:…"}
+curl $SEQ/v1/contacts/p_7/timeline -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+const journey = await oseq.enrollments.get(enrollmentId);
+const sent = journey.messages[0];
+console.log(journey.enrollment.currentNodeId, sent.subject, sent.threadRef);
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Simulate a reply, watch the exit">
+
+The mock hook accepts an inbound event. A reply in the thread the service started is matched to the enrollment, attributed to the email step, and the enrollment exits with `replied` because `exit_on` lists `reply`.
+
+```bash
+curl -X POST $SEQ/hooks/mock/acme -H "Content-Type: application/json" -d '{
+  "kind": "reply", "channel": "email", "externalId": "evt_1", "occurredAt": "2026-10-13T10:00:00Z",
+  "from": "dana@example.com", "to": "max@acme.com", "threadRef": "<threadRef from the sent message>"
+}'
+# {"ok":true,"stored":1,"ignored":0}
+curl $SEQ/v1/enrollments/$ENR_ID -H "Authorization: Bearer $KEY"
+# data.enrollment.status == "exited", exitReason == "replied"
+curl $SEQ/v1/sequences/$SEQ_ID/analytics/summary -H "Authorization: Bearer $KEY"
+# {"enrolled":1,"active":0,"exited":1,"touches_delivered":1,"replies":1,"reply_rate_per_100_enrolled":100,"replies_by_channel":{"email":1},…}
+```
+
+</Step>
+</Steps>
+
+<Tip>A `POST` with `Content-Type: application/json` and no body is accepted everywhere a body is optional (the connect and publish calls above), which is what curl and most SDKs send.</Tip>
+
+## Where next
+
+- In production, register your own Google OAuth client before connecting senders: [Connect Google](/docs/senders/connect-google).
+- Register a webhook endpoint instead of polling the journey: [Receiving webhooks](/docs/webhooks/overview).
+- Tell the service what it cannot see (meetings booked elsewhere, do-not-contact): [Contact events](/docs/contacts/events).
+- Every node type, with an example: [Nodes](/docs/sequences/nodes).

@@ -1,0 +1,4 @@
+{
+  "title": "Self-hosting",
+  "pages": ["install", "configuration", "database", "queues", "scaling", "upgrades", "observability", "security-hardening", "deploy-qovery", "deploy-fly", "deploy-kubernetes"]
+}
