@@ -22,8 +22,8 @@ export function HardParts() {
             <span className="text-muted-foreground">Not a sequencing service.</span>
           </h2>
           <p className="t-lead mt-5">
-            The first version is a weekend. The next two years are edge cases, found one incident at
-            a time.
+            The first version takes a weekend. The next two years go to edge cases, and you find
+            each one in production.
           </p>
         </div>
         <Button asChild variant="outline" className="shrink-0 self-start lg:self-end">

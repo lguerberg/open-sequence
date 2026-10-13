@@ -12,8 +12,14 @@ import { DOCS } from '@/lib/links';
  */
 export function UseCases() {
   return (
-    <section id="use-cases" aria-labelledby="use-cases-title" className="scroll-mt-20 border-b border-border">
-      <h2 id="use-cases-title" className="sr-only">Use cases</h2>
+    <section
+      id="use-cases"
+      aria-labelledby="use-cases-title"
+      className="scroll-mt-20 border-b border-border"
+    >
+      <h2 id="use-cases-title" className="sr-only">
+        Use cases
+      </h2>
       <div className="frame">
         <Tabs
           name="uc"
@@ -40,7 +46,9 @@ export function UseCases() {
                     </div>
                   </div>
                   <div className="flex flex-col justify-center gap-6 px-6 py-9 sm:px-9">
-                    <p className="text-[22px] leading-[1.3] tracking-[-0.02em] text-foreground sm:text-[24px]">{u.claim}</p>
+                    <p className="text-[22px] leading-[1.3] tracking-[-0.02em] text-foreground sm:text-[24px]">
+                      {u.claim}
+                    </p>
                     <Button asChild variant="link" size="inline" className="self-start">
                       <a href={`${DOCS}${u.href}`}>
                         Learn more <ArrowRight className="size-3" />

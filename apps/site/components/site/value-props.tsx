@@ -6,7 +6,11 @@ import { icons } from '@/lib/icons';
 export function ValueProps() {
   return (
     <Section id="value" labelledBy="value-title">
-      <SectionHeading id="value-title" title="Why teams own their sequencing" lede="The price is the obvious part. These are the reasons teams stay." />
+      <SectionHeading
+        id="value-title"
+        title="Why teams own their sequencing"
+        lede="Price is the obvious reason. Here are the others."
+      />
       <Cells className="sm:grid-cols-2 lg:grid-cols-4">
         {valueProps.map((v) => (
           <div key={v.label} className="flex flex-col gap-4 p-6 sm:p-8">

@@ -12,7 +12,10 @@ export function Hero() {
     <>
       <Section labelledBy="hero-title">
         <div className="mx-auto max-w-3xl px-6 pt-16 pb-12 text-center sm:px-10 sm:pt-20 sm:pb-14">
-          <a href={links.github} className="inline-flex items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+          <a
+            href={links.github}
+            className="inline-flex items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+          >
             <Chip className="py-0.5">Open source</Chip>
             Apache-2.0 · self-hosted
           </a>
@@ -22,7 +25,9 @@ export function Hero() {
           <p className="mx-auto mt-5 max-w-[38rem] text-[16px] leading-[1.6] text-muted-foreground sm:text-[17px]">
             Build your own sales sequencing infrastructure without building it from scratch.
           </p>
-          <p className="mt-3 text-[15px] text-foreground">No per-seat pricing. No black boxes. Just infrastructure you control.</p>
+          <p className="mt-3 text-[15px] text-foreground">
+            No per-seat pricing. No black boxes. Just infrastructure you control.
+          </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button asChild>
               <a href={links.quickstart}>

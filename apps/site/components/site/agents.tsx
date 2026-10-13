@@ -92,14 +92,14 @@ const transcript: Part[] = [
   },
   {
     kind: 'reply',
-    text: 'Enrolled 38. I skipped two people who are already in “Q4 renewals”. First emails go out tomorrow from 09:00, in each lead’s own time zone.',
+    text: 'Enrolled 38. I skipped two people who are already in "Q4 renewals". First emails go out tomorrow from 09:00, in each lead\'s own time zone.',
   },
 ];
 
 const facts: Array<[string, string]> = [
   ['Scoped by its key', 'An enroll key cannot touch senders or settings.'],
-  ['Hosted or local', 'One HTTP endpoint for the team, or stdio on a laptop.'],
-  ['Same rules', 'Double enrollment is refused for agents too, and every call is logged.'],
+  ['Hosted or local', 'Run one HTTP endpoint for the team, or stdio on a laptop.'],
+  ['Same rules', 'The engine refuses double enrollment for agents too, and logs every call.'],
 ];
 
 const clients = ['Claude Code', 'Cursor', 'Codex', 'Any MCP client'];
