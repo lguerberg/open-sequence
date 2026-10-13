@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
   openGraph: {
-    title: 'Sales sequences, as code. OpenSequence is open source.',
+    title: 'Sales sequences, as code.',
     description:
       'Build your own sales sequencing infrastructure without building it from scratch. An open-source, self-hosted engine for orchestrating outbound across email, APIs, and AI agents. No per-seat pricing.',
     url: 'https://opensequence.dev',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sales sequences, as code. OpenSequence is open source.',
+    title: 'Sales sequences, as code.',
     description:
       'An open-source, self-hosted engine for orchestrating outbound across email, APIs, and AI agents. No per-seat pricing. No black boxes.',
   },
