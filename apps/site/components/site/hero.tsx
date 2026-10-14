@@ -3,21 +3,19 @@ import { CopyCommand } from '@/components/ds/controls';
 import { links } from '@/lib/links';
 import { HeroCanvas } from './hero-canvas';
 
-/** The hero: the sequence builder and the headline, then the dotted celeste band with the calls to action. */
+/** The hero: the headline, the sequence builder under it, then the dotted celeste band with the calls to action. */
 export function Hero() {
   return (
     <section aria-labelledby="hero-title" className="wrap pb-16 sm:pb-24">
-      <div className="grid items-center gap-12 pt-4 pb-12 sm:pt-10 sm:pb-16 xl:grid-cols-[minmax(0,13fr)_minmax(0,11fr)] xl:gap-14 lg:pt-14 lg:pb-20">
-        <div className="order-2 mx-auto w-full max-w-[900px] xl:order-1 xl:max-w-none">
+      <div className="pt-4 pb-12 sm:pt-10 sm:pb-16 lg:pt-14 lg:pb-20">
+        <h1 id="hero-title" className="t-display">
+          Sales sequences, <em className="text-brand">as&nbsp;code.</em>
+        </h1>
+        <p className="t-sub mt-6 max-w-[34rem] sm:mt-8">
+          Own your sales sequencing infrastructure without building it from scratch.
+        </p>
+        <div className="mt-12 sm:mt-16">
           <HeroCanvas />
-        </div>
-        <div className="order-1 xl:order-2">
-          <h1 id="hero-title" className="t-display xl:text-[clamp(56px,5.9vw,92px)]">
-            Sales sequences, <em className="text-brand">as&nbsp;code.</em>
-          </h1>
-          <p className="t-sub mt-6 max-w-[34rem] sm:mt-8">
-            Own your sales sequencing infrastructure without building it from scratch.
-          </p>
         </div>
       </div>
 

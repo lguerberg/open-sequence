@@ -125,7 +125,7 @@ export function HeroCanvas() {
           </span>
         </div>
 
-        <div className="grid md:grid-cols-[minmax(0,1fr)_236px]">
+        <div className="grid md:grid-cols-[minmax(0,1fr)_236px] lg:grid-cols-[minmax(0,1fr)_300px]">
           {/* Canvas */}
           <div className="relative overflow-hidden bg-surface px-4 pt-6 pb-16 [background-image:radial-gradient(rgba(15,27,42,0.12)_1px,transparent_1.2px)] [background-size:18px_18px]">
             <div className="flex flex-col items-center">
