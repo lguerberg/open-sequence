@@ -1,40 +1,94 @@
 import { ImageResponse } from 'next/og';
 
 export const dynamic = 'force-static';
-export const alt = 'OpenSequence: sales sequences, as code. Open source, self-hosted outbound infrastructure.';
+export const alt =
+  'OpenSequence: sales sequences, as code. Open source, self-hosted outbound infrastructure.';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-/** The share card, in the design system's dark theme: ink ground, hairline frame, one azure mark. */
+/** The share card, in the landing's register: white ground, navy headline, the celeste band. */
 export default function Image() {
   return new ImageResponse(
-    (
-      <div style={{ width: '100%', height: '100%', display: 'flex', background: '#0b0b0c', color: '#f4f4f5', fontFamily: 'sans-serif', padding: 40 }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid #242427', padding: 56 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 30 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 9, background: '#f4f4f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                <path d="M5.5 12h3.4l2.1-4.8 2.3 9.6 2.1-4.8h3.1" stroke="#0b0b0c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <span>opensequence</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-            <div style={{ fontSize: 82, fontWeight: 400, letterSpacing: -3.5, lineHeight: 1 }}>Sales sequences, as code.</div>
-            <div style={{ fontSize: 30, color: '#a1a1aa', lineHeight: 1.35, maxWidth: 960 }}>
-              An open-source, self-hosted engine for orchestrating outbound across email, APIs, and AI agents.
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 22, color: '#71717a', fontFamily: 'monospace' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: '#5cb6f2' }} />
-              opensequence.dev
-            </span>
-            <span>APACHE-2.0 · NO PER-SEAT PRICING</span>
-          </div>
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        background: '#ffffff',
+        color: '#0f1b2a',
+        fontFamily: 'sans-serif',
+        padding: 56,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          fontSize: 32,
+          letterSpacing: -1.2,
+        }}
+      >
+        <div
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 11,
+            background: '#74acdf',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M5.5 12h3.4l2.1-4.8 2.3 9.6 2.1-4.8h3.1"
+              stroke="#0f1b2a"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+        <span>opensequence</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+        <div style={{ fontSize: 96, fontWeight: 500, letterSpacing: -4.5, lineHeight: 0.95 }}>
+          Sales sequences, as code.
+        </div>
+        <div
+          style={{
+            fontSize: 34,
+            color: '#3c4a5c',
+            letterSpacing: -1.2,
+            lineHeight: 1.1,
+            maxWidth: 900,
+          }}
+        >
+          Own your sales sequencing infrastructure without building it from scratch.
         </div>
       </div>
-    ),
-    { ...size },
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          background: '#74acdf',
+          color: '#0f1b2a',
+          borderRadius: 28,
+          padding: '26px 34px',
+          fontSize: 28,
+          letterSpacing: -0.8,
+        }}
+      >
+        <span>No per-seat pricing. No black boxes.</span>
+        <span style={{ fontFamily: 'monospace', fontSize: 22, letterSpacing: 0 }}>
+          opensequence.dev · Apache-2.0
+        </span>
+      </div>
+    </div>,
+    { ...size }
   );
 }

@@ -4,35 +4,48 @@ import { Slot } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
 /**
- * shadcn's Button, restyled for the system: pills, uppercase, tracked. `primary` is ink on paper
- * (paper on ink in dark), never a colour; `outline` is the hairline; `link` is the uppercase
- * underlined "Learn more".
+ * shadcn's Button, restyled for the system: pills, medium weight. `primary` is deep celeste;
+ * `light` and `soft` sit on the celeste band; `link` is the mono underline with a celeste corner.
  */
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-sans font-medium uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-sans font-medium tracking-[-0.01em] transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        primary: 'rounded-full bg-foreground text-background hover:bg-foreground/85',
-        outline: 'rounded-full border border-border bg-transparent text-foreground hover:bg-surface-2',
-        ghost: 'rounded-full text-muted-foreground hover:bg-surface-2 hover:text-foreground',
-        link: 'rounded-none border-b border-current pb-0.5 text-foreground hover:text-brand',
+        primary: 'bg-brand text-white hover:bg-[#23689f]',
+        light: 'bg-white text-foreground hover:bg-surface',
+        soft: 'bg-brand-soft text-foreground hover:bg-[#d3e7f8]',
+        dark: 'bg-foreground text-surface hover:bg-code',
+        ghost: 'bg-surface/70 text-foreground hover:bg-surface',
+        link: 'link-corner rounded-none font-mono font-normal tracking-normal text-foreground underline decoration-1 underline-offset-[5px] hover:text-brand',
       },
       size: {
-        sm: 'h-8 px-3.5 text-[12px] tracking-[0.04em]',
-        md: 'h-10 px-5 text-[13px] tracking-[0.04em]',
-        lg: 'h-12 px-6 text-[14px] tracking-[0.04em]',
-        icon: 'size-9 rounded-full',
-        inline: 'h-auto px-0 text-[12px] tracking-[0.06em]',
+        sm: 'h-10 rounded-full px-4 text-[15px]',
+        md: 'h-12 rounded-full px-5 text-[16px]',
+        lg: 'h-14 rounded-full px-7 text-[16px]',
+        icon: 'size-10 rounded-full',
+        inline: 'h-auto px-0 text-[15px]',
       },
     },
     defaultVariants: { variant: 'primary', size: 'md' },
-  },
+  }
 );
 
-function Button({ className, variant, size, asChild = false, ...props }: React.ComponentProps<'button'> & VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<'button'> & VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
   const Comp = asChild ? Slot.Root : 'button';
-  return <Comp data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />;
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  );
 }
 
 export { Button, buttonVariants };

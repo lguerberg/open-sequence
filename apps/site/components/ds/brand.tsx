@@ -1,22 +1,32 @@
 import { cn } from '@/lib/utils';
 
-/** The mark: one step of a sequence, a signal passing through it. */
+/** The mark: one step of a sequence, a signal passing through it. Celeste tile, navy trace. */
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={cn('size-[22px]', className)}>
-      <rect x="1" y="1" width="22" height="22" rx="5.5" className="fill-foreground" />
-      <path d="M5.5 12h3.4l2.1-4.8 2.3 9.6 2.1-4.8h3.1" className="stroke-background" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={cn('size-9', className)}>
+      <rect x="1" y="1" width="22" height="22" rx="6" fill="#74acdf" />
+      <path
+        d="M5.5 12h3.4l2.1-4.8 2.3 9.6 2.1-4.8h3.1"
+        stroke="#0f1b2a"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, tone = 'ink' }: { className?: string; tone?: 'ink' | 'light' }) {
   return (
-    <span className={cn('inline-flex items-center gap-2.5 text-[18px] tracking-[-0.02em] text-foreground', className)}>
+    <span
+      className={cn(
+        'inline-flex items-center gap-2.5 text-[22px] font-medium tracking-[-0.04em]',
+        tone === 'ink' ? 'text-foreground' : 'text-surface',
+        className
+      )}
+    >
       <LogoMark />
-      <span>
-        open<span className="text-muted-foreground">sequence</span>
-      </span>
+      <span>opensequence</span>
     </span>
   );
 }

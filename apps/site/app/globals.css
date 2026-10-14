@@ -3,70 +3,39 @@
 /*
   OpenSequence design system.
 
-  Classic, architectural, dev-first. The page is a framed ledger: a fixed-width column with
-  hairline rails, sections stacked on full-width rules, content in cells that share their borders.
-  Monochrome by default; the primary action is ink on paper (or paper on ink). One quiet azure,
-  used only for state: what was sent, what is live, what is selected.
+  Celeste and white: a white ground, celeste bands, navy ink. Text on celeste is navy, never white.
+  Headlines are set in Instrument Serif; the interface in Geist; everything read closely (feature
+  copy, labels, code, data) in JetBrains Mono. Content sits on rounded cards and full-width tinted
+  bands; the hero closes on a dotted celeste band. Sections are numbered like the steps of a sequence.
 
-  Type: Albert Sans for everything you read, at regular weight with tight tracking for headings.
-  IBM Plex Mono for code, identifiers and the uppercase labels that name each cell.
-
-  Themes: dark is the default. Tokens are defined for `.light` (and bare :root) and for `.dark`, so
-  a panel can force either theme inside the other (the design-system page does).
+  One theme, deliberately: every color is set explicitly so the page renders the same on any host.
 */
 
-@custom-variant dark (&:is(.dark *));
-
-:root,
-.light {
-  --background: #fafafa;
-  --surface: #ffffff;
-  --surface-2: #f2f4f7;
-  --code: #ffffff;
-  --foreground: #0e1114;
-  --muted-foreground: #5b626c;
-  --subtle-foreground: #8a919b;
-  --border: #d9dfe7;
-  --brand: #1677c7;
-  --brand-soft: rgba(22, 119, 199, 0.1);
-  --ok: #15803d;
-  --warn: #dc2626;
-  --ring: #1677c7;
-  color-scheme: light;
-}
-
-.dark {
-  --background: #0b0b0c;
-  --surface: #111113;
-  --surface-2: #18181b;
-  --code: #070708;
-  --foreground: #f4f4f5;
-  --muted-foreground: #a1a1aa;
-  --subtle-foreground: #71717a;
-  --border: #242427;
-  --brand: #5cb6f2;
-  --brand-soft: rgba(92, 182, 242, 0.12);
-  --ok: #4ade80;
-  --warn: #f87171;
-  --ring: #5cb6f2;
-  color-scheme: dark;
-}
-
-/* A light panel inside a dark page must win over the page. */
-.dark .light {
-  --background: #fafafa;
-  --surface: #ffffff;
-  --surface-2: #f2f4f7;
-  --code: #ffffff;
-  --foreground: #0e1114;
-  --muted-foreground: #5b626c;
-  --subtle-foreground: #8a919b;
-  --border: #d9dfe7;
-  --brand: #1677c7;
-  --brand-soft: rgba(22, 119, 199, 0.1);
-  --ok: #15803d;
-  --warn: #dc2626;
-  --ring: #1677c7;
+:root {
+  --background: #ffffff; /* white */
+  --surface: #f3f8fd; /* cards, a breath of celeste */
+  --surface-2: #e8f1fa; /* hover on cards */
+  --border: #dbe6f1;
+  --foreground: #0f1b2a; /* navy ink */
+  --ink-2: #3c4a5c;
+  --muted-foreground: #66758a;
+  --subtle-foreground: #8a97a8;
+  --faint: #b2bdcb;
+  --brand: #2b7bc0; /* deep celeste: the primary button, links, numbers */
+  --brand-soft: #e3f0fb;
+  --band: #74acdf; /* celeste: the hero band, card backs */
+  --band-deep: #5c99d1;
+  --sky: #a9cff0; /* light celeste: the closing band, the product frame */
+  --peri: #ddebf8; /* the tinted band, the selected tab */
+  --code: #0f1b2a;
+  --lime: #8ec3ee; /* the file tag on code */
+  --ok: #2f7d32;
+  --ok-soft: #e1f2dc;
+  --warn: #9a6512;
+  --warn-soft: #f7e9c8;
+  --bad: #c2412d;
+  --bad-soft: #f7ded8;
+  --ring: #2b7bc0;
   color-scheme: light;
 }
 
@@ -74,27 +43,38 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
-  --color-code: var(--code);
+  --color-border: var(--border);
   --color-foreground: var(--foreground);
+  --color-ink-2: var(--ink-2);
   --color-muted-foreground: var(--muted-foreground);
   --color-subtle-foreground: var(--subtle-foreground);
-  --color-border: var(--border);
+  --color-faint: var(--faint);
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
+  --color-band: var(--band);
+  --color-band-deep: var(--band-deep);
+  --color-sky: var(--sky);
+  --color-peri: var(--peri);
+  --color-code: var(--code);
+  --color-lime: var(--lime);
   --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
   --color-ring: var(--ring);
   /* shadcn names, mapped onto the system */
-  --color-primary: var(--foreground);
-  --color-primary-foreground: var(--background);
+  --color-primary: var(--brand);
+  --color-primary-foreground: #ffffff;
   --color-accent: var(--surface-2);
   --color-accent-foreground: var(--foreground);
   --color-input: var(--border);
-  --font-sans: var(--font-albert), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --font-display: var(--font-display-face), 'Iowan Old Style', Georgia, serif;
+  --font-sans:
+    var(--font-sans-face), ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @layer base {
@@ -113,90 +93,209 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-  h1, h2, h3 { text-wrap: balance; font-weight: 400; }
-  p { text-wrap: pretty; }
-  ::selection { background: var(--brand-soft); }
-  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  a { color: inherit; text-decoration: none; }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    font-weight: 400;
+    margin: 0;
+  }
+  p {
+    text-wrap: pretty;
+    margin: 0;
+  }
+  ::selection {
+    background: var(--brand);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
-/* Type scale: five steps and two utility faces. Nothing else. */
+/* Type scale. Serif for headlines, Geist for the interface, mono for everything read closely. */
 @layer components {
-  .t-display { font-size: clamp(40px, 5.2vw, 58px); line-height: 1.04; letter-spacing: -0.045em; font-weight: 400; }
-  .t-h2 { font-size: clamp(28px, 3.2vw, 38px); line-height: 1.12; letter-spacing: -0.035em; font-weight: 400; }
-  .t-h3 { font-size: 18px; line-height: 1.35; letter-spacing: -0.01em; font-weight: 500; }
-  .t-lead { font-size: clamp(17px, 1.5vw, 19px); line-height: 1.6; color: var(--muted-foreground); }
-  .t-body { font-size: 15px; line-height: 1.65; color: var(--muted-foreground); }
-  .t-label { font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.4; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
-  .t-code { font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.7; }
+  .t-display {
+    font-family: var(--font-display-face), Georgia, serif;
+    font-size: clamp(54px, 7.6vw, 108px);
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+    font-weight: 400;
+  }
+  .t-sub {
+    font-size: clamp(19px, 1.9vw, 24px);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    font-weight: 400;
+    color: var(--ink-2);
+  }
+  .t-h2 {
+    font-family: var(--font-display-face), Georgia, serif;
+    font-size: clamp(36px, 3.8vw, 52px);
+    line-height: 1;
+    letter-spacing: -0.015em;
+    font-weight: 400;
+  }
+  .t-h3 {
+    font-size: 21px;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    font-weight: 500;
+  }
+  .t-lead {
+    font-size: clamp(17px, 1.5vw, 19px);
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+    color: var(--ink-2);
+  }
+  .t-body {
+    font-family: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--foreground);
+  }
+  .t-label {
+    font-family: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .t-code {
+    font-family: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
 
-  /* The frame: a fixed column with hairline rails. Sections stack on full-width rules. */
-  .frame { margin-inline: auto; width: 100%; max-width: 1120px; }
-  @media (min-width: 1152px) { .frame { border-inline: 1px solid var(--border); } }
-  .band { height: 64px; border-bottom: 1px solid var(--border); }
+  /* The column: 1216px of content, centered. */
+  .wrap {
+    margin-inline: auto;
+    width: 100%;
+    max-width: calc(1216px + 2 * var(--gutter));
+    padding-inline: var(--gutter);
+    --gutter: 20px;
+  }
+  @media (min-width: 640px) {
+    .wrap {
+      --gutter: 32px;
+    }
+  }
 
-  /* Cells that share their borders: the grid's gap is the hairline. */
-  .cells { display: grid; gap: 1px; background: var(--border); }
-  .cells > * { background: var(--background); min-width: 0; }
-  .cells > .cells { background: var(--border); }
-
-  /* Code, highlighted at build time with two themes; the page decides which one shows. */
-  .shiki { margin: 0; background: transparent !important; overflow-x: auto; }
-  .shiki code { display: block; padding: 18px 20px; font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.7; white-space: pre; }
-  .shiki, .shiki span { color: var(--shiki-light); }
-  .dark .shiki, .dark .shiki span { color: var(--shiki-dark); }
-  .dark .light .shiki, .dark .light .shiki span { color: var(--shiki-light); }
+  /* Code, highlighted at build time on the dark card. */
+  .shiki {
+    margin: 0;
+    background: transparent !important;
+    overflow-x: auto;
+  }
+  .shiki code {
+    display: block;
+    font-family: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13.5px;
+    line-height: 1.65;
+    white-space: pre;
+  }
 
   /* Copy buttons: the inline script toggles data-copied. */
-  [data-copy] .copy-done { display: none; }
-  [data-copy][data-copied] .copy-done { display: inline; }
-  [data-copy][data-copied] .copy-idle { display: none; }
-
-  /* Theme toggle icons. */
-  .icon-sun { display: none; }
-  .dark .icon-sun { display: block; }
-  .dark .icon-moon { display: none; }
+  [data-copy] .copy-done {
+    display: none;
+  }
+  [data-copy][data-copied] .copy-done {
+    display: inline;
+  }
+  [data-copy][data-copied] .copy-idle {
+    display: none;
+  }
 
   /* FAQ on native details: no script, keyboard and search friendly. */
-  .faq summary { list-style: none; cursor: pointer; }
-  .faq summary::-webkit-details-marker { display: none; }
-  .faq details[open] .faq-plus { transform: rotate(45deg); }
+  .faq summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq details[open] .faq-caret {
+    transform: rotate(45deg);
+  }
 
   /* Flip cards: the problem on the front, how it is handled on the back. Hover, focus or tap flips. */
-  .flip { perspective: 1400px; outline: none; }
-  .flip-inner { position: relative; height: 100%; transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); transform-style: preserve-3d; }
-  .flip:hover .flip-inner, .flip:focus-visible .flip-inner, .flip:focus .flip-inner { transform: rotateY(180deg); }
-  .flip:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
-  .flip-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-  .flip-back { transform: rotateY(180deg); }
-
-  /* The agent transcript: native details for the thinking blocks, a blinking caret in the composer,
-     and, where the browser supports scroll timelines, each message settles in as it scrolls into view. */
-  .chat-in summary { list-style: none; }
-  .chat-in summary::-webkit-details-marker { display: none; }
-  .chat-caret { display: inline-block; width: 1px; height: 1em; margin-left: 2px; vertical-align: -2px; background: var(--brand); animation: chat-blink 1.1s steps(1) infinite; }
-  @keyframes chat-blink { 50% { opacity: 0; } }
-  @supports (animation-timeline: view()) {
-    .chat-in { animation: chat-settle linear both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+  .flip {
+    perspective: 1600px;
+    outline: none;
   }
-  @keyframes chat-settle { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .flip-inner {
+    position: relative;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+  .flip:hover .flip-inner,
+  .flip:focus-visible .flip-inner,
+  .flip:focus .flip-inner {
+    transform: rotateY(180deg);
+  }
+  .flip:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 4px;
+    border-radius: 24px;
+  }
+  .flip-face {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: 24px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .flip-back {
+    transform: rotateY(180deg);
+  }
 
-  /* The ledger: the first rows are there at rest, the reply arrives on a loop. */
-  .ledger-row.is-live { animation: ledger-in 9s ease-in-out infinite both; }
-  @keyframes ledger-in {
-    0%, 22% { opacity: 0; transform: translateY(6px); }
-    30%, 92% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(0); }
+  /* The mono link's small celeste corner. */
+  .link-corner::after {
+    content: '';
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin-left: 2px;
+    vertical-align: 0.55em;
+    background: var(--brand);
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+  }
+
+  /* The dotted field on the celeste bands: a sequence of steps, laid out as a grid. */
+  .dots {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.45) 1.2px, transparent 1.4px);
+    background-size: 22px 22px;
+    background-position: 11px 11px;
   }
 }
 
 /* Scrollbars: none on scrolling rows, none on phones, thin and themed elsewhere. */
-.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-html { scrollbar-width: thin; scrollbar-color: var(--border) var(--background); }
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--faint) var(--background);
+}
 @media (max-width: 768px) {
-  html { scrollbar-width: none; }
-  html::-webkit-scrollbar { display: none; }
+  html {
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Unlayered on purpose: a host page (a preview frame) may style body; ours must win. */
@@ -207,12 +306,33 @@ html body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .flip:hover .flip-inner, .flip:focus .flip-inner, .flip:focus-visible .flip-inner { transform: none; }
-  .flip-back { transform: none; opacity: 0; transition: opacity 0.2s; }
-  .flip-front { transition: opacity 0.2s; }
-  .flip:hover .flip-back, .flip:focus .flip-back { opacity: 1; }
-  .flip:hover .flip-front, .flip:focus .flip-front { opacity: 0; }
-  .ledger-row.is-live, .chat-in, .chat-caret { animation: none; opacity: 1; }
-  *, *::before, *::after { transition-duration: 0.01ms !important; }
+  html {
+    scroll-behavior: auto;
+  }
+  .flip:hover .flip-inner,
+  .flip:focus .flip-inner,
+  .flip:focus-visible .flip-inner {
+    transform: none;
+  }
+  .flip-back {
+    transform: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .flip-front {
+    transition: opacity 0.2s;
+  }
+  .flip:hover .flip-back,
+  .flip:focus .flip-back {
+    opacity: 1;
+  }
+  .flip:hover .flip-front,
+  .flip:focus .flip-front {
+    opacity: 0;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,7 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GithubIcon, Logo } from '@/components/ds/brand';
-import { ThemeToggle } from '@/components/ds/controls';
 import { links } from '@/lib/links';
 
 const nav = [
@@ -12,39 +11,45 @@ const nav = [
   { href: links.changelog, label: 'Changelog' },
 ];
 
+/** Logo, the links in one light pill, then GitHub and the blue call to action. */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
-      <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:gap-6 sm:px-8">
-        <a href="#top" aria-label="OpenSequence, back to top" className="shrink-0">
-          <Logo />
-        </a>
-        <nav
-          aria-label="Primary"
-          className="hidden items-center gap-8 text-[15px] text-muted-foreground lg:flex"
-        >
-          {nav.map((n) => (
-            <a key={n.label} href={n.href} className="transition-colors hover:text-foreground">
-              {n.label}
-            </a>
-          ))}
-        </nav>
-        <div className="flex items-center gap-2">
+    <header id="top" className="wrap flex h-24 items-center justify-between gap-3 sm:h-28 sm:gap-6">
+      <a href="#top" aria-label="OpenSequence, back to top" className="shrink-0">
+        <Logo />
+      </a>
+      <nav
+        aria-label="Primary"
+        className="hidden h-12 items-center gap-1 rounded-full bg-surface px-1.5 lg:flex"
+      >
+        {nav.map((n) => (
           <a
-            href={links.github}
-            className="hidden h-9 items-center gap-2 rounded-full px-3 text-[14px] text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+            key={n.label}
+            href={n.href}
+            className="rounded-full px-4 py-2 text-[15px] font-medium tracking-[-0.01em] transition-colors hover:bg-surface-2"
           >
+            {n.label}
+          </a>
+        ))}
+      </nav>
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Button
+          asChild
+          variant="light"
+          size="sm"
+          className="hidden h-12 bg-surface hover:bg-surface-2 sm:inline-flex"
+        >
+          <a href={links.github}>
             <GithubIcon className="size-4" /> GitHub
           </a>
-          <ThemeToggle />
-          <Button asChild size="sm" className="h-9 px-3 sm:px-4">
-            <a href={links.quickstart}>
-              <span className="sm:hidden">Start</span>
-              <span className="hidden sm:inline">Get started</span>
-              <ArrowRight className="hidden size-3.5 sm:block" />
-            </a>
-          </Button>
-        </div>
+        </Button>
+        <Button asChild size="sm" className="h-11 sm:h-12">
+          <a href={links.quickstart}>
+            <span className="sm:hidden">Start</span>
+            <span className="hidden sm:inline">Get started</span>
+            <ArrowRight className="hidden size-4 sm:block" />
+          </a>
+        </Button>
       </div>
     </header>
   );

@@ -2,8 +2,8 @@
 /**
  * Turns a built page (out/<page>.html) into one self-contained HTML fragment for previews that
  * cannot serve /_next/ assets: stylesheets inlined, fonts inlined as data URIs, the framework
- * runtime removed. The page is designed to be complete without it; the two inline scripts
- * (theme, copy buttons) are kept.
+ * runtime removed. The page is designed to be complete without it; the inline copy-button script
+ * is kept.
  *
  *   node scripts/preview.mjs out index.html ../preview/landing.html [--document]
  *
@@ -22,7 +22,6 @@ const html = readFileSync(join(outDir, page), 'utf8');
 
 const pick = (re) => (html.match(re) || [])[1] || '';
 const title = pick(/<title>([\s\S]*?)<\/title>/);
-const themeInit = pick(/<script id="oseq-theme-init">([\s\S]*?)<\/script>/);
 const ui = pick(/<script id="oseq-ui">([\s\S]*?)<\/script>/);
 
 let css = '';
@@ -46,16 +45,17 @@ body = body
 const fragment = `<title>${title}</title>
 <meta name="description" content="${pick(/<meta name="description" content="([^"]*)"/)}">
 <style>${css}</style>
-<script>${themeInit}</script>
 ${body.trim()}
 <script>${ui}</script>
 `;
 
 const output =
   flag === '--document'
-    ? `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif;background:#f6f6f4}img{max-width:100%}[hidden]{display:none!important}</style></head><body>${fragment}</body></html>`
+    ? `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif;background:#e5ebeb}img{max-width:100%}[hidden]{display:none!important}</style></head><body>${fragment}</body></html>`
     : fragment;
 
 mkdirSync(dirname(target), { recursive: true });
 writeFileSync(target, output);
-console.log(`${target}: ${(output.length / 1024).toFixed(0)} KB, css ${(css.length / 1024).toFixed(0)} KB`);
+console.log(
+  `${target}: ${(output.length / 1024).toFixed(0)} KB, css ${(css.length / 1024).toFixed(0)} KB`
+);

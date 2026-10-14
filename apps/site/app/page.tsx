@@ -1,4 +1,3 @@
-import { Band } from '@/components/ds/frame';
 import { Cta } from '@/components/site/cta';
 import { Faq } from '@/components/site/faq';
 import { SiteFooter } from '@/components/site/footer';
@@ -6,7 +5,7 @@ import { HardParts } from '@/components/site/hard-parts';
 import { SiteHeader } from '@/components/site/header';
 import { Hero } from '@/components/site/hero';
 import { JsonLd } from '@/components/site/json-ld';
-import { Agents } from '@/components/site/agents';
+import { UseCases } from '@/components/site/use-cases';
 import { ValueProps } from '@/components/site/value-props';
 
 export default function Page() {
@@ -14,20 +13,14 @@ export default function Page() {
     <>
       <JsonLd />
       <SiteHeader />
-      <main id="top">
+      <main>
         <Hero />
-        <Band />
+        <UseCases />
         <ValueProps />
-        <Band />
         <HardParts />
-        <Band />
-        <Agents />
-        <Band />
         <Faq />
-        <Band />
         <Cta />
       </main>
-      <Band />
       <SiteFooter />
     </>
   );

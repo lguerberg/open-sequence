@@ -1,66 +1,66 @@
 import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Code } from '@/components/ds/code-card';
+import { CodeWindow } from '@/components/ds/code-card';
+import { Section, SectionHeading } from '@/components/ds/frame';
 import { Tabs } from '@/components/ds/tabs';
 import { useCases } from '@/lib/content';
 import { icons } from '@/lib/icons';
 import { DOCS } from '@/lib/links';
 
 /**
- * The use-case switcher under the hero, in the manner of trigger.dev. The tiles sit in the same
- * framed column as the panel they drive: one short snippet on the left, what it does on the right.
+ * The use-case switcher, in the shape of a code section: the cases as a list on the left,
+ * a dark code window on the right inside a hairline frame, and what the code does under it.
  */
 export function UseCases() {
   return (
-    <section
-      id="use-cases"
-      aria-labelledby="use-cases-title"
-      className="scroll-mt-20 border-b border-border"
-    >
-      <h2 id="use-cases-title" className="sr-only">
-        Use cases
-      </h2>
-      <div className="frame">
-        <Tabs
-          name="uc"
-          variant="tiles"
-          listClassName="justify-start border-b border-border px-4 py-3 sm:px-5 lg:justify-center-safe"
-          items={useCases.map((u) => {
-            const Icon = icons[u.icon]!;
-            return {
-              id: u.id,
-              label: (
-                <>
-                  <Icon className="size-4" strokeWidth={1.5} aria-hidden="true" /> {u.label}
-                </>
-              ),
-              panel: (
-                <div className="grid lg:min-h-[600px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-                  <div className="flex min-w-0 flex-col border-b border-border bg-code lg:border-r lg:border-b-0">
-                    <div className="flex items-center justify-between gap-4 border-b border-border bg-surface px-5 py-2.5 font-mono text-[13px]">
-                      <span className="truncate">{u.file}</span>
-                      <span className="shrink-0 text-[12px] text-subtle-foreground">{u.meta}</span>
-                    </div>
-                    <div className="flex flex-1 items-start py-5 [&_.shiki_code]:leading-[1.62]">
-                      <Code code={u.code} lang={u.lang} className="w-full min-w-0" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col justify-center gap-6 px-6 py-9 sm:px-9">
-                    <p className="text-[22px] leading-[1.3] tracking-[-0.02em] text-foreground sm:text-[24px]">
-                      {u.claim}
-                    </p>
-                    <Button asChild variant="link" size="inline" className="self-start">
-                      <a href={`${DOCS}${u.href}`}>
-                        Learn more <ArrowRight className="size-3" />
-                      </a>
-                    </Button>
-                  </div>
+    <Section id="use-cases" labelledBy="use-cases-title" inner="py-20 sm:py-28">
+      <SectionHeading
+        id="use-cases-title"
+        n="01"
+        label="Use cases"
+        title="Every use case, in one TypeScript file"
+      />
+      <Tabs
+        name="uc"
+        variant="side"
+        className="mt-12 grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-0"
+        listClassName="lg:mt-5"
+        items={useCases.map((u) => {
+          const Icon = icons[u.icon]!;
+          return {
+            id: u.id,
+            label: (
+              <>
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-surface lg:size-9">
+                  <Icon className="size-4" strokeWidth={1.75} aria-hidden="true" />
+                </span>
+                {u.label}
+              </>
+            ),
+            panel: (
+              <div className="rounded-[24px] border border-border p-3 sm:p-4">
+                <CodeWindow
+                  tag={u.file}
+                  meta={u.meta}
+                  code={u.code}
+                  lang={u.lang}
+                  className="lg:min-h-[560px]"
+                />
+                <div className="mt-3 grid gap-3 sm:mt-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4">
+                  <p className="rounded-2xl bg-surface px-5 py-4 font-mono text-[14px] leading-[1.5] text-foreground">
+                    {u.claim}
+                  </p>
+                  <a
+                    href={`${DOCS}${u.href}`}
+                    className="inline-flex items-center justify-between gap-6 rounded-2xl bg-surface px-5 py-4 font-mono text-[14px] text-foreground transition-colors hover:bg-peri"
+                  >
+                    Read the guide <ArrowRight className="size-4" />
+                  </a>
                 </div>
-              ),
-            };
-          })}
-        />
-      </div>
-    </section>
+              </div>
+            ),
+          };
+        })}
+      />
+    </Section>
   );
 }

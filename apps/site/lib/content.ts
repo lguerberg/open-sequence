@@ -285,7 +285,7 @@ export const hardParts = [
     icon: 'gauge',
     label: 'Scaling',
     problem:
-      'Thousands of enrollments wake up at 09:00. One cron job falls behind, and two workers send the same step.',
+      'Thousands of enrollments come due at 09:00. One cron job falls behind, and two workers send the same step.',
     handled:
       'A planner claims due work under a lease, executors scale out per channel, and one worker owns a step at a time.',
     evidence: 'SEQ_ROLES=worker · SEQ_QUEUE=redis',
@@ -348,14 +348,14 @@ export const hardParts = [
 export const faq: Array<{ q: string; a: string }> = [
   {
     q: 'Is this a free alternative to Apollo, Lemlist or Outreach?',
-    a: 'It is the sequencing part of those tools, as an open source engine you run. It covers multi-step email, SMS and call-task sequences, replies and exits, webhooks and analytics, all behind an API, so your own product is the UI. There is no per-seat price. You pay for the Postgres and the container it runs on. It is not a prospect database or a warm-up service.',
+    a: 'It is the sequencing part of those tools, as an open source engine you run. It covers multi-step email, SMS and call-task sequences, replies and exits, webhooks and analytics. All of it sits behind an API, so your own product is the UI. There is no per-seat price. You pay for the Postgres and the container it runs on. It is not a prospect database or a warm-up service.',
   },
   {
     q: 'What does headless mean here?',
     a: 'OpenSequence has no user interface. Your CRM, an internal tool or an agent shows sequences, enrollments, tasks and analytics, and talks to the engine through the API. You keep your design, your permissions and your workflow.',
   },
   {
-    q: 'Is it really fully configurable through the API?',
+    q: 'Can I configure everything through the API?',
     a: 'Yes. Projects, keys, senders, channels, contacts, sequences and versions, enrollments, tasks, webhooks, settings and analytics are all endpoints, 81 operations in the OpenAPI file. The TypeScript SDK and the MCP server call the same API, and the oseq CLI runs the same use cases.',
   },
   {

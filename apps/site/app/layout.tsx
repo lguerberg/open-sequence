@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
-import { themeInit, uiBehaviour } from '@/lib/scripts';
-import { mono, sans } from './fonts';
+import { uiBehaviour } from '@/lib/scripts';
+import { display, mono, sans } from './fonts';
 import './globals.css';
 
 const title = 'OpenSequence: open source sales sequencing, self-hosted';
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sales sequences, as code.',
     description:
-      'Build your own sales sequencing infrastructure without building it from scratch. An open-source, self-hosted engine for orchestrating outbound across email, APIs, and AI agents. No per-seat pricing.',
+      'Own your sales sequencing infrastructure without building it from scratch. An open-source, self-hosted engine for orchestrating outbound across email, APIs, and AI agents. No per-seat pricing.',
     url: 'https://opensequence.dev',
     siteName: 'OpenSequence',
     type: 'website',
@@ -51,23 +51,15 @@ export const metadata: Metadata = {
   category: 'technology',
 };
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#0b0b0c' },
-    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
-  ],
-};
+export const viewport: Viewport = { themeColor: '#eeece6', colorScheme: 'light' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        <script id="oseq-theme-init" dangerouslySetInnerHTML={{ __html: themeInit }} />
-      </head>
+    <html lang="en">
       <body>
         <div
           id="oseq"
-          className={`${sans.variable} ${mono.variable} min-h-dvh bg-background font-sans text-[16px] leading-normal text-foreground`}
+          className={`${display.variable} ${sans.variable} ${mono.variable} min-h-dvh bg-background font-sans text-[16px] leading-normal text-foreground antialiased`}
         >
           {children}
         </div>
