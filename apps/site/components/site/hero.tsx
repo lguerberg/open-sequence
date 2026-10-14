@@ -21,9 +21,16 @@ export function Hero() {
 
       <div className="dots relative overflow-hidden rounded-[28px] bg-band px-6 py-8 text-foreground sm:px-12 sm:py-11">
         <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
-          <p className="max-w-[40rem] font-display text-[clamp(28px,2.9vw,40px)] leading-[1.02] tracking-[-0.01em]">
-            No per-seat pricing. No black boxes. Just infrastructure you control.
-          </p>
+          <div className="max-w-[44rem]">
+            <p className="font-display text-[clamp(28px,2.9vw,40px)] leading-[1.02] tracking-[-0.01em]">
+              Save $2,000+ a month on Outreach, Salesloft, Apollo, lemlist and Customer.io.
+            </p>
+            <p className="mt-4 max-w-[38rem] font-mono text-[12.5px] leading-[1.55] text-foreground/75">
+              List prices for a 15-rep team: Outreach and Salesloft run $100 to $175 a seat each
+              month, Apollo and lemlist $79 to $119 a seat plus credits, and Customer.io Premium
+              starts at $1,000 a month. OpenSequence runs on one container and a Postgres.
+            </p>
+          </div>
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="dark" size="lg">
               <a href={links.quickstart}>Start building</a>
