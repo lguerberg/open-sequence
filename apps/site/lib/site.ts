@@ -1,5 +1,5 @@
 /** The canonical origin of the landing. Every absolute URL (canonical, sitemap, share image) uses it. */
-export const SITE_URL = 'https://opensequence.dev';
+export const SITE_URL = 'https://www.opensequence.dev';
 
 export const SITE_NAME = 'OpenSequence';
 

@@ -5,7 +5,7 @@ export const siteUrl = 'https://docs.opensequence.dev';
 export const siteTitle = 'OpenSequence docs';
 export const siteDescription =
   'Docs for OpenSequence, the open source, self-hosted service that runs multi-step sales sequences for any CRM: quickstart, guides, API reference and SDKs.';
-export const projectUrl = 'https://opensequence.dev';
+export const projectUrl = 'https://www.opensequence.dev';
 export const repoUrl = 'https://github.com/lguerberg/open-sequence';
 export const repoBranch = 'main';
 /** Where the hand-written pages live in the repository, for the "edit on GitHub" link. */
