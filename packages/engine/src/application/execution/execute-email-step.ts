@@ -41,17 +41,24 @@ export async function executeEmailStep(deps: Deps, runId: string, attempt: numbe
   const channelRef = { projectId: run.projectId, senderId: ctx.sender.id, channelId: channel.id, connectionId: channel.connectionId ?? undefined, address: channel.address, config: channel.config };
 
   // Reply in the thread of the previous email of this enrollment, when asked.
+  // In-Reply-To names the last email; References lists every email of the thread so far (RFC 5322 3.6.4).
   let inReplyTo: string | undefined;
+  let references: string[] | undefined;
   let threadRef: string | undefined;
   if (params.reply_in_thread) {
-    const previous = (await deps.uow.repos.runs.byEnrollment(run.enrollmentId)).filter((r) => r.channel === 'email' && r.status === 'done' && r.threadRef).pop();
+    const sentEmails = (await deps.uow.repos.runs.byEnrollment(run.enrollmentId)).filter((r) => r.channel === 'email' && r.status === 'done' && r.threadRef);
+    const previous = sentEmails.at(-1);
     if (previous?.result['message_id']) inReplyTo = String(previous.result['message_id']);
-    if (previous?.threadRef) threadRef = previous.threadRef;
+    if (previous?.threadRef) {
+      threadRef = previous.threadRef;
+      const ids = sentEmails.filter((r) => r.threadRef === threadRef && r.result['message_id']).map((r) => String(r.result['message_id']));
+      if (ids.length) references = ids;
+    }
   }
 
   try {
     const already = attempt > 1 ? await deps.providers.email.findSent({ channel: channelRef, messageId }) : null;
-    const sent = already ?? (await deps.providers.email.send({ channel: channelRef, to: contact.email, subject, text: html ? stripHtml(body.text) : body.text, html: html ? body.text : undefined, messageId, inReplyTo, threadRef, headers }));
+    const sent = already ?? (await deps.providers.email.send({ channel: channelRef, to: contact.email, subject, text: html ? stripHtml(body.text) : body.text, html: html ? body.text : undefined, messageId, inReplyTo, references, threadRef, headers }));
     await deps.uow.repos.messages.insert({
       id: deps.ids.next('message'),
       projectId: run.projectId,
