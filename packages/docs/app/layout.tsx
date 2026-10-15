@@ -1,16 +1,53 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { Provider } from '@/components/provider';
-import { siteName, siteUrl } from '@/lib/shared';
+import { socialMetadata } from '@/lib/seo';
+import { getPageImage, projectUrl, siteDescription, siteName, siteTitle, siteUrl } from '@/lib/shared';
 import './global.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
+/**
+ * The defaults every page inherits. Each docs page sets its own title, description, canonical URL
+ * and Open Graph card in app/[...slug]/page.tsx; `metadataBase` makes their relative URLs absolute.
+ */
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: `${siteName} docs`, template: `%s | ${siteName}` },
-  description: 'OpenSequence: a self-hosted service that runs multi-step outreach sequences for any CRM.',
+  title: { default: siteTitle, template: `%s · ${siteTitle}` },
+  description: siteDescription,
+  applicationName: siteTitle,
+  authors: [{ name: siteName, url: projectUrl }],
+  creator: siteName,
+  publisher: siteName,
+  keywords: [
+    'OpenSequence',
+    'sales sequences API',
+    'self-hosted sales engagement',
+    'open source sales sequencing',
+    'outreach sequences',
+    'email sequences API',
+    'SMS sequences',
+    'CRM sequences',
+    'sales cadence',
+    'webhooks',
+    'TypeScript SDK',
+    'documentation',
+  ],
+  category: 'technology',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
+  },
+  ...socialMetadata({ title: siteTitle, description: siteDescription, url: '/', image: getPageImage([]).url }),
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
 };
 
 export default function Layout({ children }: { children: ReactNode }) {

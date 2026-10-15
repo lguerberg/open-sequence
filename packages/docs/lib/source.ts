@@ -2,6 +2,7 @@ import { llms, loader } from 'fumadocs-core/source';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
 import { defineDocs } from 'fumadocs-mdx/macro';
 import { openapi } from './openapi';
+import { siteUrl } from './shared';
 import { operationPageName } from './openapi-name';
 
 /** The hand-written pages: content/docs/{docs,api,sdks,reference}. */
@@ -57,8 +58,8 @@ export const docsLlms = llms(source, {
     if (page.type === 'openapi') {
       const props = page.data.getOpenAPIPageProps();
       const ops = (props.operations ?? []).map((o) => `${o.method.toUpperCase()} ${o.path}`).join(', ');
-      return `# ${page.data.title} (${page.url})\n\nAPI reference page for ${ops}. The full OpenAPI document is at /openapi.json.`;
+      return `# ${page.data.title} (${siteUrl}${page.url})\n\nAPI reference page for ${ops}. The full OpenAPI document is at ${siteUrl}/openapi.json.`;
     }
-    return `# ${page.data.title} (${page.url})\n\n${page.data.description ?? ''}\n\n${await page.data.getText('processed')}`;
+    return `# ${page.data.title} (${siteUrl}${page.url})\n\n${page.data.description ?? ''}\n\n${await page.data.getText('processed')}`;
   },
 });
