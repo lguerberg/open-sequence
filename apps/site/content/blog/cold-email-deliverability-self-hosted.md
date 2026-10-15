@@ -9,15 +9,15 @@ tags: [deliverability, cold-email, dns, self-hosting]
 keyword: "cold email deliverability"
 ---
 
-Cold email deliverability on your own stack comes down to five things. You need a sending domain with SPF, DKIM and DMARC that align with the From address, and a user-reported spam rate under 0.1% that never touches 0.3%. You also need low per-mailbox volume that grows slowly, a working one-click unsubscribe, and hard bounces that stop all further mail to that address. US law requires only the opt-out, a postal address and honest headers. The rest are mailbox provider rules or plain practice, and each section below cites which.
+Cold email deliverability on your own stack depends on five things. You need a sending domain with SPF, DKIM and DMARC that align with the From address, and a user-reported spam rate under 0.1% that never reaches 0.3%. You also need low per-mailbox volume that grows slowly, a working one-click unsubscribe, and hard bounces that stop all further mail to that address. US law requires only the opt-out, a postal address and honest headers. The rest are mailbox provider rules or plain practice, and each section below cites which.
 
-We build OpenSequence, an open source sequencing engine you run yourself, so read this with that in mind. The last two tables split each item into what the engine does and what you configure, then list the checks to run before the first send.
+We build OpenSequence, an open source sequencing engine you run yourself, so read this with that in mind. Near the end, one table splits each item into what the engine does and what you configure. The last table lists the checks to run before the first send.
 
 ## What you take on when you leave the vendor
 
 OpenSequence sends each email through the rep's own Google Workspace mailbox with the Gmail API. Google's servers relay the message, so reverse DNS, TLS and IP reputation are Google's problem, not yours. You own the domain, its DNS records, the list, the volume, the content and the monitoring.
 
-Today the only email provider is Google. Reps on Microsoft 365 cannot send through OpenSequence yet. SMTP and IMAP are on the [roadmap](https://docs.opensequence.dev/docs/community/roadmap) as a later phase, with no date. The engine also has no warm-up, no email verification and no inbox placement testing. If you want those bundled and nobody on the team will own DNS and a weekly look at bounce numbers, a hosted cold email tool is the better choice. Our [lemlist alternative post](/blog/lemlist-alternative-self-hosted) covers that trade.
+Today the only email provider is Google. Reps on Microsoft 365 cannot send through OpenSequence yet. SMTP and IMAP are on the [roadmap](https://docs.opensequence.dev/docs/community/roadmap) as a later phase, with no date. The engine also has no warm-up, no email verification and no inbox placement testing. If you want those bundled, and nobody on the team will manage DNS and check bounce numbers every week, a hosted cold email tool is the better choice. Our [lemlist alternative post](/blog/lemlist-alternative-self-hosted) covers that tradeoff.
 
 ## Which rules are law and which are provider policy
 
@@ -34,11 +34,11 @@ The FTC states that CAN-SPAM "makes no exception for business-to-business email"
 
 ## Gmail, Yahoo and Outlook sender requirements
 
-Google's rules took effect on February 1, 2024. Every sender to personal Gmail needs SPF or DKIM, valid forward and reverse DNS, TLS, RFC 5322 formatting, and a spam rate below 0.3%. Bulk senders, defined as close to 5,000 messages a day to personal Gmail accounts, also need SPF and DKIM together, a DMARC record, From alignment with SPF or DKIM, and one-click unsubscribe on marketing mail. Google's [FAQ](https://support.google.com/a/answer/14229414) adds three details that matter for cold outreach. Messages from the same primary domain, subdomains included, count toward the 5,000. Bulk status is permanent once reached. And starting November 2025, "Gmail is ramping up its enforcement on non-compliant traffic", with temporary and permanent rejections and a faster timeline for new domains.
+Google's rules took effect on February 1, 2024. Every sender to personal Gmail needs SPF or DKIM, valid forward and reverse DNS, TLS, RFC 5322 formatting, and a spam rate below 0.3%. Google defines a bulk sender as one that sends close to 5,000 messages a day to personal Gmail accounts. Bulk senders also need SPF and DKIM together, a DMARC record, From alignment with SPF or DKIM, and one-click unsubscribe on marketing mail. Google's [FAQ](https://support.google.com/a/answer/14229414) adds three details that matter for cold outreach. Messages from the same primary domain, subdomains included, count toward the 5,000. Once a domain reaches bulk status, it never loses it. And starting November 2025, "Gmail is ramping up its enforcement on non-compliant traffic", with temporary and permanent rejections and a faster timeline for new domains.
 
-Yahoo's list matches Google's and asks bulk senders to honor unsubscribes within 2 days. Yahoo gives no volume number for "bulk". Microsoft's rules for Outlook.com, Hotmail and Live addresses started May 5, 2025, for domains sending over 5,000 a day. Microsoft first planned to route failing mail to Junk. An April 29 update to its announcement switched to rejection, with `550; 5.7.515 Access denied, sending domain [SendingDomain] does not meet the required authentication level.`
+Yahoo's list matches Google's and asks bulk senders to honor unsubscribes within 2 days. Yahoo gives no volume number for "bulk". Microsoft's rules for Outlook.com, Hotmail and Live addresses started May 5, 2025, for domains sending over 5,000 a day. Microsoft first planned to route failing mail to Junk. An April 29 update to its announcement switched to rejection, with the error `550; 5.7.515 Access denied, sending domain [SendingDomain] does not meet the required authentication level.`
 
-Most cold email guides skip one detail. Google's FAQ says the guidelines "don't apply to messages sent to Google Workspace accounts". Microsoft's rules cover the consumer service only, not Microsoft 365. Most B2B prospects sit on exactly those business mailboxes. Treat the published rules as the floor anyway. Your lists contain personal Gmail and Outlook addresses, business inboxes still filter spam, and these are the only numbers any provider publishes.
+Two exceptions matter for B2B. Google's FAQ says the guidelines "don't apply to messages sent to Google Workspace accounts". Microsoft's rules cover the consumer service only, not Microsoft 365. Most B2B prospects use exactly those business mailboxes. Meet the published rules anyway. Your lists contain personal Gmail and Outlook addresses, and business inboxes still filter spam. These are also the only numbers any provider publishes.
 
 ## The 0.3% spam rate and Postmaster Tools
 
@@ -48,7 +48,7 @@ Postmaster Tools has two limits for a sales team. Its data "only applies to mess
 
 ## SPF, DKIM and DMARC for a secondary sending domain
 
-Send cold email from a separate registered domain, not your main one and not a subdomain of it. Google counts subdomains toward the primary domain, so `mail.acme.com` counts as `acme.com` for bulk sender status. If `getacme.com` gets blocked, invoices and support replies from `acme.com` still arrive. The cost is one extra Workspace user per sending mailbox, $7 per user per month on Business Starter with an annual plan as of October 2026 ([pricing](https://workspace.google.com/pricing)), plus a domain that recipients do not recognize. Redirect its website to your main site so a curious prospect lands somewhere real.
+Send cold email from a separate registered domain, not your main one and not a subdomain of it. Google counts subdomains toward the primary domain, so `mail.acme.com` counts as `acme.com` for bulk sender status. If `getacme.com` gets blocked, invoices and support replies from `acme.com` still arrive. The cost is one extra Workspace user per sending mailbox, plus a domain that recipients do not recognize. A Workspace user costs $7 per month on Business Starter with an annual plan as of October 2026 ([pricing](https://workspace.google.com/pricing)). Redirect the new domain's website to your main site, so a prospect who types it in reaches your real site.
 
 Add `getacme.com` to Workspace, create the reps' sending mailboxes on it, and publish these records:
 
@@ -66,7 +66,7 @@ _dmarc.getacme.com.               TXT  "v=DMARC1; p=none; rua=mailto:dmarc@acme.
 getacme.com._report._dmarc.acme.com.  TXT  "v=DMARC1"
 ```
 
-The SPF record follows [Google's SPF guide](https://knowledge.workspace.google.com/admin/security/set-up-spf). Publish exactly one SPF record per domain and stay under the 10 DNS lookup limit in [RFC 7208](https://www.rfc-editor.org/rfc/rfc7208#section-4.6.4). The DKIM selector `google` and the 2048-bit key come from [Google's DKIM guide](https://knowledge.workspace.google.com/admin/security/set-up-dkim). After DNS propagates, click "Start authentication" in the Admin console. The external report record is what most setups miss. Without it, receivers skip the aggregate reports bound for `acme.com`.
+The SPF record follows [Google's SPF guide](https://knowledge.workspace.google.com/admin/security/set-up-spf). Publish exactly one SPF record per domain and stay under the 10 DNS lookup limit in [RFC 7208](https://www.rfc-editor.org/rfc/rfc7208#section-4.6.4). The DKIM selector `google` and the 2048-bit key come from [Google's DKIM guide](https://knowledge.workspace.google.com/admin/security/set-up-dkim). After DNS propagates, click "Start authentication" in the Admin console. The external report record on `acme.com` is the easy one to miss. Without it, receivers do not send the aggregate reports to the `acme.com` address.
 
 `p=none` meets the Google, Yahoo and Microsoft minimum. Microsoft recommends `p=reject`. Once a few weeks of reports show only Google as a source, move to `p=quarantine`.
 
@@ -76,13 +76,13 @@ DMARC passes when the From domain matches the domain SPF checked or the `d=` dom
 
 ## One-click unsubscribe and 1:1 sales email
 
-Google requires one-click unsubscribe "only for marketing and promotional messages", and adds that "message recipients, not Google, determine the nature of the messages they receive." A cold sales email is promotional to the person receiving it. The requirement formally binds bulk senders, but a missing unsubscribe pushes recipients toward the spam button, and every spam report counts against you.
+Google requires one-click unsubscribe "only for marketing and promotional messages", and adds that "message recipients, not Google, determine the nature of the messages they receive." A cold sales email is promotional to the person receiving it. The requirement binds only bulk senders. But a recipient with no unsubscribe link has only the spam button left, and every spam report counts against you.
 
 [RFC 8058](https://www.rfc-editor.org/rfc/rfc8058.html) defines the mechanism. `List-Unsubscribe` must contain an HTTPS URI, `List-Unsubscribe-Post` must read `List-Unsubscribe=One-Click`, and the DKIM signature must cover both headers. The POST carries no cookies, and the server must not answer it with a redirect.
 
-OpenSequence adds both headers to every email it sends, and `{{ unsubscribe_url }}` renders the same signed link in the body. A click or a mail client's POST writes an email suppression and exits the enrollment at once, well inside Google's 48 hours and CAN-SPAM's 10 business days. A body without the link publishes with a `NO_UNSUBSCRIBE` warning, not an error. Some teams drop the visible link to keep a 1:1 tone and rely on the headers plus a "reply 'no' and I'll stop" line. That is defensible under CAN-SPAM, which accepts a reply-based opt-out, but Google's bulk rules ask for a visible link. The details are in [consent and suppressions](https://docs.opensequence.dev/docs/contacts/consent-and-suppressions).
+OpenSequence adds both headers to every email it sends, and `{{ unsubscribe_url }}` renders the same signed link in the body. A click or a mail client's POST writes an email suppression and exits the enrollment at once, well inside Google's 48 hours and CAN-SPAM's 10 business days. If a body lacks the link, the sequence still publishes, with a `NO_UNSUBSCRIBE` warning instead of an error. Some teams drop the visible link to keep a 1:1 tone and rely on the headers plus a "reply 'no' and I'll stop" line. CAN-SPAM accepts a reply-based opt-out, so that choice is defensible. Google's bulk rules ask for a visible link. The details are in [consent and suppressions](https://docs.opensequence.dev/docs/contacts/consent-and-suppressions).
 
-The links point at `SEQ_PUBLIC_URL`, which must be public HTTPS ([install guide](https://docs.opensequence.dev/docs/self-hosting/install)). Links stay valid for 90 days and derive from the first key in `SEQ_ENCRYPTION_KEYS`, so rotating that key breaks the links in every email already sent. CAN-SPAM requires a working opt-out for 30 days after sending.
+The links point at `SEQ_PUBLIC_URL`, which must be public HTTPS ([install guide](https://docs.opensequence.dev/docs/self-hosting/install)). The engine signs each link with the first key in `SEQ_ENCRYPTION_KEYS`, and the link stays valid for 90 days. Rotating that key breaks the links in every email already sent. CAN-SPAM requires a working opt-out for 30 days after sending.
 
 ## Volume per mailbox and ramp-up
 
@@ -97,21 +97,21 @@ OpenSequence defaults each sender's email channel to 30 sends in a rolling 24 ho
 | 3 | 30 | Same |
 | 4+ | 40 to 50 | Replies hold steady |
 
-Change the cap with one call, `PATCH /v1/senders/{id}/channels/email` and `{"daily_limit": 20}` ([senders](https://docs.opensequence.dev/docs/senders/senders)). The enrollment preview staggers first touches by that cap, so at 30 a day contact 31 starts tomorrow ([enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)). `weekly_limit` is stored but the executors do not enforce it yet.
+To change the cap, send `PATCH /v1/senders/{id}/channels/email` with `{"daily_limit": 20}` ([senders](https://docs.opensequence.dev/docs/senders/senders)). The enrollment preview staggers first touches by that cap, so at 30 a day, contact 31 starts the next day ([enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)). The API stores `weekly_limit`, but the executors do not enforce it yet.
 
 ## Tracking pixels and link tracking
 
 OpenSequence v1 has no open or click tracking. Emails go out as plain text by default, with no pixel and no rewritten links. Click tracking rewrites every link to a redirect on another domain, so filters see a second domain in every message. Opens stopped being a reliable signal in 2021, when Apple's [Mail Privacy Protection](https://www.apple.com/newsroom/2021/06/apple-advances-its-privacy-leadership-with-ios-15-ipados-15-macos-monterey-and-watchos-8/) began helping users "prevent senders from knowing when they open an email."
 
-You lose open-based branching and open alerts. Measure replies and meetings per 100 delivered instead, which the analytics endpoints return per sequence and per step. If you need click data, link to a page on your own domain with UTM parameters and read it in your web analytics.
+You lose open-based branching and open alerts. Measure replies and meetings per 100 delivered emails instead. The analytics endpoints return both per sequence and per step. If you need click data, link to a page on your own domain with UTM parameters and read it in your web analytics.
 
 ## Bounces, complaints and list hygiene
 
 The engine polls each sender's Gmail every minute. A message from `mailer-daemon` or `postmaster` with a delivery-status part counts as a bounce, and the engine matches it to the original by `Message-ID`. A 5.x.x status is a hard bounce. It suppresses the address for email and exits the enrollment with `bounced`. A 4.x.x soft bounce suppresses nothing.
 
-Complaints are a gap. The engine handles a `complaint` signal, but the Gmail adapter never produces one, because Gmail gives individual senders no per-message complaint feed. Postmaster Tools is the only complaint view you get.
+The engine does not detect complaints. It handles a `complaint` signal, but the Gmail adapter never produces one, because Gmail gives individual senders no per-message complaint feed. Postmaster Tools is the only complaint view you get.
 
-The engine does not verify addresses. Run your list through a verification service before you enroll. A new domain has no sending history to offset the bounces from a bad list. Report do-not-contact flags from your CRM as `suppressed` events ([contact events](https://docs.opensequence.dev/docs/contacts/events)). The engine only sees its own channels, so a contact marked "do not email" in your CRM keeps getting mail until you report it. Our rule of thumb is to stop email for the project when a batch bounces above 2%, with `PUT /v1/engine/flags/channel:email` and `{"value": false}`, and clean the list before turning it back on.
+The engine does not verify addresses. Run your list through a verification service before you enroll. A new domain has no sending history to offset the bounces from a bad list. Report do-not-contact flags from your CRM as `suppressed` events ([contact events](https://docs.opensequence.dev/docs/contacts/events)). The engine only sees its own channels, so a contact marked "do not email" in your CRM keeps getting mail until you report it. Our rule of thumb is to stop email for the project when a batch bounces above 2%, then clean the list before turning email back on. To stop it, send `PUT /v1/engine/flags/channel:email` with `{"value": false}`.
 
 ## What OpenSequence does and what you configure
 
@@ -123,7 +123,7 @@ The engine does not verify addresses. Run your list through a verification servi
 | Honoring opt-outs | Suppress and exit at once, checked at every send | Report CRM opt-outs |
 | Volume | `daily_limit`, `min_gap_seconds`, staggered first touches | The ramp |
 | Send times | `settings.send_window` in the contact's zone | Set the window |
-| Hard bounces | Detected in Gmail, suppress and exit | Verify lists first |
+| Hard bounces | Detects them in Gmail, suppresses and exits | Verify lists first |
 | Spam complaints | Not detected | Postmaster Tools |
 | Tracking | None | UTM links if needed |
 | Postal address | Nothing | Put it in the template |
