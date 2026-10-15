@@ -182,7 +182,7 @@ Rehearse with `mode: "dry_run"` first. In dry-run mode, the engine records email
 
 Outreach and Salesloft write activities into your CRM. OpenSequence writes nothing to it. You subscribe to [signed webhooks](https://docs.opensequence.dev/docs/webhooks/overview) and write what you want: `run.done` for a sent step, `signal.received` for replies, meetings and bounces, `enrollment.exited` with the reason, and `task.created` for your task inbox. OpenSequence retries each delivery for three days, and the same event can arrive twice. Make the handler idempotent on the event `id`.
 
-The other direction matters more. Your CRM has to push do-not-contact flags, meetings booked in other tools, and deleted contacts back to OpenSequence. The engine never reads your database. If you skip this, it keeps emailing people your reps already excluded.
+The other direction matters more. Your CRM has to push do-not-contact flags, meetings booked in other tools, and deleted contacts back to OpenSequence. The engine never reads your database. If you skip this, it keeps emailing people your reps already excluded. Our tutorial on [adding sales sequences to your own CRM](/blog/add-sales-sequences-to-your-crm) has the code for both directions.
 
 ## Reporting parity
 
