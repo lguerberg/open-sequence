@@ -5,20 +5,13 @@ import { links } from '@/lib/links';
 
 const nav = [
   { href: '/#use-cases', label: 'Use cases' },
-  { href: '/#value', label: 'Why own it' },
   { href: links.docs, label: 'Docs' },
-  { href: links.api, label: 'API' },
-  { href: links.changelog, label: 'Changelog' },
-  { href: '/blog', label: 'Blog' },
 ];
 
 /** Logo, the links in one light pill, then GitHub and the blue call to action. */
 export function SiteHeader() {
   return (
-    <header
-      id="top"
-      className="wrap flex h-24 items-center justify-between gap-3 sm:h-28 sm:gap-6 lg:gap-3 xl:gap-6"
-    >
+    <header id="top" className="wrap flex h-24 items-center justify-between gap-3 sm:h-28 sm:gap-6">
       <a href="/" aria-label="OpenSequence, home" className="shrink-0">
         <Logo />
       </a>
@@ -30,7 +23,7 @@ export function SiteHeader() {
           <a
             key={n.label}
             href={n.href}
-            className="rounded-full px-3 py-2 text-[15px] font-medium tracking-[-0.01em] whitespace-nowrap transition-colors hover:bg-surface-2 xl:px-4"
+            className="rounded-full px-4 py-2 text-[15px] font-medium tracking-[-0.01em] whitespace-nowrap transition-colors hover:bg-surface-2"
           >
             {n.label}
           </a>
