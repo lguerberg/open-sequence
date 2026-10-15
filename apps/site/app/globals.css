@@ -277,6 +277,231 @@
   }
 }
 
+/*
+  The blog article. Geist at 18px for reading, a 68ch column, serif h2s like the landing's section
+  heads (a step smaller), sans h3s, and the landing's dark code card. Tables scroll in their own box.
+*/
+@layer components {
+  .prose-blog {
+    max-width: 68ch;
+    font-size: 18px;
+    line-height: 1.7;
+    letter-spacing: -0.005em;
+    color: var(--foreground);
+  }
+  .prose-blog > * + * {
+    margin-top: 1.15em;
+  }
+  .prose-blog h2 {
+    font-family: var(--font-display-face), Georgia, serif;
+    font-size: clamp(30px, 3vw, 40px);
+    line-height: 1.05;
+    letter-spacing: -0.012em;
+    margin-top: 2.1em;
+    scroll-margin-top: 24px;
+  }
+  .prose-blog h3 {
+    font-size: 21px;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    font-weight: 500;
+    margin-top: 1.9em;
+    scroll-margin-top: 24px;
+  }
+  .prose-blog > :first-child {
+    margin-top: 0;
+  }
+  .prose-blog h2 + *,
+  .prose-blog h3 + * {
+    margin-top: 0.7em;
+  }
+  .prose-blog .heading-anchor {
+    margin-left: 0.35em;
+    color: var(--faint);
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .prose-blog h2:hover .heading-anchor,
+  .prose-blog h3:hover .heading-anchor {
+    opacity: 1;
+  }
+  .prose-blog a:not(.heading-anchor) {
+    color: var(--brand);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, var(--brand) 40%, transparent);
+  }
+  .prose-blog a:not(.heading-anchor):hover {
+    text-decoration-color: var(--brand);
+  }
+  .prose-blog strong {
+    font-weight: 600;
+  }
+  .prose-blog ul,
+  .prose-blog ol {
+    padding-left: 1.4em;
+  }
+  .prose-blog ul {
+    list-style: none;
+  }
+  .prose-blog ul > li {
+    position: relative;
+  }
+  .prose-blog ul > li::before {
+    content: '';
+    position: absolute;
+    left: -1.05em;
+    top: 0.68em;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--band);
+  }
+  .prose-blog ol {
+    list-style: decimal;
+  }
+  .prose-blog ol > li::marker {
+    font-family: var(--font-mono-face), ui-monospace, monospace;
+    font-size: 0.85em;
+    color: var(--brand);
+  }
+  .prose-blog li + li,
+  .prose-blog li > ul,
+  .prose-blog li > ol {
+    margin-top: 0.4em;
+  }
+  .prose-blog li > p + p {
+    margin-top: 0.6em;
+  }
+  .prose-blog li.task-list-item::before {
+    display: none;
+  }
+  .prose-blog blockquote {
+    border-left: 3px solid var(--band);
+    padding: 0.2em 0 0.2em 1.1em;
+    color: var(--ink-2);
+  }
+  .prose-blog blockquote > * + * {
+    margin-top: 0.8em;
+  }
+  .prose-blog hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin-block: 2.4em;
+  }
+  .prose-blog img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 16px;
+  }
+  .prose-blog :not(pre) > code {
+    font-family: var(--font-mono-face), ui-monospace, monospace;
+    font-size: 0.84em;
+    padding: 0.12em 0.38em;
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--foreground);
+    overflow-wrap: anywhere;
+  }
+
+  /* Tables: their own scrolling box, hairline rows, a tinted head. */
+  .prose-blog .table-wrap,
+  .prose-blog .code-block pre {
+    scrollbar-width: thin;
+  }
+  .prose-blog .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .prose-blog table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .prose-blog th,
+  .prose-blog td {
+    padding: 11px 14px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+    min-width: 8.5em;
+  }
+  .prose-blog th {
+    background: var(--surface);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+  }
+  .prose-blog tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .prose-blog td code {
+    white-space: nowrap;
+  }
+
+  /* Code: the landing's dark card, the lime language tag and the copy button. */
+  .prose-blog .code-block {
+    margin-inline: 0;
+    border-radius: 20px;
+    background: var(--code);
+    color: #ecebe6;
+    overflow: hidden;
+  }
+  .prose-blog .code-block figcaption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px 0 20px;
+  }
+  .prose-blog .code-tag {
+    border-radius: 999px;
+    background: var(--lime);
+    color: var(--code);
+    padding: 2px 8px;
+    font-family: var(--font-mono-face), ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .prose-blog .code-copy {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    background: transparent;
+    color: #c9d0d0;
+    padding: 3px 10px;
+    font-family: var(--font-mono-face), ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .prose-blog .code-copy:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .prose-blog .code-copy .copy-done {
+    color: var(--lime);
+  }
+  .prose-blog .code-block pre {
+    padding: 14px 20px 20px;
+  }
+  .prose-blog .code-block pre code {
+    font-size: 13.5px;
+  }
+
+  .toc-disclosure[open] .toc-caret {
+    transform: rotate(45deg);
+  }
+  .toc-disclosure summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
 /* Scrollbars: none on scrolling rows, none on phones, thin and themed elsewhere. */
 .no-scrollbar {
   scrollbar-width: none;

@@ -1,30 +1,39 @@
 import type { Metadata, Viewport } from 'next';
 import { uiBehaviour } from '@/lib/scripts';
+import {
+  SHARE_ALT,
+  SHARE_DESCRIPTION,
+  SHARE_TITLE,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+} from '@/lib/site';
 import { display, mono, sans } from './fonts';
 import './globals.css';
 
 const title = 'OpenSequence: open source sales sequencing, self-hosted';
-const description =
-  "The open source alternative to Apollo, Lemlist and Outreach sequences. Self-host multi-step email, SMS and call sequences for any CRM, sent from your reps' own Gmail and phone, configured through an API or MCP. No per-seat price.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://opensequence.dev'),
+  metadataBase: new URL(SITE_URL),
   title: { default: title, template: '%s · OpenSequence' },
-  description,
-  applicationName: 'OpenSequence',
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: 'OpenSequence', url: SITE_URL }],
+  creator: 'OpenSequence',
+  publisher: 'OpenSequence',
   keywords: [
     'open source sales sequences',
     'self-hosted sales engagement',
-    'Apollo alternative',
-    'Lemlist alternative',
     'Outreach alternative',
     'Salesloft alternative',
-    'email sequences API',
+    'Apollo alternative',
+    'lemlist alternative',
+    'Customer.io alternative',
     'sales sequencing API',
+    'email sequences API',
     'cold email sequences open source',
     'sales cadence software',
-    'Gmail outreach sequences',
-    'MCP server sales outreach',
+    'MCP server for sales outreach',
   ],
   alternates: { canonical: '/' },
   robots: {
@@ -33,25 +42,31 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
   openGraph: {
-    title: 'Sales sequences, as code.',
-    description:
-      'Own your sales sequencing infrastructure without building it from scratch. An open-source, self-hosted engine for orchestrating outbound across email, APIs, and AI agents. No per-seat pricing.',
-    url: 'https://opensequence.dev',
-    siteName: 'OpenSequence',
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
+    url: '/',
+    siteName: SITE_NAME,
     type: 'website',
     locale: 'en_US',
+    images: [{ url: '/og.png', width: 1200, height: 630, type: 'image/png', alt: SHARE_ALT }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sales sequences, as code.',
-    description:
-      'An open-source, self-hosted engine for orchestrating outbound across email, APIs, and AI agents. No per-seat pricing. No black boxes.',
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
+    images: [{ url: '/og.png', alt: SHARE_ALT }],
   },
-  icons: { icon: '/favicon.svg' },
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+  },
   category: 'technology',
 };
 
-export const viewport: Viewport = { themeColor: '#eeece6', colorScheme: 'light' };
+export const viewport: Viewport = { themeColor: '#ffffff', colorScheme: 'light' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

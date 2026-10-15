@@ -3,12 +3,15 @@ import { CopyCommand } from '@/components/ds/controls';
 import { Label } from '@/components/ds/marks';
 import { links } from '@/lib/links';
 
-/** The closing band: light celeste, the call to action, and the wordmark in serif, cropped at the bottom. */
-export function Cta() {
+/**
+ * The closing band: light celeste, the call to action, and the wordmark in serif, cropped at the
+ * bottom. `n` is the step number on the landing; pages outside the numbered landing pass none.
+ */
+export function Cta({ n = '05' }: { n?: string | null } = {}) {
   return (
     <section aria-labelledby="cta-title" className="dots overflow-hidden bg-sky">
       <div className="wrap pt-16 sm:pt-20">
-        <Label n="05">Get started</Label>
+        <Label n={n ?? undefined}>Get started</Label>
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
           <div>
             <h2

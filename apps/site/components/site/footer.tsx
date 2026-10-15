@@ -9,6 +9,7 @@ const cols = [
       ['Docs', links.docs],
       ['API reference', links.api],
       ['TypeScript SDK', links.sdk],
+      ['Blog', '/blog'],
     ],
   },
   {
