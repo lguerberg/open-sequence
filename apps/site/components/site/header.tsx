@@ -6,6 +6,7 @@ import { links } from '@/lib/links';
 const nav = [
   { href: '/#use-cases', label: 'Use cases' },
   { href: links.docs, label: 'Docs' },
+  { href: '/blog', label: 'Blog' },
 ];
 
 /** Logo, the links in one light pill, then GitHub and the blue call to action. */
