@@ -1,6 +1,0 @@
----
-title: "Agent enrollment"
-description: "An LLM agent with an enroll-scoped key that reads sequences and enrolls people safely."
----
-
-<Note>This page is not written yet. The safety properties already exist: an `enroll` key cannot publish or edit sequences; `POST .../enrollments:preview` shows conflicts and exclusions before anything is written; `ALREADY_IN_SEQUENCE` is all-or-nothing; `enrolled_by_kind: "agent"` is recorded on every enrollment; `mode: "dry_run"` rehearses without sending.</Note>
