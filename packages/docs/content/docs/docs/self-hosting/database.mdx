@@ -19,7 +19,7 @@ The service creates and owns two schemas:
 
 | Schema | Owner | Tables |
 |---|---|---|
-| `seq` | `@opensequence/engine` | `projects`, `api_keys`, `webhook_endpoints`, `webhook_deliveries`, `idempotency_keys`, `senders`, `sender_channels`, `contacts`, `suppressions`, `sequences`, `versions`, `enrollments`, `runs`, `messages`, `tasks`, `signals`, `signal_effects`, `flags`, `linkedin_connections`, `job_locks`, `queue_messages`, `queue_dead`, `migrations`, `migration_lock` |
+| `seq` | `@opensequence/engine` | `projects`, `api_keys`, `webhook_endpoints`, `webhook_deliveries`, `idempotency_keys`, `senders`, `sender_channels`, `contacts`, `suppressions`, `sequences`, `versions`, `enrollments`, `runs`, `messages`, `tasks`, `signals`, `signal_effects`, `flags`, `job_locks`, `queue_messages`, `queue_dead`, `migrations`, `migration_lock` |
 | `auth` | `@opensequence/auth` | `credentials` (a project's provider secrets), `connections` (a sender's OAuth tokens), plus its own migration bookkeeping |
 
 Every tenant-owned table carries `project_id`. Secrets in `auth` are AES-256-GCM ciphertext under `SEQ_ENCRYPTION_KEYS`, each row tagged with the key id that encrypted it.

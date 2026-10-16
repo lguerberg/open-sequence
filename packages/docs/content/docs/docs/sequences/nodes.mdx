@@ -74,7 +74,7 @@ A timer. `bd` counts business days in the contact's zone (the sender's when the 
 }
 ```
 
-The only event wait. Events: `reply`, `reply:email`, `reply:sms`, `reply:linkedin`, `connection_accepted`, `call_connected`, `meeting_booked`. Each waited event needs a transition (`BAD_EVENT`); `timeout` is optional, and without one the enrollment waits forever (or until something exits it). A `reply` on any channel matches `reply` and `reply:<channel>`; a connected call matches `call_connected` and `reply`. Details in [Wait for](/docs/sequences/wait-for).
+The only event wait. Events: `reply`, `reply:email`, `reply:sms`, `call_connected`, `meeting_booked`. Each waited event needs a transition (`BAD_EVENT`); `timeout` is optional, and without one the enrollment waits forever (or until something exits it). A `reply` on any channel matches `reply` and `reply:<channel>`; a connected call matches `call_connected` and `reply`. Details in [Wait for](/docs/sequences/wait-for).
 
 ## `condition`
 

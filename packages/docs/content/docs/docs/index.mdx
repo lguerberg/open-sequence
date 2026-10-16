@@ -9,11 +9,11 @@ OpenSequence runs multi-step outreach flows (an email, a wait, a condition, a te
 
 | You do | With |
 |---|---|
-| Register the people who send (a **sender**: a user with a Google account for mail and calendar, an Allo number, a LinkedIn profile) | [`senders`](/docs/senders/senders) |
-| Register the people who receive (a **contact**: email, phone, LinkedIn URL, free attributes, SMS consent) | [`contacts`](/docs/contacts/contacts) |
+| Register the people who send (a **sender**: a user with a Google account for mail and calendar and an Allo number) | [`senders`](/docs/senders/senders) |
+| Register the people who receive (a **contact**: email, phone, free attributes, SMS consent) | [`contacts`](/docs/contacts/contacts) |
 | Design flows as JSON (a **sequence**, versioned, immutable once published) | [`sequences` and `versions`](/docs/sequences/definition) |
 | Start a contact on a sequence as a sender, or stop them | [`enrollments`](/docs/enrollments/enrolling) |
-| Let senders do the manual steps (a call, a LinkedIn action) | [`tasks`](/docs/enrollments/tasks) |
+| Let senders do the manual steps (a call, anything you define) | [`tasks`](/docs/enrollments/tasks) |
 | Read what happened: replies and meetings per sequence, channel and step, and one contact's path | [`analytics`](/docs/analytics/outcomes), [the journey](/docs/enrollments/journey) |
 | Branch on what the CRM knows (an open deal, its stage, a company attribute) | [`crm.*` conditions](/docs/sequences/crm-conditions), read live from Attio |
 | Get told when something happens | [outbound webhooks](/docs/webhooks/overview) |
@@ -32,7 +32,7 @@ Everything else happens inside the service: it schedules each step, sends the em
 
 ## What it does not do (v1)
 
-No built-in UI (you build yours on the API), no providers beyond Google, Allo and Attio (SMTP and IMAP, Twilio, HubSpot and automated LinkedIn come later behind the same ports), no SMS without consent, no A/B on content, no open and click tracking, no WhatsApp, no holidays in business-day math.
+No built-in UI (you build yours on the API), no providers beyond Google, Allo and Attio (SMTP and IMAP, Twilio and HubSpot come later behind the same ports), no SMS without consent, no A/B on content, no open and click tracking, no WhatsApp, no holidays in business-day math.
 
 <Cards>
   <Card title="Quickstart" href="/docs/get-started/quickstart" description="Six calls from docker compose up to a first enrollment." />

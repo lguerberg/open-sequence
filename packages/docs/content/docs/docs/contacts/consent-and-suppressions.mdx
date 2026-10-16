@@ -27,7 +27,7 @@ await oseq.contacts.reportEvent('p_7', { id: 'dnc-p_7-2026-10-13', type: 'suppre
 
 ## Suppressions
 
-A suppression is a mark on a contact for one channel (`email`, `sms`, `linkedin`) or `all`, with a reason. It is checked **at enrollment** (`all` suppressions exclude the contact from the batch with `suppressed:<reason>`) and **again at execution** (an email step skips with `suppressed` when the contact is suppressed on `email` or `all`; the same for SMS). `GET /v1/contacts/{id}` lists them.
+A suppression is a mark on a contact for one channel (`email`, `sms`) or `all`, with a reason. It is checked **at enrollment** (`all` suppressions exclude the contact from the batch with `suppressed:<reason>`) and **again at execution** (an email step skips with `suppressed` when the contact is suppressed on `email` or `all`; the same for SMS). `GET /v1/contacts/{id}` lists them.
 
 | Source | Channel | Reason | Also |
 |---|---|---|---|

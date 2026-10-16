@@ -22,7 +22,7 @@ const summary = await oseq.analytics.summary('seq_01J9…', { from: new Date('20
 
 ## Definitions
 
-- **Reply**: an inbound email in a thread the service started, an inbound text, a LinkedIn reply reported through a task (`linkedin_message` completed with `replied`), a reply you report, or a task completed with an outcome in its `connected_outcomes` (a `call_connected` signal). Out-of-office auto-replies, bounces and opt-outs are not replies.
+- **Reply**: an inbound email in a thread the service started, an inbound text, a reply you report, or a task completed with an outcome in its `connected_outcomes` (a `call_connected` signal). Out-of-office auto-replies, bounces and opt-outs are not replies.
 - **Meeting booked**: a new event on the sender's Google Calendar with the contact as a non-declined attendee (detected by the minute poll), or a `meeting_booked` you report. Both are idempotent by their ids and counted once per enrollment, so reporting a booking the calendar already showed creates no second meeting.
 - **Attribution window**: the signal is matched to enrollments whose last touch is within `settings.attribution_days` (14 by default) before it occurred.
 - **Counted once per enrollment**: the **first** reply and the **first** meeting are attributed and set `replied_at` / `meeting_booked_at` on the enrollment, never rewritten; later ones are stored with `attribution: "none"` and appear only in the timeline.

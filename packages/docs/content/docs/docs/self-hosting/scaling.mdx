@@ -16,7 +16,7 @@ Several workers can run at once: the planner claims enrollments under one token 
 
 ## What limits throughput
 
-Not the engine: 30 sequences with about 500 active contacts and a step every one to three days is 5,000 to 15,000 step executions a day, a few hundred an hour at peak, small for Postgres and a single worker. The binding limits are external: each sender's email `daily_limit` (30 by default, 60-second gap), SMS throughput and 10DLC, LinkedIn caps. Raising capacity means more senders or higher caps, not more replicas.
+Not the engine: 30 sequences with about 500 active contacts and a step every one to three days is 5,000 to 15,000 step executions a day, a few hundred an hour at peak, small for Postgres and a single worker. The binding limits are external: each sender's email `daily_limit` (30 by default, 60-second gap), SMS throughput and 10DLC. Raising capacity means more senders or higher caps, not more replicas.
 
 ## Knobs
 

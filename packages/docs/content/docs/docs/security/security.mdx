@@ -18,7 +18,6 @@ OpenSequence sends on behalf of real people from their own accounts and reads th
 | Do not contact | suppressions from your reports, opt-out clicks, STOP texts, bounces and complaints, checked at enrollment and again at execution |
 | SMS | consent default false and settable only with `admin`, with `source` and `at`; no text without consent, a known recipient time zone and 08:00 to 21:00 recipient-local; a country allow-list (`sms_countries`, default `["US"]`) |
 | Opt-out | always exits the sequence (not configurable) and suppresses the channel; emails carry `List-Unsubscribe` and `List-Unsubscribe-Post` |
-| LinkedIn | tasks only; no automation ships |
 | Data in runs | facts and rendered template values are stored at decision time; erase on request with `DELETE /v1/contacts/{id}` |
 | Audit | every enrollment records `enrolled_by` and its kind; every exit its reason and signal; flag changes record the key that made them |
 | Input limits | definition 256 KB and 200 nodes; Zod on every body; batches of 500; 600 requests a minute per key; bodies of 2 MB |

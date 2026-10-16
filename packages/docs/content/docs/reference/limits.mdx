@@ -30,7 +30,7 @@ description: "Caps on definitions, batches, requests and retention, as enforced 
 | Opt-out link | 90 days | opt-out token |
 | Planner claim | 50 per sender, 500 per tick, released after 10 minutes if not advanced | planner |
 | Poll scope | threads started in the last 30 days, 500 channels per tick | poll job |
-| Default channel caps | email 30 a day with a 60 s gap, SMS 100 a day, LinkedIn 15 a day | new channels |
+| Default channel caps | email 30 a day with a 60 s gap, SMS 100 a day | new channels |
 | Idempotency keys kept | 1 day | retention |
 | Dead-letter queue rows and delivered deliveries kept | 30 days | retention |
 | `retention_days` setting | accepted (7 to 3650, default 365) but **not enforced yet**: runs, messages and signals are kept | see [Data retention](/docs/security/data-retention) |

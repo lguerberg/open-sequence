@@ -9,7 +9,6 @@ description: "Upsert one or many contacts by your own id, with email, phone, tim
 curl -X PUT $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{
   "first_name": "Dana", "last_name": "Whitfield", "email": "dana@example.com",
   "phone": "+447700900123", "country": "GB", "timezone": "Europe/London",
-  "linkedin_url": "https://www.linkedin.com/in/danawhitfield",
   "attrs": { "company": { "name": "Example Ltd", "country": "UK" }, "deal": { "stage": "contacting" } }
 }'
 ```
@@ -22,7 +21,6 @@ await oseq.contacts.upsert('p_7', {
   phone: '+447700900123',
   country: 'GB',
   timezone: 'Europe/London',
-  linkedin_url: 'https://www.linkedin.com/in/danawhitfield',
   attrs: { company: { name: 'Example Ltd', country: 'UK' }, deal: { stage: 'contacting' } },
 });
 ```
@@ -37,7 +35,6 @@ await oseq.contacts.upsert('p_7', {
 | `phone` | E.164 (`+14155551234`), normalized on input; an invalid number is `422 INVALID_CONTACT` |
 | `country` | ISO 3166-1 alpha-2, upper-cased; checked against `settings.sms_countries` before a text |
 | `timezone` | an IANA zone. Used for send windows, business days and SMS quiet hours; when absent the service infers one from the phone's area code and country for SMS, and falls back to the sender's zone for windows |
-| `linkedin_url` | a URL; `contact.has_linkedin` in conditions |
 | `attrs` | any JSON object; see [Attributes](/docs/contacts/attrs) |
 
 `sms_consent` is not in this body: it has its own admin-only endpoint ([Consent](/docs/contacts/consent-and-suppressions)).

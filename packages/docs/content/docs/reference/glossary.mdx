@@ -6,10 +6,10 @@ description: "The words these docs use, in one line each."
 | Term | Meaning |
 |---|---|
 | Project | A tenant. Owns its senders, contacts, sequences, provider credentials, webhook endpoints and API keys. |
-| Sender | The acting user an enrollment runs as. Has a Google connection and channels (`email` from Google, `sms` from an Allo number, `linkedin` manual), a time zone and limits. |
+| Sender | The acting user an enrollment runs as. Has a Google connection and channels (`email` from Google, `sms` from an Allo number), a time zone and limits. |
 | Connection | A sender's authorized account at an OAuth provider (Google: Gmail and Calendar under one consent), with its tokens, owned by the auth module. API-key providers (Allo, Attio) have no connections: one workspace key per project. |
-| Channel | One way a sender can reach contacts: `email`, `sms`, `linkedin`. Has an address, a status and limits. |
-| Contact | The person who receives a sequence. Has email, phone, LinkedIn URL, country, time zone, `sms_consent`, and free `attrs` JSON. |
+| Channel | One way a sender can reach contacts: `email`, `sms`. Has an address, a status and limits. |
+| Contact | The person who receives a sequence. Has email, phone, country, time zone, `sms_consent`, and free `attrs` JSON. |
 | Suppression | A do-not-contact mark on a contact for one channel or `all`, from an opt-out, a bounce, a complaint, or your own report. Checked at enrollment and again at execution. |
 | Sequence | A named container of versions. |
 | Version | One immutable JSON definition once published. Has a tag (`v1`, `v2`, free text) and a status (`draft`, `published`, `archived`). |
@@ -21,7 +21,7 @@ description: "The words these docs use, in one line each."
 | Enrollment | One contact running one version, as one sender. |
 | Run | One execution of one node for one enrollment. Append-only ledger. |
 | Message | One email or text the service sent or received. |
-| Task | A manual step for a human (a call, a LinkedIn action, anything the client defines), created by a `task` node and completed through the API. |
+| Task | A manual step for a human (a call, anything the client defines), created by a `task` node and completed through the API. |
 | Outcome | The free-text result of a task (`connected`, `no_answer`, `voicemail`, …), matched against `branches_by_outcome`. |
 | Signal | A normalized fact from outside (reply, bounce, meeting booked, call outcome, opt-out, …), produced by provider webhooks and polls, task completions or the client. |
 | Attribution | Which run a reply or a meeting is credited to: `direct` (the latest same-channel touch), `assisted` (the latest touch of another channel), or `none` (a later reply or meeting in the same enrollment). |

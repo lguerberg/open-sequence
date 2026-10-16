@@ -40,7 +40,6 @@ A sender sends through channels; each one is created by its own call and has its
 |---|---|---|
 | `email` | `POST /v1/senders/{id}/connections/google` and the sender's consent ([Connect Google](/docs/senders/connect-google)) | the sender's own Gmail and Calendar, through your project's OAuth client |
 | `sms` | `PUT /v1/senders/{id}/channels/sms` with an Allo user and number ([Connect Allo](/docs/senders/connect-allo)) | the project's Allo key |
-| `linkedin` | `PUT /v1/senders/{id}/channels/linkedin` with the profile URL ([LinkedIn](/docs/senders/connect-linkedin)) | none: LinkedIn steps are tasks |
 
 Statuses: `pending`, `active`, `paused`, `credentials_needed`, `restricted`, `disconnected`. Only `active` channels send; a step on any other status is skipped with `sender_channel_<status>`, and `credentials_needed` additionally pauses the step and raises `sender.channel_status` so you can ask the user to reconnect.
 
@@ -59,12 +58,12 @@ await oseq.senders.patchChannel('u_42', 'email', { daily_limit: 50, min_gap_seco
 
 </CodeGroup>
 
-| Field | Default (email / sms / linkedin) | Meaning |
+| Field | Default (email / sms) | Meaning |
 |---|---|---|
-| `daily_limit` | 30 / 100 / 15 | sends in a rolling 24 hours; over it the step is deferred for an hour and the enrollment shows `waiting_limit`. `null` removes the cap |
+| `daily_limit` | 30 / 100 | sends in a rolling 24 hours; over it the step is deferred for an hour and the enrollment shows `waiting_limit`. `null` removes the cap |
 | `weekly_limit` | none | stored for the channel; not enforced by the executors yet |
-| `min_gap_seconds` | 60 / 0 / 0 | the minimum time between two sends on the channel; a step inside the gap is deferred to the end of it |
-| `opted_in` | | sets `opted_in_at`; reserved for LinkedIn automation |
+| `min_gap_seconds` | 60 / 0 | the minimum time between two sends on the channel; a step inside the gap is deferred to the end of it |
+| `opted_in` | | sets `opted_in_at`, the sender's written acknowledgement for the channel; stored, not enforced |
 | `status` | `active` | `paused` stops the channel without removing it |
 
 Deferrals are per sender and channel, so a batch of 5,000 enrollments never fires at once: the enrollment preview staggers first touches by the sender's daily email capacity (`capacity.per_day`, `days_to_first_touches`).
@@ -77,7 +76,7 @@ Before enrolling, ask which steps a sender can run and why not.
 
 ```bash title="curl"
 curl $SEQ/v1/senders/u_42/readiness -H "Authorization: Bearer $KEY"
-# {"email":{"ok":true},"sms":{"ok":false,"reason":"no_allo_number"},"linkedin":{"ok":false,"reason":"no_linkedin_url"},"task":{"ok":true}}
+# {"email":{"ok":true},"sms":{"ok":false,"reason":"no_allo_number"},"task":{"ok":true}}
 ```
 
 ```ts title="TypeScript"
@@ -87,7 +86,7 @@ if (!readiness.email.ok) console.log(readiness.email.reason); // google_not_conn
 
 </CodeGroup>
 
-Reasons are `google_not_connected`, `no_allo_number`, `no_linkedin_url` when the channel does not exist, and `<channel>_<status>` (`email_credentials_needed`, `sms_paused`, …) when it exists but is not active. `GET /v1/senders/{id}` returns the sender with `channels`, `readiness` and `connections` in one call.
+Reasons are `google_not_connected` and `no_allo_number` when the channel does not exist, and `<channel>_<status>` (`email_credentials_needed`, `sms_paused`, …) when it exists but is not active. `GET /v1/senders/{id}` returns the sender with `channels`, `readiness` and `connections` in one call.
 
 ## Listing
 

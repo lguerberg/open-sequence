@@ -38,7 +38,7 @@ await oseq.tasks.cancel(items[1].id);
 
 ## Completing
 
-`POST /v1/tasks/{id}/complete` (scope `enroll`) with `{ outcome, note? }`. The outcome is free text, 1 to 32 characters, matched against the node's `branches_by_outcome`; anything else takes `completed`. The waiting run closes on the outcome, the enrollment advances at once, and the signals the outcome implies are recorded: `task_completed` always, `call_connected` when the outcome is in the node's `connected_outcomes`, `connection_accepted` for `linkedin_connect` + `accepted`, a LinkedIn `reply` for `linkedin_message` + `replied`. Completing a task that is not open returns it unchanged, so a double click is harmless.
+`POST /v1/tasks/{id}/complete` (scope `enroll`) with `{ outcome, note? }`. The outcome is free text, 1 to 32 characters, matched against the node's `branches_by_outcome`; anything else takes `completed`. The waiting run closes on the outcome, the enrollment advances at once, and the signals the outcome implies are recorded: `task_completed` always, `call_connected` when the outcome is in the node's `connected_outcomes`. Completing a task that is not open returns it unchanged, so a double click is harmless.
 
 Call tasks with `dialer: true` complete themselves when Allo reports the call; a manual completion that arrives first wins, the later one is ignored. See [The task node](/docs/sequences/task-node).
 

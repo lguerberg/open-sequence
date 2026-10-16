@@ -6,7 +6,7 @@ description: "Project, sender, contact, sequence, version, enrollment, run, task
 ```text
 project ─┬─ api keys (read | enroll | admin)
          ├─ provider credentials (google client, allo key, attio key)   write-only
-         ├─ senders ──┬─ channels (email from a Google connection, sms from an Allo number, linkedin manual)
+         ├─ senders ──┬─ channels (email from a Google connection, sms from an Allo number)
          │            └─ tasks
          ├─ contacts ─┬─ suppressions
          │            └─ enrollments ──┬─ runs (one per node, append-only)
@@ -23,7 +23,7 @@ A tenant. Owns its senders, contacts, sequences, provider credentials, webhook e
 
 ## Sender
 
-The acting user an enrollment runs as: a name, an email, a time zone and `attrs`. A sender has **channels**: `email` once a Google account is connected (Gmail and Calendar under one consent), `sms` once an Allo number is set, `linkedin` once a profile URL is set (manual, no provider). Each channel has limits (`daily_limit`, `weekly_limit`, `min_gap_seconds`) and a status (`active`, `paused`, `credentials_needed`, `restricted`, `disconnected`). You address a sender by your own id: `PUT /v1/senders/u_42`. Ids are `snd_…`; channels `chn_…`.
+The acting user an enrollment runs as: a name, an email, a time zone and `attrs`. A sender has **channels**: `email` once a Google account is connected (Gmail and Calendar under one consent), `sms` once an Allo number is set. Each channel has limits (`daily_limit`, `weekly_limit`, `min_gap_seconds`) and a status (`active`, `paused`, `credentials_needed`, `restricted`, `disconnected`). You address a sender by your own id: `PUT /v1/senders/u_42`. Ids are `snd_…`; channels `chn_…`.
 
 ## Connection
 
@@ -31,7 +31,7 @@ A sender's authorized account at an OAuth provider, with its tokens, owned by th
 
 ## Contact
 
-The person who receives a sequence: `first_name`, `last_name`, `email`, `phone` (E.164), `linkedin_url`, `country`, `timezone`, `sms_consent`, and free `attrs` JSON. Addressed by your own id (`PUT /v1/contacts/p_7`), `attrs` deep-merged on every upsert. A contact can be in **at most one active sequence per project**. Ids are `ctc_…`.
+The person who receives a sequence: `first_name`, `last_name`, `email`, `phone` (E.164), `country`, `timezone`, `sms_consent`, and free `attrs` JSON. Addressed by your own id (`PUT /v1/contacts/p_7`), `attrs` deep-merged on every upsert. A contact can be in **at most one active sequence per project**. Ids are `ctc_…`.
 
 ## Sequence and version
 
@@ -55,7 +55,7 @@ One email or text the service sent or received: direction, addresses, subject, b
 
 ## Task
 
-A manual step for a human (a call, a LinkedIn invitation, anything you define), created by a `task` node with a `kind`, a rendered title and body, a link, a due date and an expiry. Your application shows it and completes it with an outcome; a `call` task with `dialer: true` is also pushed into the sender's Allo dialer and completes itself from the call result. Ids are `tsk_…`.
+A manual step for a human (a call, anything you define), created by a `task` node with a `kind`, a rendered title and body, a link, a due date and an expiry. Your application shows it and completes it with an outcome; a `call` task with `dialer: true` is also pushed into the sender's Allo dialer and completes itself from the call result. Ids are `tsk_…`.
 
 ## Signal
 

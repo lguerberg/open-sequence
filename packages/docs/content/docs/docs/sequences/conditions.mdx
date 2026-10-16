@@ -37,11 +37,10 @@ A condition is a list of `{ field, op, value }` combined with `all` or `any` (1 
 
 | Prefix | Fields | Source |
 |---|---|---|
-| `contact.` | `country`, `timezone` (text), `has_email`, `has_phone`, `has_linkedin`, `sms_consent` (bool); also `first_name`, `last_name`, `email` are readable | the contact row |
+| `contact.` | `country`, `timezone` (text), `has_email`, `has_phone`, `sms_consent` (bool); also `first_name`, `last_name`, `email` are readable | the contact row |
 | `attrs.<path>` | anything you pushed, read as text | the contact's `attrs` |
-| `sender.` | `timezone` (text), `has_sms`, `has_linkedin` (bool); also `name` | the sender and its active channels |
-| `history.` | `touches`, `days_since_last_touch`, `emails_sent`, `days_since_last_task`, `tasks_last_14d` (number), `replied_since_enrollment` (bool), `last_reply_channel` (enum: `email`, `sms`, `linkedin`, `call`), `last_task_outcome`, `last_task_kind` (text) | the enrollment, runs, signals and tasks: one indexed query each |
-| `linkedin.connection_state` | enum: `none`, `pending`, `connected`, `declined_or_ignored`, `withdrawn` | reserved for LinkedIn automation |
+| `sender.` | `timezone` (text), `has_sms` (bool); also `name` | the sender and its active channels |
+| `history.` | `touches`, `days_since_last_touch`, `emails_sent`, `days_since_last_task`, `tasks_last_14d` (number), `replied_since_enrollment` (bool), `last_reply_channel` (enum: `email`, `sms`, `call`), `last_task_outcome`, `last_task_kind` (text) | the enrollment, runs, signals and tasks: one indexed query each |
 | `crm.` | `person.exists`, `company.exists`, `deal.exists`, `deal.count_open` and any `person.<slug>`, `company.<slug>`, `deal.<slug>` | one live Attio lookup per contact per step ([CRM conditions](/docs/sequences/crm-conditions)) |
 
 ## Operators

@@ -3,7 +3,7 @@ title: "The task node"
 description: "Kinds, outcomes, branches_by_outcome, the dialer, and how your application renders and completes tasks."
 ---
 
-A `task` node creates a task for the sender and waits for its outcome. A call, a manual LinkedIn invitation, a WhatsApp message typed by hand, a visit: anything a human does is a task with a `kind` you choose to render.
+A `task` node creates a task for the sender and waits for its outcome. A call, a WhatsApp message typed by hand, a handwritten note, a visit: anything a human does is a task with a `kind` you choose to render.
 
 ```json
 "call_1": {
@@ -45,7 +45,7 @@ await oseq.tasks.complete(open[0].id, { outcome: 'voicemail', note: 'Left a mess
 
 | Param | Meaning |
 |---|---|
-| `kind` | `^[a-z][a-z0-9_]*$`, up to 32 characters. `call` has dialer behaviour; `linkedin_connect` and `linkedin_message` emit LinkedIn signals; anything else is yours |
+| `kind` | `^[a-z][a-z0-9_]*$`, up to 32 characters. `call` has dialer behaviour; anything else is yours |
 | `title`, `body`, `link` | templates, rendered when the task is created and stored on it (`{{ contact.* }}`, `{{ attrs.* }}`, `{{ sender.* }}`, `{{ sequence.name }}`) |
 | `due` | a duration from now, on the **sender's** calendar (`1bd` is the next business day in the sender's zone) |
 | `expire` | when the task expires if nobody completes it; default `due` + 7 days |
@@ -57,7 +57,7 @@ await oseq.tasks.complete(open[0].id, { outcome: 'voicemail', note: 'Left a mess
 
 The outcome is free text (1 to 32 characters) that your application sends. The flow takes `branches_by_outcome[outcome]` when it is wired, otherwise `completed`; when neither is wired the enrollment completes. Expiry takes `no_answer`. Cancelling an open task (`POST /v1/tasks/{id}/cancel`) also takes `no_answer`.
 
-Completing a task records a `task_completed` signal always, plus `call_connected` when the outcome is in `connected_outcomes`, `connection_accepted` for `linkedin_connect` + `accepted`, and a `reply` on `linkedin` for `linkedin_message` + `replied`. A task that is no longer open is returned unchanged (idempotent). Completion wakes the enrollment at once; no planner tick to wait for.
+Completing a task records a `task_completed` signal always, plus `call_connected` when the outcome is in `connected_outcomes`. A task that is no longer open is returned unchanged (idempotent). Completion wakes the enrollment at once; no planner tick to wait for.
 
 ## Calls through Allo
 

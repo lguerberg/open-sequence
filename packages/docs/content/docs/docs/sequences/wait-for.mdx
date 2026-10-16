@@ -26,10 +26,9 @@ The zone is the contact's when `settings.send_window.tz` is `contact` (the defau
 
 | Event | Woken by |
 |---|---|
-| `reply` | an inbound email in a thread the service started, an inbound text, a `reply` you report, a `linkedin_message` task completed with `replied`, a connected call |
-| `reply:email`, `reply:sms`, `reply:linkedin` | the same, on that channel only |
+| `reply` | an inbound email in a thread the service started, an inbound text, a `reply` you report, a connected call |
+| `reply:email`, `reply:sms` | the same, on that channel only |
 | `call_connected` | a task completed with an outcome in its `connected_outcomes` (by Allo or by you) |
-| `connection_accepted` | a `linkedin_connect` task completed with `accepted` |
 | `meeting_booked` | an event on the sender's Google Calendar with the contact as attendee, or a `meeting_booked` you report |
 
 When a signal matches several listed events, the first in this order wins: the exact `reply:<channel>` after `reply`; `call_connected` before `reply`. A signal that exits the enrollment (because of `exit_on`, or an opt-out) exits instead of waking. A signal that arrives while the enrollment is paused does not wake it.

@@ -29,4 +29,4 @@ Validation runs on `POST /v1/sequences:validate`, on every draft save (problems 
 
 Problems that stop a publish are also what the engine refuses at enrollment time, so a published version never fails for a reason validation could have caught. The generated list of every code, including the HTTP ones, is in the [reference](/reference/error-codes).
 
-<Note>The architecture document also lists `NO_END`, `TOO_MANY_CONNECTS` and `BAD_EXIT`. The code has none of them: a path may end on an unwired transition (the enrollment completes), LinkedIn connects are tasks, and `exit_on` is checked by the schema as `INVALID_DEFINITION`.</Note>
+<Note>The architecture document also lists `NO_END` and `BAD_EXIT`. The code has neither: a path may end on an unwired transition (the enrollment completes), and `exit_on` is checked by the schema as `INVALID_DEFINITION`.</Note>

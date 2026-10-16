@@ -29,7 +29,7 @@ const r = await oseq.contacts.reportEvent('p_7', {
 | `id` | your idempotency key, up to 200 characters; a calendar event id, a CRM activity id, `dnc-<contact>-<date>` |
 | `type` | `meeting_booked`, `opt_out`, `suppressed`, `reply` |
 | `occurred_at` | when it happened (default now); attribution uses it |
-| `channel` | `email`, `sms`, `linkedin` or `all`. For `opt_out` the channel to suppress (default `all`); for `reply` the channel the reply arrived on |
+| `channel` | `email`, `sms` or `all`. For `opt_out` the channel to suppress (default `all`); for `reply` the channel the reply arrived on |
 | `reason` | for `suppressed`: `do_not_contact`, `bad_number`, `invalid_email`, `left_company`, or your own (default `client`) |
 | `data` | anything you want on the signal payload |
 
@@ -38,7 +38,7 @@ const r = await oseq.contacts.reportEvent('p_7', {
 | Type | What it does |
 |---|---|
 | `meeting_booked` | counts as a meeting for the enrollment whose last touch is within the attribution window (14 days by default), credited to the latest touch; exits when `exit_on` contains `meeting_booked`. Idempotent with calendar detection: a booking the sender's Google Calendar already showed does not count twice for the same enrollment (the first meeting per enrollment is attributed, later ones are `none`) |
-| `reply` | a reply you saw elsewhere (a LinkedIn inbox, a shared mailbox, a form): credited to the latest touch on that channel, exits when `exit_on` contains `reply`, wakes a `wait_for reply` |
+| `reply` | a reply you saw elsewhere (a shared mailbox, a form, a chat): credited to the latest touch on that channel, exits when `exit_on` contains `reply`, wakes a `wait_for reply` |
 | `opt_out` | writes a suppression on the channel (or `all`), exits every active enrollment with `opt_out` |
 | `suppressed` | writes an `all` suppression with your reason, exits with `suppressed` |
 
