@@ -155,9 +155,17 @@ the external id your app gave them. Version arguments take an id (`ver_…`) or 
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ------ |
 | `list_sequences`               | Sequences with their versions and enrollment counts by status                                                        | read   |
 | `get_sequence`                 | One sequence, its versions, and the steps of its default version (or another, by id or tag) with validation problems | read   |
+| `get_sequence_version`         | One version: status, full definition, `lock_version` and validation problems                                         | read   |
 | `validate_sequence_definition` | Checks a definition document without saving it; every problem with its path                                          | read   |
+| `create_sequence`              | Creates a sequence and its `v1` draft, from your definition or an empty one                                          | admin  |
+| `save_sequence_draft`          | Replaces a draft's definition under the optimistic lock; problems are returned, the save goes through                | admin  |
+| `publish_sequence_version`     | Validates and publishes a draft and makes it the default; errors refuse the publish                                  | admin  |
+| `create_sequence_version`      | Copies a version into a new draft (next free tag by default), to edit a published sequence                           | admin  |
+| `set_sequence_status`          | Sets a sequence to active, paused or archived; archiving with people in it needs `exit_active`                       | admin  |
 | `list_senders`                 | Senders with external id, email, time zone and status                                                                | read   |
+| `get_sender`                   | One sender with channels, signature and readiness                                                                    | read   |
 | `get_sender_readiness`         | Which kinds of steps a sender can run now, and why not                                                               | read   |
+| `upsert_sender`                | Creates or updates a sender by your external id, with the email signature; left-out fields keep their value          | admin  |
 | `upsert_contact`               | Creates or updates a contact by your external id; `attrs` deep-merged                                                | enroll |
 | `get_contact`                  | One contact with suppressions and their current enrollment                                                           | read   |
 | `list_contacts`                | Contacts, filtered by `email` or `external_id`                                                                       | read   |
@@ -172,6 +180,8 @@ the external id your app gave them. Version arguments take an id (`ver_…`) or 
 | `analytics_summary`            | Replies and meetings for a sequence, with rates; without `sequence`, every sequence ranked                           | read   |
 | `analytics_nodes`              | Results per step: reached, delivered, skipped by reason, replies, meetings                                           | read   |
 | `report_contact_event`         | Tells OpenSequence about a meeting booked, an opt-out, a do-not-contact or a reply it could not see                  | enroll |
+
+No tool deletes a sequence, a version or a sender, or sets a provider secret.
 
 Every tool answers with a short plain-English summary first, then the API's JSON as a second
 content block. A refusal comes back as an error result with the API's stable code and a message an
@@ -199,7 +209,8 @@ pnpm oseq -- api-keys create <project_id> --scopes enroll --name claude-code
   or project settings, or delete anything.
 - **`read`** for an agent that only answers questions. Every tool is still listed; the write tools
   fail with the API's own message, for example `INSUFFICIENT_SCOPE: This key cannot do that; it needs the "enroll" scope.`
-- **`admin`** only when the agent should also exit enrollments (`exit_enrollment`).
+- **`admin`** only when the agent should build or change sequences, manage senders and their
+  signatures, or exit enrollments (`exit_enrollment`).
 
 The key lives in your MCP client's configuration; treat that file like any other secret.
 

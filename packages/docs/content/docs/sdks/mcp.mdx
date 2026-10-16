@@ -3,7 +3,7 @@ title: "MCP server"
 description: "@opensequence/mcp: let Claude Code, Cursor or any MCP client build sequences, enroll people and read results with a scoped project key."
 ---
 
-`@opensequence/mcp` is an [MCP](https://modelcontextprotocol.io) server that exposes the API as tools. Say "enroll these three people in UK intro with Max" and the agent finds the sequence and the sender, previews the enrollment, and enrolls them. It talks to the API through `@opensequence/sdk` and nothing else; the key's scopes decide what succeeds.
+`@opensequence/mcp` is an [MCP](https://modelcontextprotocol.io) server that exposes the API as tools. Say "enroll these three people in UK intro with Max" and the agent finds the sequence and the sender, previews the enrollment, and enrolls them. Say "build a three-step intro for UK facilities managers" and it writes the definition, checks it, saves it as a draft and publishes it when you agree. It talks to the API through `@opensequence/sdk` and nothing else; the key's scopes decide what succeeds.
 
 ```bash title="Claude Code, hosted server"
 claude mcp add --transport http opensequence https://mcp.example.com/mcp \
@@ -73,8 +73,15 @@ Senders, contacts and sequences can be named by their service id (`snd_…`, `ct
 | Tool | What it does | Scope |
 |---|---|---|
 | `list_sequences`, `get_sequence` | sequences with versions and counts; one sequence with the steps of a version and its validation problems | read |
+| `get_sequence_version` | one version: status, full definition, `lock_version` and validation problems | read |
 | `validate_sequence_definition` | checks a definition without saving it; every problem with its path | read |
-| `list_senders`, `get_sender_readiness` | senders; which steps one can run now and why not | read |
+| `create_sequence` | creates a sequence and its `v1` draft, from your definition or an empty one | admin |
+| `save_sequence_draft` | replaces a draft's definition under the optimistic lock; problems come back, the save goes through | admin |
+| `publish_sequence_version` | validates and publishes a draft and makes it the default; errors refuse the publish | admin |
+| `create_sequence_version` | copies a version into a new draft (the next free tag by default), to edit a published sequence | admin |
+| `set_sequence_status` | sets a sequence to active, paused or archived; archiving with people in it needs `exit_active` | admin |
+| `list_senders`, `get_sender`, `get_sender_readiness` | senders; one sender with channels, signature and readiness; which steps one can run now and why not | read |
+| `upsert_sender` | creates or updates a sender by your external id, including the email signature; fields left out keep their value | admin |
 | `upsert_contact` | creates or updates a contact by your external id | enroll |
 | `get_contact`, `list_contacts`, `get_contact_timeline` | one contact with suppressions and enrollment; a filtered list; messages, signals and tasks newest first | read |
 | `preview_enrollment` | who would be enrolled, first touch times, who would be skipped and why; no writes | read |
@@ -85,7 +92,22 @@ Senders, contacts and sequences can be named by their service id (`snd_…`, `ct
 | `analytics_summary`, `analytics_nodes` | replies and meetings per sequence (every sequence ranked without `sequence`); results per step | read |
 | `report_contact_event` | a meeting booked, an opt-out, a do-not-contact or a reply the service could not see | enroll |
 
+No tool deletes a sequence, a version or a sender, and none sets a provider secret such as an SMTP password; do those in your app or with the API.
+
 Every tool answers with a short plain-English summary first and the API's JSON second. A refusal is an error result with the API's stable code and message, for example `ALREADY_IN_SEQUENCE: Dana Whitfield is already in a sequence ("UK facilities managers", enrollment enr_01J9…). Nobody was enrolled; exit that enrollment first (exit_enrollment) or pick another contact.` The server also serves one resource, `opensequence://instructions`, on how the tools fit together.
+
+## Build a sequence from Claude
+
+With an `admin` key, the agent can take a sequence from an idea to people enrolled in it. A typical run, for "build a two-email intro for UK facilities managers, sent as Max":
+
+1. **Write and check the definition.** The agent drafts the JSON (the `definition` argument of the tools describes the format: nodes, transitions, durations like `2bd`, `send_window`, `exit_on`, and templates such as `{{ contact.first_name | "there" }}`) and calls `validate_sequence_definition`. Errors come back with their paths, for example `nodes.email_intro.params.subject: contact.first_name can be empty for some contacts. Give it a fallback. (BAD_TEMPLATE)`, and the agent fixes them before saving.
+2. **Create it.** `create_sequence` with a `name`, an `external_id` like `uk-intro` and the definition. The answer names the `v1` draft and its `lock_version` (0). A draft never sends anything.
+3. **Edit the draft.** For each change you ask for, the agent reads the draft with `get_sequence_version`, edits the whole document and saves it with `save_sequence_draft` and the `lock_version` it read. If someone saved in between, the save is refused with `STALE_LOCK` and nothing changes; the agent reads again and redoes the edit.
+4. **Set the signature.** Email bodies end with `{{ sender.signature }}` and include `{{ unsubscribe_url }}`. If Max has no signature yet (`get_sender` says so), `upsert_sender` stores one with `signature_html`; the stored name, email and time zone stay as they were.
+5. **Publish.** `publish_sequence_version` validates once more. Errors refuse the publish and are listed in plain English; warnings, like a missing unsubscribe link, pass and are reported. The version is now frozen and is the sequence's default.
+6. **Preview, then enroll.** `preview_enrollment` shows who would be enrolled, when each first touch goes out and who would be skipped and why. After you agree, `enroll_contacts` enrolls them as Max.
+
+To change a sequence that is live, the agent calls `create_sequence_version` to copy the published version into a new draft (`v2`), edits and publishes that. People already enrolled finish the version they started; new enrollments get `v2`. To stop a sequence, `set_sequence_status` with `paused` stops every step until it is `active` again. See [Versions](/docs/sequences/versions) and [The definition](/docs/sequences/definition).
 
 ## Which key to give an agent
 
@@ -95,7 +117,7 @@ pnpm oseq -- api-keys create <project_id> --scopes enroll --name claude-code
 
 - **`enroll`** is the right default. Through the API it reads everything, creates and updates contacts, enrolls, pauses and resumes enrollments, completes and cancels tasks, and reports events. It cannot exit enrollments, change senders, sequences or settings, or delete anything.
 - **`read`** for an agent that only answers questions; the write tools come back with the API's `403 INSUFFICIENT_SCOPE`.
-- **`admin`** only when the agent must exit enrollments; it can then also do everything else an admin key can through the API.
+- **`admin`** only when the agent must build or change sequences, manage senders and their signatures, or exit enrollments; it can then also do everything else an admin key can through the API.
 
 ## Why agent enrollment is safe
 
