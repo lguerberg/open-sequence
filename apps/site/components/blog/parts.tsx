@@ -94,7 +94,7 @@ export function PostCard({
         </span>
         {post.readingMinutes} min read
       </p>
-      <H className="mt-4 font-display text-[clamp(28px,2.6vw,36px)] leading-[1.05] tracking-[-0.01em]">
+      <H className="mt-4 text-[clamp(24px,2.3vw,30px)] leading-[1.12] font-semibold tracking-[-0.035em]">
         <a
           href={`/blog/${post.slug}`}
           className="after:absolute after:inset-0 after:rounded-[24px]"

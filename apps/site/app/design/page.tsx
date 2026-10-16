@@ -31,9 +31,9 @@ const palette: Array<[token: string, hex: string, use: string]> = [
 ];
 
 const typeScale: Array<[cls: string, spec: string, sample: string]> = [
-  ['t-display', 'Instrument Serif 400 · 54 to 108 · -0.025em', 'Sales sequences, as code.'],
+  ['t-display', 'Geist 600 · 48 to 96 · -0.05em', 'Sales sequences, as code.'],
   ['t-sub', 'Geist 400 · 19 to 24 · -0.02em', 'Own your sales sequencing infrastructure.'],
-  ['t-h2', 'Instrument Serif 400 · 36 to 52', 'Why teams own their sequencing'],
+  ['t-h2', 'Geist 600 · 32 to 46 · -0.04em', 'Why teams own their sequencing'],
   ['t-h3', 'Geist 500 · 21 · -0.025em', 'Headless by design'],
   ['t-lead', 'Geist 400 · 17 to 19', 'Price is the obvious reason. Here are the others.'],
   [
@@ -78,7 +78,7 @@ export default function DesignPage() {
       </Section>
 
       <Section labelledBy="ds-type" inner="py-16">
-        <SectionHeading id="ds-type" label="Type" title="Instrument Serif, Geist, JetBrains Mono" />
+        <SectionHeading id="ds-type" label="Type" title="Geist and JetBrains Mono" />
         <div className="mt-10 flex flex-col gap-4">
           {typeScale.map(([cls, spec, sample]) => (
             <Card
@@ -120,7 +120,7 @@ export default function DesignPage() {
           <CopyCommand command="docker compose up" />
         </div>
         <div className="dots relative mt-6 overflow-hidden rounded-[28px] bg-band px-6 py-10 text-foreground sm:px-12">
-          <p className="font-display text-[32px]">The celeste band</p>
+          <p className="text-[32px] font-semibold tracking-[-0.035em]">The celeste band</p>
           <div className="mt-6 max-w-xl">
             <CopyCommand
               tone="band"

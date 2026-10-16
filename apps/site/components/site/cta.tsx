@@ -16,7 +16,7 @@ export function Cta({ n = '05' }: { n?: string | null } = {}) {
           <div>
             <h2
               id="cta-title"
-              className="font-display text-[clamp(40px,5vw,68px)] leading-[0.98] tracking-[-0.02em]"
+              className="text-[clamp(36px,4.4vw,60px)] leading-[1.02] font-semibold tracking-[-0.045em]"
             >
               Stop paying per seat to send sequences.
             </h2>
@@ -41,9 +41,9 @@ export function Cta({ n = '05' }: { n?: string | null } = {}) {
       </div>
       <p
         aria-hidden="true"
-        className="mt-12 -mb-[0.2em] px-3 font-display text-[clamp(72px,17vw,250px)] leading-[0.8] tracking-[-0.03em] whitespace-nowrap text-foreground italic select-none sm:mt-16 lg:px-6"
+        className="mt-12 -mb-[0.2em] px-3 text-[clamp(64px,15vw,220px)] leading-[0.8] font-semibold tracking-[-0.06em] whitespace-nowrap text-foreground select-none sm:mt-16 lg:px-6"
       >
-        opensequence
+        open<span className="text-brand">sequence</span>
       </p>
     </section>
   );

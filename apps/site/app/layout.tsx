@@ -8,7 +8,7 @@ import {
   SITE_NAME,
   SITE_URL,
 } from '@/lib/site';
-import { display, mono, sans } from './fonts';
+import { mono, sans } from './fonts';
 import './globals.css';
 
 const title = 'OpenSequence: open source sales sequencing, self-hosted';
@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div
           id="oseq"
-          className={`${display.variable} ${sans.variable} ${mono.variable} min-h-dvh bg-background font-sans text-[16px] leading-normal text-foreground antialiased`}
+          className={`${sans.variable} ${mono.variable} min-h-dvh bg-background font-sans text-[16px] leading-normal text-foreground antialiased`}
         >
           {children}
         </div>

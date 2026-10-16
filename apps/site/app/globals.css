@@ -4,7 +4,7 @@
   OpenSequence design system.
 
   Celeste and white: a white ground, celeste bands, navy ink. Text on celeste is navy, never white.
-  Headlines are set in Instrument Serif; the interface in Geist; everything read closely (feature
+  Headlines are Geist semibold, like the wordmark; the interface in Geist; everything read closely (feature
   copy, labels, code, data) in JetBrains Mono. Content sits on rounded cards and full-width tinted
   bands; the hero closes on a dotted celeste band. Sections are numbered like the steps of a sequence.
 
@@ -70,7 +70,7 @@
   --color-accent: var(--surface-2);
   --color-accent-foreground: var(--foreground);
   --color-input: var(--border);
-  --font-display: var(--font-display-face), 'Iowan Old Style', Georgia, serif;
+  --font-display: var(--font-sans-face), ui-sans-serif, system-ui, sans-serif;
   --font-sans:
     var(--font-sans-face), ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial,
     sans-serif;
@@ -118,14 +118,13 @@
   }
 }
 
-/* Type scale. Serif for headlines, Geist for the interface, mono for everything read closely. */
+/* Type scale. Geist semibold for headlines, Geist for the interface, mono for everything read closely. */
 @layer components {
   .t-display {
-    font-family: var(--font-display-face), Georgia, serif;
-    font-size: clamp(54px, 7.6vw, 108px);
-    line-height: 0.92;
-    letter-spacing: -0.025em;
-    font-weight: 400;
+    font-size: clamp(48px, 6.8vw, 96px);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+    font-weight: 600;
   }
   .t-sub {
     font-size: clamp(19px, 1.9vw, 24px);
@@ -135,11 +134,10 @@
     color: var(--ink-2);
   }
   .t-h2 {
-    font-family: var(--font-display-face), Georgia, serif;
-    font-size: clamp(36px, 3.8vw, 52px);
-    line-height: 1;
-    letter-spacing: -0.015em;
-    font-weight: 400;
+    font-size: clamp(32px, 3.4vw, 46px);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    font-weight: 600;
   }
   .t-h3 {
     font-size: 21px;
@@ -278,7 +276,7 @@
 }
 
 /*
-  The blog article. Geist at 18px for reading, a 68ch column, serif h2s like the landing's section
+  The blog article. Geist at 18px for reading, a 68ch column, semibold h2s like the landing's section
   heads (a step smaller), sans h3s, and the landing's dark code card. Tables scroll in their own box.
 */
 @layer components {
@@ -293,10 +291,10 @@
     margin-top: 1.15em;
   }
   .prose-blog h2 {
-    font-family: var(--font-display-face), Georgia, serif;
-    font-size: clamp(30px, 3vw, 40px);
-    line-height: 1.05;
-    letter-spacing: -0.012em;
+    font-size: clamp(26px, 2.6vw, 34px);
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+    font-weight: 600;
     margin-top: 2.1em;
     scroll-margin-top: 24px;
   }

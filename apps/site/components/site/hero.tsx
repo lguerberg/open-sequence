@@ -9,7 +9,7 @@ export function Hero() {
     <section aria-labelledby="hero-title" className="wrap pb-16 sm:pb-24">
       <div className="pt-4 pb-12 sm:pt-10 sm:pb-16 lg:pt-14 lg:pb-20">
         <h1 id="hero-title" className="t-display">
-          Sales sequences, <em className="text-brand">as&nbsp;code.</em>
+          Sales sequences, <span className="text-brand">as&nbsp;code.</span>
         </h1>
         <p className="t-sub mt-6 max-w-[34rem] sm:mt-8">
           Own your sales sequencing infrastructure without building it from scratch.
@@ -22,7 +22,7 @@ export function Hero() {
       <div className="dots relative overflow-hidden rounded-[28px] bg-band px-6 py-8 text-foreground sm:px-12 sm:py-11">
         <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-[44rem]">
-            <p className="font-display text-[clamp(28px,2.9vw,40px)] leading-[1.02] tracking-[-0.01em]">
+            <p className="text-[clamp(24px,2.5vw,34px)] leading-[1.1] font-semibold tracking-[-0.035em]">
               Save $2,000+ a month on Outreach, Salesloft, Apollo, lemlist and Customer.io.
             </p>
             <p className="mt-4 max-w-[38rem] font-mono text-[12.5px] leading-[1.55] text-foreground/75">
@@ -43,7 +43,7 @@ export function Hero() {
         <div className="my-8 h-px bg-foreground/15 sm:my-9" />
         <div className="grid items-center gap-5 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-10">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-            <p className="font-display text-[clamp(28px,2.9vw,40px)] leading-none tracking-[-0.01em]">
+            <p className="text-[clamp(24px,2.5vw,34px)] leading-none font-semibold tracking-[-0.035em]">
               Build with agents
             </p>
             <span className="flex gap-2 font-mono text-[12px]">

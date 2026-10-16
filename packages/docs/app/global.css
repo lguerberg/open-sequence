@@ -34,7 +34,7 @@
 
   --font-sans: var(--font-sans-face), ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-display: var(--font-display-face), 'Iowan Old Style', Georgia, serif;
+  --font-display: var(--font-sans-face), ui-sans-serif, system-ui, sans-serif;
 }
 
 .dark {

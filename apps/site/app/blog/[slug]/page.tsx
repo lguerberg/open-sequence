@@ -72,7 +72,7 @@ export default async function PostPage({ params }: Props) {
         <div className="wrap pt-4 pb-20 sm:pt-8 sm:pb-28">
           <Breadcrumb title={post.h1} />
           <header className="mt-10 max-w-[56rem] sm:mt-14">
-            <h1 className="font-display text-[clamp(42px,5.6vw,76px)] leading-[0.98] tracking-[-0.02em]">
+            <h1 className="text-[clamp(36px,4.8vw,64px)] leading-[1.02] font-semibold tracking-[-0.045em]">
               {post.h1}
             </h1>
             <p className="t-sub mt-6 max-w-[44rem]">{post.description}</p>
