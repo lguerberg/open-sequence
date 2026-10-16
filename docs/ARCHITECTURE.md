@@ -1479,7 +1479,7 @@ The operator is whoever runs the deployment. Bootstrapping an empty database nee
 | `DELETE /v1/senders/{id}/channels/sms` | remove a channel; its steps skip from now on | admin |
 | `GET /v1/oauth/google/callback` | OAuth return URL (not called by clients); the `state` parameter is a signed, 10-minute token naming the sender and connection, so a callback cannot be replayed or pointed at another sender | none |
 | `PATCH /v1/senders/{id}/channels/{channel}` | limits and settings `{daily_limit, weekly_limit, min_gap_seconds, opted_in, status: paused\|active}` | admin |
-| `GET /v1/senders/{id}/readiness` | which node types this sender can run, and why not (`google_not_connected`, `google_credentials_needed`, `allo_key_missing`, `allo_key_invalid`, `no_allo_number`) | read |
+| `GET /v1/senders/{id}/readiness` | which node types this sender can run, and why not (`no_email_channel`, `email_credentials_needed`, `allo_key_missing`, `allo_key_invalid`, `no_allo_number`) | read |
 | `DELETE /v1/senders/{id}` | disable (their enrollments pause with `channel_status`; nothing is deleted) | admin |
 
 ### 10.4 Contacts

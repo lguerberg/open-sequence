@@ -56,7 +56,7 @@ export async function windowGate(deps: Deps, env: StepEnv, channel: 'email' | 's
 export async function channelGate(deps: Deps, env: StepEnv, channel: string, now: Date): Promise<Gate> {
   if (!(await channelEnabled(deps, env.run.projectId, channel))) return { ok: false, defer: new Date(now.getTime() + 5 * 60_000), reason: 'kill_switch' };
   const ch = env.ctx.channels.find((c) => c.channel === channel);
-  if (!ch) return { ok: false, skip: channel === 'email' ? 'google_not_connected' : `no_${channel}_channel` };
+  if (!ch) return { ok: false, skip: `no_${channel}_channel` };
   if (ch.status !== 'active') return { ok: false, skip: `sender_channel_${ch.status}` };
   const repos = deps.uow.repos;
   if (ch.dailyLimit !== null) {

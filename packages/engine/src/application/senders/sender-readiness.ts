@@ -12,7 +12,7 @@ export interface Readiness {
   task: { ok: true };
 }
 
-/** Which node types this sender can run, and why not (`google_not_connected`, `no_allo_number`, `email_credentials_needed`). */
+/** Which node types this sender can run, and why not (`no_email_channel`, `no_allo_number`, `email_credentials_needed`). */
 export async function senderReadiness(deps: Deps, senderId: string): Promise<Readiness> {
   const channels = await deps.uow.repos.senders.channels(senderId);
   const by = (c: string) => channels.find((x) => x.channel === c);
@@ -22,7 +22,7 @@ export async function senderReadiness(deps: Deps, senderId: string): Promise<Rea
     return { ok: false, reason: `${c.channel}_${c.status}` };
   };
   return {
-    email: state(by('email'), 'google_not_connected'),
+    email: state(by('email'), 'no_email_channel'),
     sms: state(by('sms'), 'no_allo_number'),
     task: { ok: true },
   };

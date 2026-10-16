@@ -83,12 +83,12 @@ curl $SEQ/v1/senders/u_42/readiness -H "Authorization: Bearer $KEY"
 
 ```ts title="TypeScript"
 const readiness = await oseq.senders.readiness('u_42');
-if (!readiness.email.ok) console.log(readiness.email.reason); // google_not_connected, email_credentials_needed, email_disconnected, …
+if (!readiness.email.ok) console.log(readiness.email.reason); // no_email_channel, email_credentials_needed, email_disconnected, …
 ```
 
 </CodeGroup>
 
-Reasons are `google_not_connected` (no email channel yet, whether you connect Google or SMTP) and `no_allo_number` when the channel does not exist, and `<channel>_<status>` (`email_credentials_needed`, `sms_paused`, …) when it exists but is not active. `GET /v1/senders/{id}` returns the sender with `channels`, `readiness` and `connections` in one call.
+Reasons are `no_email_channel` (no mailbox connected yet, through Google or SMTP) and `no_allo_number` when the channel does not exist, and `<channel>_<status>` (`email_credentials_needed`, `sms_paused`, …) when it exists but is not active. `GET /v1/senders/{id}` returns the sender with `channels`, `readiness` and `connections` in one call.
 
 ## Listing
 
