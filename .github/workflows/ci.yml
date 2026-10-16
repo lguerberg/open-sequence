@@ -60,10 +60,22 @@ jobs:
   image:
     # Pull requests only build the image. A push to main publishes :main and :sha-<commit>; a v*
     # tag publishes :<version>, :<major>.<minor> and :latest, for amd64 and arm64.
-    name: Docker image
+    name: Docker image (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: server
+            image: ghcr.io/${{ github.repository }}
+            file: apps/server/Dockerfile
+            title: OpenSequence server
+          - name: mcp
+            image: ghcr.io/${{ github.repository }}-mcp
+            file: packages/mcp/Dockerfile
+            title: OpenSequence MCP server
     permissions:
       contents: read
       packages: write
@@ -80,7 +92,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=sha,prefix=sha-,format=short
@@ -89,7 +101,7 @@ jobs:
           flavor: |
             latest=${{ startsWith(github.ref, 'refs/tags/v') }}
           labels: |
-            org.opencontainers.image.title=OpenSequence server
+            org.opencontainers.image.title=${{ matrix.title }}
             org.opencontainers.image.description=Open source, self-hosted sales sequencing: email, SMS and call sequences over an API.
             org.opencontainers.image.licenses=Apache-2.0
             org.opencontainers.image.url=https://opensequence.dev
@@ -97,14 +109,14 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/server/Dockerfile
+          file: ${{ matrix.file }}
           # arm64 is built under emulation and is slow, so only releases carry it.
           platforms: ${{ startsWith(github.ref, 'refs/tags/v') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
   release:
     name: GitHub release
@@ -120,4 +132,4 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           gh release create "$TAG" --title "$TAG" --generate-notes \
-            --notes "Image: \`ghcr.io/${{ github.repository }}:${TAG#v}\`"
+            --notes "Images: \`ghcr.io/${{ github.repository }}:${TAG#v}\` and \`ghcr.io/${{ github.repository }}-mcp:${TAG#v}\`"
