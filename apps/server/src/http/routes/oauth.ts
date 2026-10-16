@@ -21,7 +21,7 @@ export async function oauthRoutes(fastify: FastifyInstance, ctx: AppContext) {
     try {
       const done = await ctx.auth.handleCallback({ state: q.data.state, code: q.data.code });
       // The connection belongs to a sender (ownerId); give that sender an active email channel at the Google address.
-      await setChannel(ctx.deps, done.tenantId, done.ownerId, { channel: 'email', address: done.account, connectionId: done.connectionId, status: 'active' });
+      await setChannel(ctx.deps, done.tenantId, done.ownerId, { channel: 'email', address: done.account, connectionId: done.connectionId, status: 'active', config: { provider: 'google' } });
       if (done.returnUrl) return reply.redirect(done.returnUrl);
       return reply.send(`<h1>Google connected</h1><p>${done.account} can now send and read replies. You can close this window.</p>`);
     } catch (err) {

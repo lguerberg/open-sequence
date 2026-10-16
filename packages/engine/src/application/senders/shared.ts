@@ -29,3 +29,11 @@ export const CHANNEL_DEFAULTS: Record<string, { dailyLimit: number | null; minGa
   email: { dailyLimit: 30, minGapSeconds: 60 },
   sms: { dailyLimit: 100, minGapSeconds: 0 },
 };
+
+/** The mail adapters an email channel can go through; `config.provider` names one, and no name means Google. */
+export type EmailProviderName = 'google' | 'smtp';
+
+/** Which adapter a sender's email channel uses: `smtp` once set with SMTP/IMAP settings, else Google (every channel made before SMTP existed). */
+export function emailProviderOf(channel: { config: Record<string, unknown> }): EmailProviderName {
+  return channel.config['provider'] === 'smtp' ? 'smtp' : 'google';
+}

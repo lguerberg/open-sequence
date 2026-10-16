@@ -1,12 +1,32 @@
-/** Senders: the acting users, their Google connection and their channels. */
+/** Senders: the acting users, their Google or SMTP connection and their channels. */
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { channelPatchSchema, patchChannel, resolveSender, senderInputSchema, senderReadiness, setChannel, upsertSender, listTasks } from '@opensequence/engine';
+import { channelPatchSchema, emailProviderOf, patchChannel, resolveSender, senderInputSchema, senderReadiness, setChannel, upsertSender, listTasks } from '@opensequence/engine';
+import { splitSmtpCredentials } from '@opensequence/providers';
 import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
-import { ok } from '../envelope.js';
+import { fail, ok } from '../envelope.js';
 import { idParam, listQuerySchema, responses } from '../schemas.js';
+
+const mailServer = z
+  .object({
+    host: z.string().min(1).max(253).describe('The server name, like smtp.fastmail.com or imap.fastmail.com.'),
+    port: z.number().int().min(1).max(65535).describe('SMTP: 465 (secure) or 587 (STARTTLS). IMAP: 993 (secure) or 143 (STARTTLS).'),
+    secure: z.boolean().describe('true: TLS from the first byte (465, 993). false: STARTTLS, which is required unless the host is localhost.'),
+    user: z.string().min(1).max(320).describe('The login, usually the full mailbox address.'),
+    password: z.string().min(1).max(1024).describe('Write-only: an app password where the provider has them. Stored encrypted, never returned or logged.'),
+  })
+  .strict();
+
+const smtpChannelBody = z
+  .object({
+    provider: z.literal('smtp'),
+    from: z.string().email().max(320).optional().describe('The address mail goes out from. Defaults to the SMTP user when that is an address, else the sender email.'),
+    smtp: mailServer,
+    imap: mailServer,
+  })
+  .strict();
 
 export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -57,7 +77,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
       if (ctx.mock) {
         // Development: no Google, no consent screen; the sender gets an active mailbox at their address.
         const address = sender.email ?? `${sender.externalId}@mock.local`;
-        const channel = await setChannel(ctx.deps, projectId, sender.id, { channel: 'email', address, connectionId: `con_mock_${sender.id}`, status: 'active' });
+        const channel = await setChannel(ctx.deps, projectId, sender.id, { channel: 'email', address, connectionId: `con_mock_${sender.id}`, status: 'active', config: { provider: 'google' } });
         return ok(reply, { status: 'active', mock: true, channel });
       }
       const out = await ctx.auth.connect({ tenantId: projectId, ownerId: sender.id, returnUrl: req.body?.return_url });
@@ -65,9 +85,34 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
     },
   });
 
+  app.put('/v1/senders/:id/channels/email', {
+    preHandler: admin,
+    schema: {
+      tags: ['Senders'],
+      summary: 'Send from any mailbox over SMTP, read replies over IMAP; both logins are checked before anything is stored',
+      description: 'Replaces the sender email channel, whatever it was before. Passwords are encrypted at rest and never returned. 422 with SMTP_AUTH_FAILED, IMAP_AUTH_FAILED, SMTP_UNREACHABLE, IMAP_UNREACHABLE, SMTP_REFUSED or IMAP_REFUSED when a login fails.',
+      params: idParam,
+      body: smtpChannelBody,
+      response: responses,
+    },
+    handler: async (req, reply) => {
+      const projectId = projectOf(req);
+      const sender = await resolveSender(ctx.deps, projectId, req.params.id);
+      const { from, smtp, imap } = req.body;
+      const address = (from ?? (z.string().email().safeParse(smtp.user).success ? smtp.user : sender.email) ?? '').toLowerCase();
+      if (!address) return fail(reply, 422, { code: 'FROM_REQUIRED', message: 'Say which address mail goes out from: set "from", or use the full mailbox address as the SMTP user.' });
+      const probe = await ctx.probeMailbox({ smtp, imap });
+      if (!probe.ok) return fail(reply, 422, { code: probe.code ?? 'SMTP_REFUSED', message: probe.error ?? 'The mail server refused the settings.' });
+      const { config, secrets } = splitSmtpCredentials({ smtp, imap });
+      const connection = await ctx.auth.savePasswordConnection({ tenantId: projectId, ownerId: sender.id, provider: 'smtp', account: address, config, secrets });
+      // A new mailbox starts reading from its current position; the previous mailbox's cursor means nothing here.
+      return ok(reply, await setChannel(ctx.deps, projectId, sender.id, { channel: 'email', address, connectionId: connection.id, status: 'active', config: { provider: 'smtp', imap_cursor: null } }));
+    },
+  });
+
   app.get('/v1/senders/:id/connections', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'OAuth connections of a sender (no secrets)', params: idParam, response: responses },
+    schema: { tags: ['Senders'], summary: 'Google and SMTP connections of a sender (no secrets)', params: idParam, response: responses },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -77,14 +122,14 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.delete('/v1/senders/:id/connections/google', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Disconnect Google: revokes the token, the email channel goes disconnected', params: idParam, response: responses },
+    schema: { tags: ['Senders'], summary: 'Disconnect Google: revokes the token; a Gmail email channel goes disconnected (an SMTP one is left alone)', params: idParam, response: responses },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
       const connections = await ctx.auth.listConnections(projectId, sender.id);
       for (const c of connections.filter((x) => x.provider === 'google')) await ctx.auth.revoke(c.id);
       const email = await ctx.deps.uow.repos.senders.channel(sender.id, 'email');
-      if (email) await ctx.deps.uow.repos.senders.updateChannel(email.id, { status: 'disconnected' });
+      if (email && emailProviderOf(email) === 'google') await ctx.deps.uow.repos.senders.updateChannel(email.id, { status: 'disconnected' });
       return ok(reply, { disconnected: true });
     },
   });
@@ -115,9 +160,14 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.delete('/v1/senders/:id/channels/:channel', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Remove a channel; its steps skip from now on', params: z.object({ id: z.string(), channel: z.enum(['sms']) }), response: responses },
+    schema: { tags: ['Senders'], summary: 'Remove a channel; its steps skip from now on. Removing email deletes stored SMTP passwords; a Google grant stays until Google is disconnected', params: z.object({ id: z.string(), channel: z.enum(['sms', 'email']) }), response: responses },
     handler: async (req, reply) => {
-      const sender = await resolveSender(ctx.deps, projectOf(req), req.params.id);
+      const projectId = projectOf(req);
+      const sender = await resolveSender(ctx.deps, projectId, req.params.id);
+      if (req.params.channel === 'email') {
+        const connections = await ctx.auth.listConnections(projectId, sender.id);
+        for (const c of connections.filter((x) => x.provider === 'smtp' && x.status !== 'disconnected')) await ctx.auth.revoke(c.id);
+      }
       await ctx.deps.uow.repos.senders.deleteChannel(sender.id, req.params.channel);
       return ok(reply, { deleted: true });
     },

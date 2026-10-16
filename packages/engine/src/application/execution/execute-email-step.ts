@@ -5,6 +5,7 @@
  */
 import { render } from '@opensequence/core';
 import type { Deps } from '../deps.js';
+import { emailProviderOf } from '../senders/shared.js';
 import { channelGate, completeRun, deferRun, failRun, loadStep, skipRun, windowGate, type StepEnv } from './shared.js';
 
 export type StepOutcome = 'done' | 'skipped' | 'deferred' | 'failed' | 'stale' | 'retry';
@@ -38,6 +39,7 @@ export async function executeEmailStep(deps: Deps, runId: string, attempt: numbe
   const messageId = messageIdFor(env, domain);
   const unsubscribe = env.template.unsubscribe_url!;
   const headers = { 'List-Unsubscribe': `<${unsubscribe}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' };
+  const provider = emailProviderOf(channel);
   const channelRef = { projectId: run.projectId, senderId: ctx.sender.id, channelId: channel.id, connectionId: channel.connectionId ?? undefined, address: channel.address, config: channel.config };
 
   // Reply in the thread of the previous email of this enrollment, when asked.
@@ -72,13 +74,13 @@ export async function executeEmailStep(deps: Deps, runId: string, attempt: numbe
       subject,
       body: body.text,
       status: 'sent',
-      provider: 'google',
+      provider,
       providerId: sent.providerId,
       threadRef: sent.threadRef,
       messageId,
       occurredAt: now,
     });
-    await completeRun(deps, run, { provider: 'google', providerRef: sent.providerId, threadRef: sent.threadRef, result: { ...run.result, message_id: messageId, rendered: body.used, outcome: { delivered_at: now.toISOString() } } }, now);
+    await completeRun(deps, run, { provider, providerRef: sent.providerId, threadRef: sent.threadRef, result: { ...run.result, message_id: messageId, rendered: body.used, outcome: { delivered_at: now.toISOString() } } }, now);
     return 'done';
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

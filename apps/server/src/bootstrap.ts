@@ -7,7 +7,7 @@ import { createHmac } from 'node:crypto';
 import { createAuth, AesGcmCipher, runAuthMigrations } from '@opensequence/auth';
 import { ensureBuiltins, type ProviderSet } from '@opensequence/core';
 import { connect, DEFAULT_CONFIG, DrizzleUnitOfWork, fetchWebhookTransport, runMigrations, systemClock, ulidIds, type Deps } from '@opensequence/engine';
-import { AlloDialerProvider, AlloSmsProvider, AttioCrmProvider, createGoogleProviders, createMockProviders, type MockProviders } from '@opensequence/providers';
+import { AlloDialerProvider, AlloSmsProvider, AttioCrmProvider, ChannelRoutedEmailProvider, createGoogleProviders, createMockProviders, createSmtpProviders, probeSmtpImap, type MockProviders } from '@opensequence/providers';
 import { createQueue, queueJoinsTransaction } from '@opensequence/queue';
 import type pino from 'pino';
 import type { Env } from './config/env.js';
@@ -45,15 +45,19 @@ export async function bootstrap(env: Env, log: pino.Logger): Promise<Runtime> {
 
   let providers: ProviderSet;
   let mock: MockProviders | undefined;
+  let probeMailbox: AppContext['probeMailbox'] = (creds) => probeSmtpImap(creds);
   if (env.SEQ_DEV_MOCK_PROVIDERS) {
     const m = createMockProviders();
     providers = m;
     mock = m.mock;
-    log.warn('mock providers are on: nothing is sent to Google, Allo or Attio');
+    probeMailbox = async () => ({ ok: true });
+    log.warn('mock providers are on: nothing is sent to Google, Allo, Attio or any mail server');
   } else {
     const google = createGoogleProviders(auth);
+    const smtp = createSmtpProviders(auth, { warn: (message, meta) => log.warn(meta, message) });
     providers = {
-      email: google.email,
+      // Each sender's email channel names its adapter (config.provider); Google when it names none.
+      email: new ChannelRoutedEmailProvider({ google: google.email, smtp: smtp.email }, 'google'),
       calendar: google.calendar,
       sms: new AlloSmsProvider(auth),
       dialer: new AlloDialerProvider(auth),
@@ -84,6 +88,7 @@ export async function bootstrap(env: Env, log: pino.Logger): Promise<Runtime> {
     deps,
     auth,
     mock,
+    probeMailbox,
     db,
     optOutSecret,
     close: async () => {
