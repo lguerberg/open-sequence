@@ -108,7 +108,7 @@ describe('the bearer gate', () => {
 });
 
 describe('plain JSON-RPC with a key', () => {
-  test('initialize, then tools/list: 19 tools, every input schema with its properties', async () => {
+  test('initialize, then tools/list: 27 tools, every input schema with its properties', async () => {
     h = await connect();
     const auth = { authorization: `Bearer ${API_KEY}` };
     const init = await rpc(h.url, INITIALIZE, auth);
@@ -126,7 +126,7 @@ describe('plain JSON-RPC with a key', () => {
         tools: Array<{ name: string; inputSchema: { type: string; properties?: object } }>;
       }
     ).tools;
-    expect(tools).toHaveLength(19);
+    expect(tools).toHaveLength(27);
     for (const t of tools) {
       expect(t.inputSchema.type, t.name).toBe('object');
       expect(Object.keys(t.inputSchema.properties ?? {}).length, t.name).toBeGreaterThan(0);
@@ -189,7 +189,7 @@ describe('protocol eras', () => {
     h = await connect({ era: 'modern' });
     expect(h.client.getProtocolEra()).toBe('modern');
     const tools = await h.client.listTools();
-    expect(tools).toHaveLength(19);
+    expect(tools).toHaveLength(27);
     expect(
       Object.keys(tools.find((t) => t.name === 'enroll_contacts')!.inputSchema.properties ?? {})
     ).toContain('contacts');

@@ -4,7 +4,7 @@
  * (who is in the way, which tool to call next, which variable to check). Never includes the key.
  */
 import { OpenSequenceError } from '@opensequence/sdk';
-import type { AlreadyInSequenceDetails } from '@opensequence/sdk';
+import type { AlreadyInSequenceDetails, ValidationProblem } from '@opensequence/sdk';
 import { ToolError } from './tool.js';
 
 export interface ExplainedError {
@@ -56,8 +56,48 @@ function sentence(message: string): string {
 const CHECK_KEY =
   'Check the project API key: OPENSEQUENCE_API_KEY for a local server, the Authorization header for a hosted one.';
 
+/** Publish refused: the validator's errors, each with its path, and how to get past them. */
+const invalidDefinition: Rewrite = (err) => {
+  const problems = (err.details as { problems?: ValidationProblem[] } | undefined)?.problems ?? [];
+  const errors = problems.filter((p) => p.severity === 'error');
+  if (errors.length === 0) return err.message;
+  const list = errors
+    .slice(0, 10)
+    .map((p) => `${p.path || '(document)'}: ${p.message} (${p.code})`)
+    .join('; ');
+  const more = errors.length > 10 ? `; and ${errors.length - 10} more (see details)` : '';
+  const noun = errors.length === 1 ? 'error' : 'errors';
+  return `Not published: the definition has ${errors.length} ${noun}, and errors block publishing. ${list}${more}. Fix them in the draft (save_sequence_draft), then publish again.`;
+};
+
+/** The draft tools name the tool to call next, because each refusal has one obvious way out. */
+const staleLock: Rewrite = () =>
+  'Someone saved this draft after you read it, so your save was refused and nothing changed. Read the version again (get_sequence_version), apply your edit to that definition, and save with the lock_version it returns.';
+
+const notEditable: Rewrite = (err) =>
+  `${sentence(err.message)} Published versions never change: make a new draft from it (create_sequence_version), edit that, and publish it.`;
+
+const tagTaken: Rewrite = (err) =>
+  `${sentence(err.message)} Pick another tag, or leave tag out to get the next free one.`;
+
+const hasActiveEnrollments: Rewrite = (err) => {
+  const active = (err.details as { active?: number } | undefined)?.active;
+  const who =
+    active === undefined
+      ? 'Contacts are'
+      : active === 1
+        ? '1 contact is'
+        : `${active} contacts are`;
+  return `${who} still in this sequence, so it was not archived. Pause it instead (status "paused"), or archive with exit_active: true, which exits every one of them now.`;
+};
+
 const rewrites: Record<string, Rewrite> = {
   ALREADY_IN_SEQUENCE: alreadyInSequence,
+  INVALID_DEFINITION: invalidDefinition,
+  STALE_LOCK: staleLock,
+  VERSION_NOT_EDITABLE: notEditable,
+  TAG_TAKEN: tagTaken,
+  HAS_ACTIVE_ENROLLMENTS: hasActiveEnrollments,
   UNAUTHORIZED: (err) => `${sentence(err.message)} ${CHECK_KEY}`,
   HTTP_401: () => `The API refused the key. ${CHECK_KEY}`,
   NETWORK_ERROR: (err) =>

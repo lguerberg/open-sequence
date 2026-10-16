@@ -73,7 +73,7 @@ test('stdio: initialize, tools/list with full schemas, and a call made with the 
   const tools = (
     list.result as { tools: Array<{ name: string; inputSchema: { properties?: object } }> }
   ).tools;
-  expect(tools).toHaveLength(19);
+  expect(tools).toHaveLength(27);
   for (const t of tools)
     expect(Object.keys(t.inputSchema.properties ?? {}).length, t.name).toBeGreaterThan(0);
 

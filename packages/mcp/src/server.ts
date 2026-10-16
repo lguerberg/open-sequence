@@ -33,6 +33,9 @@ export const USER_AGENT = `opensequence-mcp/${MCP_SERVER_VERSION}`;
 export const MCP_INSTRUCTIONS = `OpenSequence runs multi-step outreach sequences (email, SMS, call tasks) for a CRM.
 - Senders, contacts and sequences can be named by their service id (snd_…, ctc_…, seq_…) or by the external id the CRM gave them.
 - To enroll people: find the sequence (list_sequences) and the sender (list_senders), make sure the contacts exist (upsert_contact, or pass them inline), run preview_enrollment, then enroll_contacts.
+- To build a sequence: write the definition and check it (validate_sequence_definition), create_sequence (v1 is a draft), save_sequence_draft to change it (read it first with get_sequence_version for its lock_version), then publish_sequence_version. A draft never sends anything.
+- Published versions never change. To edit a live sequence, copy it into a new draft (create_sequence_version), save, and publish; contacts already enrolled finish the version they started.
+- Email signatures live on the sender (upsert_sender, signature_html); a body ends with {{ sender.signature }} and should include {{ unsubscribe_url }}.
 - A contact can be in only one active sequence. Enrolling is all or nothing: if anyone is already in a sequence, nobody is enrolled and the error names them.
 - Every tool answers with a short summary, then the API's JSON.`;
 
@@ -231,7 +234,7 @@ export function createServer(options: CreateServerOptions): FastMCP {
       name: 'instructions',
       title: 'Using the OpenSequence tools',
       description:
-        'How the tools fit together: the ids they take, the enroll flow, and the one-active-sequence rule.',
+        'How the tools fit together: the ids they take, building and publishing a sequence, the enroll flow, and the one-active-sequence rule.',
       mimeType: 'text/markdown',
     },
     () => MCP_INSTRUCTIONS

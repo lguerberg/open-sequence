@@ -6,8 +6,16 @@ const CONTRACT = [
   'list_sequences',
   'get_sequence',
   'validate_sequence_definition',
+  'get_sequence_version',
+  'create_sequence',
+  'save_sequence_draft',
+  'publish_sequence_version',
+  'create_sequence_version',
+  'set_sequence_status',
   'list_senders',
+  'get_sender',
   'get_sender_readiness',
+  'upsert_sender',
   'upsert_contact',
   'get_contact',
   'list_contacts',
@@ -66,6 +74,14 @@ describe('tool list', () => {
     expect(props('preview_enrollment')).toHaveProperty('contacts');
     expect(props('validate_sequence_definition')).toHaveProperty('definition');
     expect(props('report_contact_event')).toHaveProperty('type');
+    expect(Object.keys(props('save_sequence_draft'))).toEqual([
+      'sequence',
+      'version',
+      'definition',
+      'lock_version',
+    ]);
+    expect(props('create_sequence')['definition']!.description).toContain('{{ sender.signature }}');
+    expect(props('upsert_sender')).toHaveProperty('signature_html');
   });
 
   test('read tools are marked read-only; write tools name the scope they need', async () => {
@@ -80,6 +96,21 @@ describe('tool list', () => {
     );
     expect(byName.get('exit_enrollment')!.annotations?.destructiveHint).toBe(true);
     expect(byName.get('exit_enrollment')!.description).toContain('"admin" scope');
+    for (const name of [
+      'create_sequence',
+      'save_sequence_draft',
+      'publish_sequence_version',
+      'create_sequence_version',
+      'set_sequence_status',
+      'upsert_sender',
+    ]) {
+      expect(byName.get(name)!.annotations?.readOnlyHint).toBe(false);
+      expect(byName.get(name)!.description).toContain('"admin" scope');
+    }
+    expect(byName.get('get_sequence_version')!.annotations?.readOnlyHint).toBe(true);
+    expect(byName.get('get_sender')!.annotations?.readOnlyHint).toBe(true);
+    expect(byName.get('set_sequence_status')!.annotations?.destructiveHint).toBe(true);
+    expect(byName.get('publish_sequence_version')!.annotations?.destructiveHint).toBe(false);
   });
 });
 
@@ -497,5 +528,372 @@ describe('contacts, tasks and analytics', () => {
     expect(textOf(result)).toBe(
       `NETWORK_ERROR: Could not reach ${BASE}/v1/contacts/p_7: connect ECONNREFUSED. Check OPENSEQUENCE_URL and that the service is running.`
     );
+  });
+});
+
+describe('building a sequence', () => {
+  const V2 = sid('ver', 'B');
+  const definition = {
+    schema_version: 1,
+    entry: 'email_intro',
+    exit_on: ['reply'],
+    nodes: {
+      email_intro: {
+        type: 'outreach',
+        channel: 'email',
+        action: 'send',
+        params: { subject: 'Hi {{ contact.first_name | "there" }}', body: 'Hello' },
+        next: { sent: 'end' },
+      },
+      end: { type: 'end' },
+    },
+  };
+  const warning = {
+    path: 'nodes.email_intro.params.body',
+    code: 'NO_UNSUBSCRIBE',
+    message: 'The body has no {{ unsubscribe_url }}.',
+    severity: 'warning',
+  };
+  const version = (over: Record<string, unknown> = {}) => ({
+    id: VER,
+    sequenceId: SEQ,
+    tag: 'v1',
+    status: 'draft',
+    definition,
+    lockVersion: 0,
+    basedOnVersionId: null,
+    ...over,
+  });
+  const detail = {
+    id: SEQ,
+    name: 'UK intro',
+    status: 'active',
+    defaultVersionId: VER,
+    versions: [
+      { id: VER, tag: 'v1', status: 'published' },
+      { id: V2, tag: 'v2', status: 'draft' },
+    ],
+  };
+
+  test('create_sequence posts the sequence with its definition and names the draft to edit', async () => {
+    const data = {
+      sequence: { id: SEQ, name: 'UK intro', externalId: 'uk-intro', status: 'active' },
+      version: version(),
+      problems: [warning],
+    };
+    h.fetch.reply(data);
+    const result = await h.call('create_sequence', {
+      name: 'UK intro',
+      external_id: 'uk-intro',
+      definition,
+    });
+    expect(h.fetch.last()).toMatchObject({
+      method: 'POST',
+      url: `${BASE}/v1/sequences`,
+      body: { name: 'UK intro', external_id: 'uk-intro', definition },
+    });
+    const text = textOf(result);
+    expect(text).toContain(
+      `Created sequence "UK intro" (${SEQ}, external id uk-intro) with draft v1 (${VER}, lock_version 0).`
+    );
+    expect(text).toContain('1 warning (they do not block publishing):');
+    expect(text).toContain('[warning] nodes.email_intro.params.body');
+    expect(text).toContain('publish_sequence_version');
+    expect(jsonOf(result)).toEqual(data);
+  });
+
+  test("create_sequence with a read key gets the API's 403", async () => {
+    h.fetch.fail(403, {
+      code: 'INSUFFICIENT_SCOPE',
+      message: 'This key cannot do that; it needs the "admin" scope.',
+    });
+    const result = await h.call('create_sequence', { name: 'UK intro' });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe(
+      'INSUFFICIENT_SCOPE: This key cannot do that; it needs the "admin" scope.'
+    );
+  });
+
+  test('get_sequence_version resolves a tag and gives the lock_version to save with', async () => {
+    h.fetch.reply(detail);
+    h.fetch.reply({ version: version({ id: V2, tag: 'v2', lockVersion: 3 }), problems: [] });
+    const result = await h.call('get_sequence_version', { sequence: 'uk-intro', version: 'v2' });
+    expect(h.fetch.calls.map((c) => `${c.method} ${c.url}`)).toEqual([
+      `GET ${BASE}/v1/sequences/uk-intro`,
+      `GET ${BASE}/v1/sequences/uk-intro/versions/${V2}`,
+    ]);
+    const text = textOf(result);
+    expect(text).toContain(`Version v2 (${V2}) is draft, lock_version 3, with 2 steps`);
+    expect(text).toContain(
+      `To edit it, call save_sequence_draft with version ${V2} and lock_version 3.`
+    );
+  });
+
+  test('get_sequence_version with an unknown tag names the tags that exist', async () => {
+    h.fetch.reply(detail);
+    const result = await h.call('get_sequence_version', { sequence: 'uk-intro', version: 'v7' });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe(
+      'VERSION_NOT_FOUND: Sequence "UK intro" has no version "v7". Its versions: v1, v2.'
+    );
+  });
+
+  test('save_sequence_draft puts the whole definition under the lock and gives the next lock_version', async () => {
+    h.fetch.reply({ version: version({ lockVersion: 1 }), problems: [warning] });
+    const result = await h.call('save_sequence_draft', {
+      sequence: SEQ,
+      version: VER,
+      definition,
+      lock_version: 0,
+    });
+    expect(h.fetch.calls).toHaveLength(1);
+    expect(h.fetch.last()).toMatchObject({
+      method: 'PUT',
+      url: `${BASE}/v1/sequences/${SEQ}/versions/${VER}/draft`,
+      body: { definition, lock_version: 0 },
+    });
+    const text = textOf(result);
+    expect(text).toContain(`Saved draft v1 (${VER}): 2 steps, starting at "email_intro":`);
+    expect(text).toContain('lock_version is now 1; send that with the next save.');
+    expect(text).toContain('Ready to publish with publish_sequence_version.');
+  });
+
+  test('save_sequence_draft explains a lock conflict: read again, then retry', async () => {
+    h.fetch.fail(409, {
+      code: 'STALE_LOCK',
+      message: 'Someone else saved this draft after you loaded it. Reload and try again.',
+    });
+    const result = await h.call('save_sequence_draft', {
+      sequence: SEQ,
+      version: VER,
+      definition,
+      lock_version: 0,
+    });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe(
+      'STALE_LOCK: Someone saved this draft after you read it, so your save was refused and nothing changed. Read the version again (get_sequence_version), apply your edit to that definition, and save with the lock_version it returns.'
+    );
+  });
+
+  test('save_sequence_draft on a published version points at create_sequence_version', async () => {
+    h.fetch.fail(409, {
+      code: 'VERSION_NOT_EDITABLE',
+      message: 'Version v1 is published and cannot be edited. Create a new version from it.',
+    });
+    const result = await h.call('save_sequence_draft', {
+      sequence: SEQ,
+      version: VER,
+      definition,
+      lock_version: 2,
+    });
+    expect(textOf(result)).toBe(
+      'VERSION_NOT_EDITABLE: Version v1 is published and cannot be edited. Create a new version from it. Published versions never change: make a new draft from it (create_sequence_version), edit that, and publish it.'
+    );
+  });
+
+  test('publish_sequence_version publishes and says who it affects', async () => {
+    h.fetch.reply({ version: version({ status: 'published' }), problems: [warning] });
+    const result = await h.call('publish_sequence_version', {
+      sequence: SEQ,
+      version: VER,
+      published_by: 'leo@example.com',
+    });
+    expect(h.fetch.last()).toMatchObject({
+      method: 'POST',
+      url: `${BASE}/v1/sequences/${SEQ}/versions/${VER}/publish`,
+      body: { published_by: 'leo@example.com' },
+    });
+    const text = textOf(result);
+    expect(text).toContain(
+      `Published v1 (${VER}) of ${SEQ}. It is now the default version: new enrollments use it, and contacts already enrolled finish the version they started.`
+    );
+    expect(text).toContain('1 warning');
+  });
+
+  test('publish_sequence_version refused by the validator lists the errors in plain English', async () => {
+    h.fetch.fail(422, {
+      code: 'INVALID_DEFINITION',
+      message: 'The definition has errors; fix them before publishing.',
+      details: {
+        problems: [
+          {
+            path: 'nodes.email_intro.params.subject',
+            code: 'BAD_TEMPLATE',
+            message: 'contact.first_name can be empty for some contacts. Give it a fallback.',
+            severity: 'error',
+          },
+          {
+            path: 'nodes.wait_2d',
+            code: 'UNREACHABLE_NODE',
+            message: 'No path from the entry reaches this node.',
+            severity: 'error',
+          },
+          warning,
+        ],
+      },
+    });
+    const result = await h.call('publish_sequence_version', { sequence: SEQ, version: VER });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe(
+      'INVALID_DEFINITION: Not published: the definition has 2 errors, and errors block publishing. nodes.email_intro.params.subject: contact.first_name can be empty for some contacts. Give it a fallback. (BAD_TEMPLATE); nodes.wait_2d: No path from the entry reaches this node. (UNREACHABLE_NODE). Fix them in the draft (save_sequence_draft), then publish again.'
+    );
+    expect(jsonOf(result)).toMatchObject({
+      error: { code: 'INVALID_DEFINITION', status: 422 },
+    });
+  });
+
+  test('create_sequence_version copies a version by tag into the next free tag', async () => {
+    h.fetch.reply(detail);
+    h.fetch.reply({ ...version({ id: sid('ver', 'C'), tag: 'v3', basedOnVersionId: VER }) });
+    const result = await h.call('create_sequence_version', {
+      sequence: 'uk-intro',
+      from_version: 'v1',
+    });
+    expect(h.fetch.calls.map((c) => `${c.method} ${c.url}`)).toEqual([
+      `GET ${BASE}/v1/sequences/uk-intro`,
+      `POST ${BASE}/v1/sequences/${SEQ}/versions`,
+    ]);
+    expect(h.fetch.last().body).toEqual({ tag: 'v3', from_version: VER });
+    expect(textOf(result)).toContain(
+      `Created draft v3 (${sid('ver', 'C')}) of "UK intro", copied from v1.`
+    );
+  });
+
+  test('create_sequence_version with a tag in use says how to pick another', async () => {
+    h.fetch.reply(detail);
+    h.fetch.fail(409, { code: 'TAG_TAKEN', message: 'Version v2 already exists.' });
+    const result = await h.call('create_sequence_version', { sequence: 'uk-intro', tag: 'v2' });
+    expect(h.fetch.last().body).toEqual({ tag: 'v2' });
+    expect(textOf(result)).toBe(
+      'TAG_TAKEN: Version v2 already exists. Pick another tag, or leave tag out to get the next free one.'
+    );
+  });
+
+  test('set_sequence_status pauses a sequence', async () => {
+    h.fetch.reply({ id: SEQ, name: 'UK intro', status: 'paused' });
+    const result = await h.call('set_sequence_status', { sequence: 'uk-intro', status: 'paused' });
+    expect(h.fetch.last()).toMatchObject({
+      method: 'PATCH',
+      url: `${BASE}/v1/sequences/uk-intro`,
+      body: { status: 'paused' },
+    });
+    expect(textOf(result)).toBe(
+      `"UK intro" (${SEQ}) is now paused. No step runs until it is active again; contacts keep their place.`
+    );
+  });
+
+  test('archiving a sequence with contacts in it is refused with the way out', async () => {
+    h.fetch.fail(409, {
+      code: 'HAS_ACTIVE_ENROLLMENTS',
+      message: '4 contacts are still in this sequence. Exit them first, or send exit_active: true.',
+      details: { active: 4 },
+    });
+    const result = await h.call('set_sequence_status', {
+      sequence: 'uk-intro',
+      status: 'archived',
+    });
+    expect(textOf(result)).toBe(
+      'HAS_ACTIVE_ENROLLMENTS: 4 contacts are still in this sequence, so it was not archived. Pause it instead (status "paused"), or archive with exit_active: true, which exits every one of them now.'
+    );
+  });
+});
+
+describe('senders and signatures', () => {
+  const stored = {
+    id: SND,
+    externalId: 'u_42',
+    name: 'Max Rivera',
+    email: 'max@acme.com',
+    timezone: 'Europe/London',
+    status: 'active',
+    attrs: { team: 'uk' },
+    signatureHtml: null,
+    signatureText: null,
+    channels: [{ channel: 'email', address: 'max@acme.com', status: 'active', dailyLimit: 30 }],
+    readiness: { email: { ok: true }, sms: { ok: false, reason: 'no_sms_channel' } },
+    connections: [],
+  };
+
+  test('get_sender shows the signature, channels and readiness', async () => {
+    h.fetch.reply(stored);
+    const result = await h.call('get_sender', { sender: 'u_42' });
+    expect(h.fetch.last().url).toBe(`${BASE}/v1/senders/u_42`);
+    expect(textOf(result)).toBe(
+      [
+        `Max Rivera (external id u_42, ${SND}): max@acme.com, Europe/London, active.`,
+        'Signature: not set; {{ sender.signature }} renders as nothing.',
+        'Channels:',
+        '- email max@acme.com: active, up to 30 a day',
+        'Cannot run: sms (no_sms_channel).',
+      ].join('\n')
+    );
+  });
+
+  test("get_sender for an unknown sender is the API's 404", async () => {
+    h.fetch.fail(404, { code: 'NOT_FOUND', message: 'Sender "u_99" was not found.' });
+    const result = await h.call('get_sender', { sender: 'u_99' });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe('NOT_FOUND: Sender "u_99" was not found.');
+  });
+
+  test('upsert_sender with only a signature keeps the stored name, email, zone and attrs', async () => {
+    h.fetch.reply(stored);
+    h.fetch.reply({
+      ...stored,
+      signatureHtml: '<p>Max Rivera<br>Acme</p>',
+      signatureText: 'Max Rivera\nAcme',
+    });
+    const result = await h.call('upsert_sender', {
+      sender: 'u_42',
+      signature_html: '<p>Max Rivera<br>Acme</p>',
+    });
+    expect(h.fetch.calls.map((c) => `${c.method} ${c.url}`)).toEqual([
+      `GET ${BASE}/v1/senders/u_42`,
+      `PUT ${BASE}/v1/senders/u_42`,
+    ]);
+    expect(h.fetch.last().body).toEqual({
+      name: 'Max Rivera',
+      email: 'max@acme.com',
+      timezone: 'Europe/London',
+      attrs: { team: 'uk' },
+      signature_html: '<p>Max Rivera<br>Acme</p>',
+    });
+    expect(textOf(result)).toBe(
+      `Updated sender Max Rivera (external id u_42, ${SND}): max@acme.com, Europe/London.\nSignature: set (HTML and text): "Max Rivera Acme".`
+    );
+  });
+
+  test('upsert_sender creates a new sender by external id, and a snd_ id resolves to it', async () => {
+    h.fetch.fail(404, { code: 'NOT_FOUND', message: 'Sender "u_7" was not found.' });
+    h.fetch.reply({
+      ...stored,
+      externalId: 'u_7',
+      name: 'Priya Nair',
+      email: null,
+      timezone: 'UTC',
+    });
+    const result = await h.call('upsert_sender', { sender: 'u_7', name: 'Priya Nair' });
+    expect(h.fetch.last()).toMatchObject({
+      method: 'PUT',
+      url: `${BASE}/v1/senders/u_7`,
+      body: { name: 'Priya Nair' },
+    });
+    expect(textOf(result)).toContain('Created sender Priya Nair (external id u_7');
+
+    h.fetch.reply(stored);
+    h.fetch.reply(stored);
+    await h.call('upsert_sender', { sender: SND, timezone: 'Europe/Paris' });
+    expect(h.fetch.last().url).toBe(`${BASE}/v1/senders/u_42`);
+    expect(h.fetch.last().body).toMatchObject({ timezone: 'Europe/Paris', name: 'Max Rivera' });
+  });
+
+  test('upsert_sender for a new sender without a name is refused before any write', async () => {
+    h.fetch.fail(404, { code: 'NOT_FOUND', message: 'Sender "u_7" was not found.' });
+    const result = await h.call('upsert_sender', { sender: 'u_7', signature_text: 'Priya' });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe(
+      'VALIDATION_ERROR: There is no sender "u_7" yet. Give a name to create one.'
+    );
+    expect(h.fetch.calls).toHaveLength(1);
   });
 });

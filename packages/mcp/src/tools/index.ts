@@ -15,16 +15,36 @@ import {
   listEnrollments,
   previewEnrollment,
 } from './enrollments.js';
-import { getSenderReadiness, listSenders } from './senders.js';
-import { getSequence, listSequences, validateSequenceDefinition } from './sequences.js';
+import { getSender, getSenderReadiness, listSenders, upsertSender } from './senders.js';
+import {
+  createSequence,
+  getSequence,
+  listSequences,
+  setSequenceStatus,
+  validateSequenceDefinition,
+} from './sequences.js';
 import { completeTask, listTasks } from './tasks.js';
+import {
+  createSequenceVersion,
+  getSequenceVersion,
+  publishSequenceVersion,
+  saveSequenceDraft,
+} from './versions.js';
 
 export const tools: readonly ToolDefinition[] = [
   listSequences,
   getSequence,
   validateSequenceDefinition,
+  getSequenceVersion,
+  createSequence,
+  saveSequenceDraft,
+  publishSequenceVersion,
+  createSequenceVersion,
+  setSequenceStatus,
   listSenders,
+  getSender,
   getSenderReadiness,
+  upsertSender,
   upsertContact,
   getContact,
   listContacts,
