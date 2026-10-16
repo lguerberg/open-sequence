@@ -44,7 +44,7 @@ export function templateContextFor(deps: Deps, ctx: StepContext, enrollment: Enr
   const exp = Math.floor(deps.clock.now().getTime() / 1000) + OPT_OUT_TOKEN_DAYS * 86_400;
   const token = runId ? deps.optOutToken({ projectId: enrollment.projectId, contactId: c.id, runId, exp }) : 'preview';
   return {
-    contact: { first_name: c.firstName, last_name: c.lastName, email: c.email, phone: c.phone, country: c.country, timezone: c.timezone, linkedin_url: c.linkedinUrl, attrs: c.attrs },
+    contact: { first_name: c.firstName, last_name: c.lastName, email: c.email, phone: c.phone, country: c.country, timezone: c.timezone, attrs: c.attrs },
     sender: { name: ctx.sender.name, first_name: ctx.sender.name.split(' ')[0], email: ctx.sender.email, timezone: ctx.sender.timezone, attrs: ctx.sender.attrs },
     sequence: { name: ctx.sequenceName },
     unsubscribe_url: `${deps.config.publicUrl}/u/${token}`,

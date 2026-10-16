@@ -9,7 +9,6 @@ export interface ChannelReadiness {
 export interface Readiness {
   email: ChannelReadiness;
   sms: ChannelReadiness;
-  linkedin: ChannelReadiness;
   task: { ok: true };
 }
 
@@ -25,7 +24,6 @@ export async function senderReadiness(deps: Deps, senderId: string): Promise<Rea
   return {
     email: state(by('email'), 'google_not_connected'),
     sms: state(by('sms'), 'no_allo_number'),
-    linkedin: state(by('linkedin'), 'no_linkedin_url'),
     task: { ok: true },
   };
 }

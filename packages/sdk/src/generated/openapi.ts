@@ -5358,236 +5358,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/senders/{id}/channels/linkedin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** The sender's LinkedIn profile URL (manual channel) */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** Format: uri */
-                        address: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/senders/{id}/channels/{channel}": {
         parameters: {
             query?: never;
@@ -5605,7 +5375,7 @@ export interface paths {
                 header?: never;
                 path: {
                     id: string;
-                    channel: "sms" | "linkedin";
+                    channel: "sms";
                 };
                 cookie?: never;
             };
@@ -5816,7 +5586,7 @@ export interface paths {
                 header?: never;
                 path: {
                     id: string;
-                    channel: "email" | "sms" | "linkedin";
+                    channel: "email" | "sms";
                 };
                 cookie?: never;
             };
@@ -6492,7 +6262,6 @@ export interface paths {
                         last_name?: string | null;
                         email?: string | null;
                         phone?: string | null;
-                        linkedin_url?: string | null;
                         country?: string | null;
                         timezone?: string | null;
                         attrs?: {
@@ -6926,7 +6695,6 @@ export interface paths {
                         last_name?: string | null;
                         email?: string | null;
                         phone?: string | null;
-                        linkedin_url?: string | null;
                         country?: string | null;
                         timezone?: string | null;
                         attrs?: {
@@ -7159,7 +6927,6 @@ export interface paths {
                             last_name?: string | null;
                             email?: string | null;
                             phone?: string | null;
-                            linkedin_url?: string | null;
                             country?: string | null;
                             timezone?: string | null;
                             attrs?: {
@@ -7626,7 +7393,7 @@ export interface paths {
                             type: "meeting_booked" | "opt_out" | "suppressed" | "reply";
                             occurred_at?: unknown;
                             /** @enum {string} */
-                            channel?: "email" | "sms" | "linkedin" | "all";
+                            channel?: "email" | "sms" | "all";
                             reason?: string;
                             data?: {
                                 [key: string]: unknown;
@@ -8547,7 +8314,7 @@ export interface paths {
                         type: "meeting_booked" | "opt_out" | "suppressed" | "reply";
                         occurred_at?: unknown;
                         /** @enum {string} */
-                        channel?: "email" | "sms" | "linkedin" | "all";
+                        channel?: "email" | "sms" | "all";
                         reason?: string;
                         data?: {
                             [key: string]: unknown;
@@ -12120,7 +11887,6 @@ export interface paths {
                             last_name?: string | null;
                             email?: string | null;
                             phone?: string | null;
-                            linkedin_url?: string | null;
                             country?: string | null;
                             timezone?: string | null;
                             attrs?: {
@@ -12368,7 +12134,6 @@ export interface paths {
                             last_name?: string | null;
                             email?: string | null;
                             phone?: string | null;
-                            linkedin_url?: string | null;
                             country?: string | null;
                             timezone?: string | null;
                             attrs?: {

@@ -13,9 +13,9 @@ export interface SetChannelInput {
   config?: Record<string, unknown>;
 }
 
-/** Create or replace a sender's channel. The auth module calls this when a Google connection completes; the API for sms and linkedin. */
+/** Create or replace a sender's channel. The auth module calls this when a Google connection completes; the API for sms. */
 export async function setChannel(deps: Deps, projectId: string, senderId: string, input: SetChannelInput): Promise<SenderChannel> {
-  if (!registry.channel(input.channel) && input.channel !== 'linkedin') throw invalid('UNKNOWN_CHANNEL', `"${input.channel}" is not a channel.`);
+  if (!registry.channel(input.channel)) throw invalid('UNKNOWN_CHANNEL', `"${input.channel}" is not a channel.`);
   const defaults = CHANNEL_DEFAULTS[input.channel] ?? { dailyLimit: null, minGapSeconds: 0 };
   return deps.uow.transaction(async ({ repos }) => {
     const sender = await repos.senders.byId(projectId, senderId);

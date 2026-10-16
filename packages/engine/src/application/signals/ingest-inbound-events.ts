@@ -155,7 +155,7 @@ async function matchReply(repos: Repositories, projectId: string, settings: Effe
     const channel = await repos.senders.channelByAddress(projectId, 'sms', event.to);
     return contact && channel ? { contact, senderId: channel.senderId, run: null } : null;
   }
-  return null; // linkedin replies arrive through the automation adapter later
+  return null;
 }
 
 async function runByMessageId(repos: Repositories, projectId: string, messageId: string | undefined): Promise<Run | null> {

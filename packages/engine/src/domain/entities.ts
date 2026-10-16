@@ -42,7 +42,7 @@ export interface Sender {
   updatedAt: Date;
 }
 
-export type ChannelKind = 'email' | 'sms' | 'linkedin';
+export type ChannelKind = 'email' | 'sms';
 export type ChannelStatus = 'pending' | 'active' | 'paused' | 'credentials_needed' | 'restricted' | 'disconnected';
 
 export interface SenderChannel {
@@ -70,7 +70,6 @@ export interface Contact {
   lastName: string | null;
   email: string | null;
   phone: string | null;
-  linkedinUrl: string | null;
   country: string | null;
   timezone: string | null;
   smsConsent: boolean;
@@ -83,7 +82,7 @@ export interface Contact {
 
 export interface Suppression {
   contactId: string;
-  channel: 'email' | 'sms' | 'linkedin' | 'all';
+  channel: 'email' | 'sms' | 'all';
   reason: string;
   createdAt: Date;
 }
@@ -253,7 +252,6 @@ export type SignalKind =
   | 'task_completed'
   | 'call_connected'
   | 'meeting_booked'
-  | 'connection_accepted'
   | 'sender_channel_status'
   | 'contact_suppressed'
   | 'crm_changed';

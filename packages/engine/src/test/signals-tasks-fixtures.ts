@@ -106,7 +106,6 @@ export async function seedWorld(deps: Deps, exitOn: Array<'reply' | 'meeting_boo
       lastName: 'Lead',
       email: `sam+${tag}@example.com`,
       phone: `+1415555${tag.replace(/\D/g, '0').slice(-4).padStart(4, '0')}`,
-      linkedinUrl: null,
       country: 'US',
       timezone: 'America/Los_Angeles',
       smsConsent: true,

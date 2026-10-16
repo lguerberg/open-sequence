@@ -196,7 +196,7 @@ const ENV_DESCRIPTIONS: Record<string, string> = {
   SEQ_ROLES: '`api` serves HTTP, `worker` runs the scheduler and the queue consumers, `all` does both in one process.',
   SEQ_RUN_MIGRATIONS: 'Apply the `seq` and `auth` migrations at boot, serialized by a row lock so replicas starting together do not race.',
   SEQ_CONCURRENCY: 'Messages in flight per queue per replica.',
-  SEQ_DISABLED_CHANNELS: 'Platform-wide kill switch per channel, comma-separated (`sms,linkedin`). Steps on a disabled channel are deferred, not skipped.',
+  SEQ_DISABLED_CHANNELS: 'Platform-wide kill switch per channel, comma-separated (`sms`). Steps on a disabled channel are deferred, not skipped.',
   SEQ_PAUSED: 'Platform-wide stop: the planner claims nothing while it is on. In-flight steps finish.',
   SEQ_DEV_MOCK_PROVIDERS: 'Every project uses the `mock` adapters: nothing reaches Google, Allo or Attio, sends land in the timeline, and `POST /hooks/mock/{slug}` simulates replies, bounces, bookings and calls. Refused when NODE_ENV=production.',
   SEQ_LOG_LEVEL: 'Pino log level.',
@@ -577,7 +577,7 @@ async function generateDefinition(): Promise<void> {
 
 The same document is served by \`GET /v1/schema\` (with the node and channel catalogue) so a canvas, a script or an agent validates against what the service enforces. Node \`params\` are open here and validated per node type and channel action: see [Nodes and channels](/reference/nodes).
 
-Limits: ${DEFINITION_LIMITS.maxNodes} nodes, ${DEFINITION_LIMITS.maxBytes / 1024} KB per definition, ${DEFINITION_LIMITS.maxSmsChars} characters per SMS body, ${DEFINITION_LIMITS.maxLinkedInNote} characters per LinkedIn note.
+Limits: ${DEFINITION_LIMITS.maxNodes} nodes, ${DEFINITION_LIMITS.maxBytes / 1024} KB per definition, ${DEFINITION_LIMITS.maxSmsChars} characters per SMS body.
 
 ## Top level
 

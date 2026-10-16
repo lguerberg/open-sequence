@@ -64,8 +64,6 @@ export function makeFactReader(input: FactReaderInput): FactReader {
         return !!contact.email;
       case 'has_phone':
         return !!contact.phone;
-      case 'has_linkedin':
-        return !!contact.linkedinUrl;
       case 'sms_consent':
         return contact.smsConsent;
       case 'first_name':
@@ -89,8 +87,6 @@ export function makeFactReader(input: FactReaderInput): FactReader {
         return sender.name;
       case 'has_sms':
         return hasChannel('sms');
-      case 'has_linkedin':
-        return hasChannel('linkedin');
       case 'attrs':
         return scalar(dig(sender.attrs, path.slice(1)));
       default:
@@ -147,8 +143,6 @@ export function makeFactReader(input: FactReaderInput): FactReader {
           return scalar(dig(contact.attrs, rest));
         case 'sender':
           return senderFacts(rest);
-        case 'linkedin':
-          return rest[0] === 'connection_state' ? 'none' : null; // the automation module fills this in later
         case 'history':
           return historyFacts(rest.join('.'));
         case 'crm':

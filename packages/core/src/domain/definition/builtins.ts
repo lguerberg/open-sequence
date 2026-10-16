@@ -14,8 +14,6 @@ const WAIT_FOR_EVENTS = [
   'reply',
   'reply:email',
   'reply:sms',
-  'reply:linkedin',
-  'connection_accepted',
   'call_connected',
   'meeting_booked',
 ] as const;
@@ -291,7 +289,6 @@ export function registerBuiltins(): void {
       { field: 'contact.timezone', label: 'Contact time zone', type: 'text' },
       { field: 'contact.has_email', label: 'Contact has an email', type: 'bool' },
       { field: 'contact.has_phone', label: 'Contact has a phone', type: 'bool' },
-      { field: 'contact.has_linkedin', label: 'Contact has a LinkedIn URL', type: 'bool' },
       { field: 'contact.sms_consent', label: 'Contact consented to SMS', type: 'bool' },
     ],
   });
@@ -302,13 +299,7 @@ export function registerBuiltins(): void {
     fields: [
       { field: 'sender.timezone', label: 'Sender time zone', type: 'text' },
       { field: 'sender.has_sms', label: 'Sender has an SMS number', type: 'bool' },
-      { field: 'sender.has_linkedin', label: 'Sender has LinkedIn', type: 'bool' },
     ],
-  });
-  registry.registerFacts({
-    prefix: 'linkedin',
-    label: 'LinkedIn',
-    fields: [{ field: 'linkedin.connection_state', label: 'LinkedIn connection', type: 'enum', values: ['none', 'pending', 'connected', 'declined_or_ignored', 'withdrawn'] }],
   });
   registry.registerFacts({
     prefix: 'history',
@@ -317,7 +308,7 @@ export function registerBuiltins(): void {
       { field: 'history.touches', label: 'Touches so far', type: 'number' },
       { field: 'history.days_since_last_touch', label: 'Days since the last touch', type: 'number' },
       { field: 'history.replied_since_enrollment', label: 'Replied since enrollment', type: 'bool' },
-      { field: 'history.last_reply_channel', label: 'Last reply channel', type: 'enum', values: ['email', 'sms', 'linkedin', 'call'] },
+      { field: 'history.last_reply_channel', label: 'Last reply channel', type: 'enum', values: ['email', 'sms', 'call'] },
       { field: 'history.emails_sent', label: 'Emails sent', type: 'number' },
       { field: 'history.last_task_outcome', label: 'Last task outcome', type: 'text' },
       { field: 'history.last_task_kind', label: 'Last task kind', type: 'text' },

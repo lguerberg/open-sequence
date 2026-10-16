@@ -29,7 +29,7 @@ export type QueryOf<P extends keyof paths, M extends MethodOf<P>> = paths[P][M] 
 export type DateInput = string | Date;
 
 export type Scope = 'read' | 'enroll' | 'admin';
-export type Channel = 'email' | 'sms' | 'linkedin';
+export type Channel = 'email' | 'sms';
 
 export interface ValidationProblem {
   path: string;
@@ -174,7 +174,6 @@ export interface ChannelReadiness {
 export interface Readiness {
   email: ChannelReadiness;
   sms: ChannelReadiness;
-  linkedin: ChannelReadiness;
   task: { ok: true };
 }
 
@@ -212,7 +211,6 @@ export interface Contact {
   lastName: string | null;
   email: string | null;
   phone: string | null;
-  linkedinUrl: string | null;
   country: string | null;
   timezone: string | null;
   smsConsent: boolean;
@@ -451,7 +449,6 @@ export type SignalKind =
   | 'task_completed'
   | 'call_connected'
   | 'meeting_booked'
-  | 'connection_accepted'
   | 'sender_channel_status'
   | 'contact_suppressed'
   | 'crm_changed';

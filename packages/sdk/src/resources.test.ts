@@ -35,7 +35,6 @@ describe('senders', () => {
   test('connections', () => hits((o) => o.senders.connections('u_42'), { method: 'GET', url: '/v1/senders/u_42/connections' }, []));
   test('disconnectGoogle', () => hits((o) => o.senders.disconnectGoogle('u_42'), { method: 'DELETE', url: '/v1/senders/u_42/connections/google' }));
   test('setSms', () => hits((o) => o.senders.setSms('u_42', { allo_user_id: 'usr-1', number: '+14155551234' }), { method: 'PUT', url: '/v1/senders/u_42/channels/sms', body: { allo_user_id: 'usr-1', number: '+14155551234' } }));
-  test('setLinkedin', () => hits((o) => o.senders.setLinkedin('u_42', { address: 'https://linkedin.com/in/max' }), { method: 'PUT', url: '/v1/senders/u_42/channels/linkedin', body: { address: 'https://linkedin.com/in/max' } }));
   test('patchChannel', () => hits((o) => o.senders.patchChannel('u_42', 'email', { daily_limit: 20, status: 'paused' }), { method: 'PATCH', url: '/v1/senders/u_42/channels/email', body: { daily_limit: 20, status: 'paused' } }));
   test('deleteChannel', () => hits((o) => o.senders.deleteChannel('u_42', 'sms'), { method: 'DELETE', url: '/v1/senders/u_42/channels/sms' }));
   test('disable', () => hits((o) => o.senders.disable('u_42'), { method: 'DELETE', url: '/v1/senders/u_42' }));

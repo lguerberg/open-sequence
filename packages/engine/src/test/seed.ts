@@ -39,7 +39,7 @@ export async function seedSequence(repos: Repositories, opts: { contacts?: numbe
   const contactIds: string[] = [];
   for (let i = 0; i < (opts.contacts ?? 1); i++) {
     const c = await repos.contacts.upsertByExternalId(
-      { id: newId('contact'), projectId, externalId: `c${i}`, firstName: 'Bo', lastName: `N${i}`, email: `bo${i}@example.com`, phone: null, linkedinUrl: null, country: 'US', timezone: null, smsConsent: false, smsConsentAt: null, smsConsentSource: null, attrs: {} },
+      { id: newId('contact'), projectId, externalId: `c${i}`, firstName: 'Bo', lastName: `N${i}`, email: `bo${i}@example.com`, phone: null, country: 'US', timezone: null, smsConsent: false, smsConsentAt: null, smsConsentSource: null, attrs: {} },
       false
     );
     contactIds.push(c.id);

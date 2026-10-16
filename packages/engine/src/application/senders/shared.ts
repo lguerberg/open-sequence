@@ -24,5 +24,4 @@ export type ChannelPatch = z.input<typeof channelPatchSchema>;
 export const CHANNEL_DEFAULTS: Record<string, { dailyLimit: number | null; minGapSeconds: number }> = {
   email: { dailyLimit: 30, minGapSeconds: 60 },
   sms: { dailyLimit: 100, minGapSeconds: 0 },
-  linkedin: { dailyLimit: 15, minGapSeconds: 0 },
 };

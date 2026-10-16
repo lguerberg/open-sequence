@@ -59,7 +59,7 @@ export async function processSignal(deps: Deps, signalId: string): Promise<void>
 /** Opt-outs, bounces, complaints and client suppressions mark the contact before any enrollment is touched. */
 async function suppressContact(repos: Repositories, signal: Signal): Promise<void> {
   const { projectId, contactId, payload } = signal;
-  const asChannel = (v: unknown): Suppression['channel'] => (v === 'email' || v === 'sms' || v === 'linkedin' ? v : 'all');
+  const asChannel = (v: unknown): Suppression['channel'] => (v === 'email' || v === 'sms' ? v : 'all');
   switch (signal.kind) {
     case 'opt_out':
       return repos.contacts.suppress(projectId, contactId, asChannel(signal.channel), 'opt_out');

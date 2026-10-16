@@ -53,18 +53,12 @@ export async function completeTask(deps: Deps, projectId: string, taskId: string
   return task;
 }
 
-/** task_completed always; call_connected, connection_accepted or reply when the kind and outcome say so. */
+/** task_completed always; call_connected when the outcome is one the node counts as connected. */
 async function recordOutcomeSignals(deps: Deps, scope: TransactionScope, t: Task, source: string, now: Date): Promise<void> {
   const outcome = t.outcome ?? '';
   const base = { projectId: t.projectId, contactId: t.contactId, source, occurredAt: now };
   await recordSignal(deps, scope, { ...base, kind: 'task_completed', channel: null, externalId: `task:${t.id}`, payload: { run_id: t.runId, outcome, kind: t.kind } });
   if (t.connectedOutcomes.includes(outcome)) {
     await recordSignal(deps, scope, { ...base, kind: 'call_connected', channel: 'call', externalId: `task:${t.id}:connected`, payload: { run_id: t.runId } });
-  }
-  if (t.kind === 'linkedin_connect' && outcome === 'accepted') {
-    await recordSignal(deps, scope, { ...base, kind: 'connection_accepted', channel: 'linkedin', externalId: `task:${t.id}:accepted`, payload: { run_id: t.runId } });
-  }
-  if (t.kind === 'linkedin_message' && outcome === 'replied') {
-    await recordSignal(deps, scope, { ...base, kind: 'reply', channel: 'linkedin', externalId: `task:${t.id}:replied`, payload: { run_id: t.runId } });
   }
 }

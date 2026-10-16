@@ -30,7 +30,7 @@ export const USER_AGENT = `opensequence-mcp/${MCP_SERVER_VERSION}`;
  * How the tools fit together. FastMCP has no option for the MCP `instructions` field, so this is
  * served as a resource (`opensequence://instructions`); the tool descriptions carry the same rules.
  */
-export const MCP_INSTRUCTIONS = `OpenSequence runs multi-step outreach sequences (email, SMS, LinkedIn, call tasks) for a CRM.
+export const MCP_INSTRUCTIONS = `OpenSequence runs multi-step outreach sequences (email, SMS, call tasks) for a CRM.
 - Senders, contacts and sequences can be named by their service id (snd_…, ctc_…, seq_…) or by the external id the CRM gave them.
 - To enroll people: find the sequence (list_sequences) and the sender (list_senders), make sure the contacts exist (upsert_contact, or pass them inline), run preview_enrollment, then enroll_contacts.
 - A contact can be in only one active sequence. Enrolling is all or nothing: if anyone is already in a sequence, nobody is enrolled and the error names them.

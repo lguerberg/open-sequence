@@ -4,7 +4,7 @@
  *   1. contacts.timezone (an IANA zone the client supplied)
  *   2. a zone derived from the phone number (the country when it has one zone, or a NANP area code)
  *   3. the country when it has one zone
- *   4. nothing: email and LinkedIn fall back to the sender's zone; SMS is skipped (no_timezone),
+ *   4. nothing: email falls back to the sender's zone; SMS is skipped (no_timezone),
  *      because the recipient-local quiet hours are a legal requirement.
  */
 import { parsePhoneNumber } from 'libphonenumber-js';

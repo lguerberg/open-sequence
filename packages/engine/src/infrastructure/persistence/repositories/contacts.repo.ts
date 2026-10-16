@@ -18,7 +18,6 @@ export class DrizzleContactRepository implements ContactRepository {
           lastName: c.lastName,
           email: c.email,
           phone: c.phone,
-          linkedinUrl: c.linkedinUrl,
           country: c.country,
           timezone: c.timezone,
           // consent is never touched by an upsert; it has its own admin endpoint

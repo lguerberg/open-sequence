@@ -10,14 +10,14 @@ export interface ChannelRef {
   channelId: string;
   /** The Google connection id for OAuth channels; absent for API-key channels. */
   connectionId?: string;
-  /** Mailbox address, E.164 number, profile URL. */
+  /** Mailbox address or E.164 number. */
   address: string;
   /** Non-secret per-channel settings (allo user id, history cursor, …). */
   config: Record<string, unknown>;
 }
 
 export type InboundEvent =
-  | { kind: 'reply'; channel: 'email' | 'sms' | 'linkedin'; externalId: string; occurredAt: Date; from: string; to: string; threadRef?: string; subject?: string; body?: string; inReplyTo?: string; autoReply?: { until?: Date } }
+  | { kind: 'reply'; channel: 'email' | 'sms'; externalId: string; occurredAt: Date; from: string; to: string; threadRef?: string; subject?: string; body?: string; inReplyTo?: string; autoReply?: { until?: Date } }
   | { kind: 'bounce'; channel: 'email'; externalId: string; occurredAt: Date; address: string; hard: boolean; originalMessageId?: string; reason?: string }
   | { kind: 'complaint'; channel: 'email'; externalId: string; occurredAt: Date; address: string }
   | { kind: 'opt_out'; channel: 'sms' | 'email'; externalId: string; occurredAt: Date; from: string; to?: string }

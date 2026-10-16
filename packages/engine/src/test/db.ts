@@ -29,7 +29,7 @@ export async function truncateAll(): Promise<void> {
   const db = testDb();
   await db.execute(sql`
     truncate table seq.webhook_deliveries, seq.signal_effects, seq.signals, seq.tasks, seq.messages, seq.runs,
-      seq.enrollments, seq.linkedin_connections, seq.suppressions, seq.versions, seq.sequences, seq.contacts,
+      seq.enrollments, seq.suppressions, seq.versions, seq.sequences, seq.contacts,
       seq.sender_channels, seq.senders, seq.webhook_endpoints, seq.idempotency_keys, seq.api_keys, seq.flags,
       seq.projects, seq.queue_messages, seq.queue_dead restart identity cascade
   `);

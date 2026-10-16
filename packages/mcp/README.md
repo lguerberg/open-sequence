@@ -167,7 +167,7 @@ the external id your app gave them. Version arguments take an id (`ver_…`) or 
 | `exit_enrollment`              | Ends an enrollment now with exit reason `manual`                                                                     | admin  |
 | `get_enrollment_journey`       | One enrollment: every step that ran, the branch it took, messages, signals, tasks                                    | read   |
 | `list_enrollments`             | Enrollments filtered by sequence, version, status, sender, contact, exit reason                                      | read   |
-| `list_tasks`                   | Tasks sequences created for senders (calls, LinkedIn, manual)                                                        | read   |
+| `list_tasks`                   | Tasks sequences created for senders (calls, manual)                                                                  | read   |
 | `complete_task`                | Marks a task done with an outcome, which wakes the waiting step                                                      | enroll |
 | `analytics_summary`            | Replies and meetings for a sequence, with rates; without `sequence`, every sequence ranked                           | read   |
 | `analytics_nodes`              | Results per step: reached, delivered, skipped by reason, replies, meetings                                           | read   |

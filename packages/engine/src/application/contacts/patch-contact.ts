@@ -16,7 +16,6 @@ export async function patchContact(deps: Deps, projectId: string, idOrExternal: 
   if (d.last_name !== undefined) patch.lastName = d.last_name;
   if (d.email !== undefined) patch.email = d.email;
   if (d.phone !== undefined) patch.phone = d.phone;
-  if (d.linkedin_url !== undefined) patch.linkedinUrl = d.linkedin_url;
   if (d.country !== undefined) patch.country = d.country;
   if (d.timezone !== undefined) patch.timezone = d.timezone;
   if (d.attrs !== undefined) patch.attrs = d.attrs;

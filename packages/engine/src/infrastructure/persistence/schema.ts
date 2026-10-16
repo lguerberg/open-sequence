@@ -25,12 +25,10 @@ export const signalKind = seq.enum('signal_kind', [
   'task_completed',
   'call_connected',
   'meeting_booked',
-  'connection_accepted',
   'sender_channel_status',
   'contact_suppressed',
   'crm_changed',
 ]);
-export const linkedinState = seq.enum('linkedin_state', ['none', 'pending', 'connected', 'declined_or_ignored', 'withdrawn']);
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' });
 const created = () => ts('created_at').notNull().defaultNow();
@@ -140,7 +138,7 @@ export const senderChannels = seq.table(
       .notNull()
       .references(() => senders.id, { onDelete: 'cascade' }),
     projectId: text('project_id').notNull(),
-    /** auth.connections.id for OAuth channels (email); null for sms (API key) and linkedin (manual). No cross-schema FK. */
+    /** auth.connections.id for OAuth channels (email); null for sms (API key). No cross-schema FK. */
     connectionId: text('connection_id'),
     channel: varchar('channel', { length: 16 }).notNull(),
     address: text('address').notNull(),
@@ -168,7 +166,6 @@ export const contacts = seq.table(
     lastName: varchar('last_name', { length: 120 }),
     email: varchar('email', { length: 320 }),
     phone: varchar('phone', { length: 24 }),
-    linkedinUrl: text('linkedin_url'),
     country: varchar('country', { length: 2 }),
     timezone: varchar('timezone', { length: 48 }),
     smsConsent: boolean('sms_consent').notNull().default(false),
@@ -498,7 +495,7 @@ export const signalEffects = seq.table(
   (t) => [uniqueIndex('signal_effects_pk').on(t.signalId, t.enrollmentId)]
 );
 
-// ------------------------------------------------------------------ flags, linkedin, deliveries, scheduler, queue
+// ------------------------------------------------------------------ flags, deliveries, scheduler, queue
 export const flags = seq.table(
   'flags',
   {
@@ -511,26 +508,6 @@ export const flags = seq.table(
     updatedAt: updated(),
   },
   (t) => [uniqueIndex('flags_pk').on(t.projectId, t.key)]
-);
-
-export const linkedinConnections = seq.table(
-  'linkedin_connections',
-  {
-    id: bigserial('id', { mode: 'number' }).primaryKey(),
-    projectId: text('project_id').notNull(),
-    contactId: text('contact_id')
-      .notNull()
-      .references(() => contacts.id, { onDelete: 'cascade' }),
-    senderId: text('sender_id')
-      .notNull()
-      .references(() => senders.id, { onDelete: 'cascade' }),
-    state: linkedinState('state').notNull().default('none'),
-    invitedAt: ts('invited_at'),
-    connectedAt: ts('connected_at'),
-    stateUpdatedAt: ts('state_updated_at').notNull().defaultNow(),
-    source: varchar('source', { length: 12 }).notNull().default('task'),
-  },
-  (t) => [uniqueIndex('linkedin_connections_pair_idx').on(t.contactId, t.senderId)]
 );
 
 export const webhookDeliveries = seq.table(
@@ -610,7 +587,6 @@ export const schema = {
   signals,
   signalEffects,
   flags,
-  linkedinConnections,
   webhookDeliveries,
   jobLocks,
   queueMessages,

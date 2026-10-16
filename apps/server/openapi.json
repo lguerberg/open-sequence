@@ -13023,557 +13023,6 @@
         }
       }
     },
-    "/v1/senders/{id}/channels/linkedin": {
-      "put": {
-        "summary": "The sender's LinkedIn profile URL (manual channel)",
-        "tags": [
-          "Senders"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "address": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                },
-                "required": [
-                  "address"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {},
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        },
-                        "next_cursor": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {},
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        },
-                        "next_cursor": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        },
-                        "details": {}
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        },
-                        "details": {}
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        },
-                        "details": {}
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        },
-                        "details": {}
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        },
-                        "details": {}
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        },
-                        "details": {}
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        },
-                        "details": {}
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        },
-                        "details": {}
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "request_id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "request_id"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error",
-                    "meta"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/senders/{id}/channels/{channel}": {
       "patch": {
         "summary": "Limits and status of a channel",
@@ -13646,8 +13095,7 @@
               "type": "string",
               "enum": [
                 "email",
-                "sms",
-                "linkedin"
+                "sms"
               ]
             },
             "in": "path",
@@ -14186,8 +13634,7 @@
             "schema": {
               "type": "string",
               "enum": [
-                "sms",
-                "linkedin"
+                "sms"
               ]
             },
             "in": "path",
@@ -15341,18 +14788,6 @@
                       }
                     ]
                   },
-                  "linkedin_url": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 2000,
-                        "format": "uri"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
                   "country": {
                     "anyOf": [
                       {
@@ -16496,18 +15931,6 @@
                       {
                         "type": "string",
                         "maxLength": 24
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "linkedin_url": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 2000,
-                        "format": "uri"
                       },
                       {
                         "type": "null"
@@ -17672,18 +17095,6 @@
                             }
                           ]
                         },
-                        "linkedin_url": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "maxLength": 2000,
-                              "format": "uri"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
                         "country": {
                           "anyOf": [
                             {
@@ -18831,7 +18242,6 @@
                           "enum": [
                             "email",
                             "sms",
-                            "linkedin",
                             "all"
                           ]
                         },
@@ -21064,7 +20474,6 @@
                     "enum": [
                       "email",
                       "sms",
-                      "linkedin",
                       "all"
                     ]
                   },
@@ -29845,18 +29254,6 @@
                                 }
                               ]
                             },
-                            "linkedin_url": {
-                              "anyOf": [
-                                {
-                                  "type": "string",
-                                  "maxLength": 2000,
-                                  "format": "uri"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
                             "country": {
                               "anyOf": [
                                 {
@@ -30528,18 +29925,6 @@
                                 {
                                   "type": "string",
                                   "maxLength": 24
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "linkedin_url": {
-                              "anyOf": [
-                                {
-                                  "type": "string",
-                                  "maxLength": 2000,
-                                  "format": "uri"
                                 },
                                 {
                                   "type": "null"

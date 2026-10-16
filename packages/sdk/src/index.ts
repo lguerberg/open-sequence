@@ -80,7 +80,7 @@ export type * from './types.js';
 export type { paths } from './generated/openapi.js';
 
 export { Senders } from './resources/senders.js';
-export type { SenderInput, SmsChannelInput, LinkedinChannelInput, ChannelPatch, GoogleConnectInput, SenderTasksQuery } from './resources/senders.js';
+export type { SenderInput, SmsChannelInput, ChannelPatch, GoogleConnectInput, SenderTasksQuery } from './resources/senders.js';
 export { Contacts } from './resources/contacts.js';
 export type { ContactInput, ContactWithExternalId, ContactListQuery, ClientEvent, ClientEventForContact, SmsConsentInput } from './resources/contacts.js';
 export { Sequences, Versions } from './resources/sequences.js';

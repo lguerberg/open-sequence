@@ -22,7 +22,6 @@ export const contactInputSchema = z
     last_name: z.string().max(120).nullable().optional(),
     email: z.string().email().max(320).nullable().optional(),
     phone: e164.nullable().optional(),
-    linkedin_url: z.string().url().max(2000).nullable().optional(),
     country: z.string().length(2).toUpperCase().nullable().optional(),
     timezone: z.string().max(48).refine(isValidTimezone, 'not an IANA time zone').nullable().optional(),
     attrs: z.record(z.string(), z.unknown()).optional(),

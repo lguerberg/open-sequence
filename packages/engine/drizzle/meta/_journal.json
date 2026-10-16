@@ -15,6 +15,13 @@
       "when": 1791906247804,
       "tag": "0001_constraints_and_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792157908811,
+      "tag": "0002_remove_linkedin",
+      "breakpoints": true
     }
   ]
 }

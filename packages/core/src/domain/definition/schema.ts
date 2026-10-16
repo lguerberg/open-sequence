@@ -82,6 +82,5 @@ export type DefinitionInput = z.input<typeof definitionSchema>;
 export const DEFINITION_LIMITS = {
   maxNodes: 200,
   maxBytes: 256 * 1024,
-  maxLinkedInNote: 200,
   maxSmsChars: 1000,
 } as const;

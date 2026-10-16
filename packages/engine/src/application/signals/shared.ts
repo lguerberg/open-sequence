@@ -50,8 +50,6 @@ export function wakeEventNames(signal: Signal): string[] {
       return ['call_connected', 'reply'];
     case 'meeting_booked':
       return ['meeting_booked'];
-    case 'connection_accepted':
-      return ['connection_accepted'];
     default:
       return [];
   }

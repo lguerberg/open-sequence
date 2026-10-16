@@ -16,7 +16,7 @@ export const clientEventSchema = z
     id: z.string().min(1).max(200),
     type: z.enum(['meeting_booked', 'opt_out', 'suppressed', 'reply']),
     occurred_at: z.coerce.date().optional(),
-    channel: z.enum(['email', 'sms', 'linkedin', 'all']).optional(),
+    channel: z.enum(['email', 'sms', 'all']).optional(),
     reason: z.string().max(200).optional(),
     data: z.record(z.string(), z.unknown()).optional(),
   })

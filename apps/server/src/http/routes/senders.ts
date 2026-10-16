@@ -103,19 +103,9 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
     },
   });
 
-  app.put('/v1/senders/:id/channels/linkedin', {
-    preHandler: admin,
-    schema: { tags: ['Senders'], summary: "The sender's LinkedIn profile URL (manual channel)", params: idParam, body: z.object({ address: z.string().url() }), response: responses },
-    handler: async (req, reply) => {
-      const projectId = projectOf(req);
-      const sender = await resolveSender(ctx.deps, projectId, req.params.id);
-      return ok(reply, await setChannel(ctx.deps, projectId, sender.id, { channel: 'linkedin', address: req.body.address }));
-    },
-  });
-
   app.patch('/v1/senders/:id/channels/:channel', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Limits and status of a channel', params: z.object({ id: z.string(), channel: z.enum(['email', 'sms', 'linkedin']) }), body: channelPatchSchema, response: responses },
+    schema: { tags: ['Senders'], summary: 'Limits and status of a channel', params: z.object({ id: z.string(), channel: z.enum(['email', 'sms']) }), body: channelPatchSchema, response: responses },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -125,7 +115,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.delete('/v1/senders/:id/channels/:channel', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Remove a channel; its steps skip from now on', params: z.object({ id: z.string(), channel: z.enum(['sms', 'linkedin']) }), response: responses },
+    schema: { tags: ['Senders'], summary: 'Remove a channel; its steps skip from now on', params: z.object({ id: z.string(), channel: z.enum(['sms']) }), response: responses },
     handler: async (req, reply) => {
       const sender = await resolveSender(ctx.deps, projectOf(req), req.params.id);
       await ctx.deps.uow.repos.senders.deleteChannel(sender.id, req.params.channel);

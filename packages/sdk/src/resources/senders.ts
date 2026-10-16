@@ -4,7 +4,6 @@ import type { Body, Channel, ConnectionView, GoogleConnectResult, Readiness, Sen
 
 export type SenderInput = Body<'/v1/senders/{id}', 'put'>;
 export type SmsChannelInput = Body<'/v1/senders/{id}/channels/sms', 'put'>;
-export type LinkedinChannelInput = Body<'/v1/senders/{id}/channels/linkedin', 'put'>;
 export type ChannelPatch = Body<'/v1/senders/{id}/channels/{channel}', 'patch'>;
 export type GoogleConnectInput = { return_url?: string };
 export type SenderTasksQuery = ListQuery & { status?: string; kind?: string };
@@ -57,18 +56,13 @@ export class Senders {
     return this.http.request({ method: 'PUT', path: `/v1/senders/${enc(id)}/channels/sms`, body });
   }
 
-  /** The sender's LinkedIn profile URL (a manual channel). */
-  setLinkedin(id: string, body: LinkedinChannelInput): Promise<SenderChannel> {
-    return this.http.request({ method: 'PUT', path: `/v1/senders/${enc(id)}/channels/linkedin`, body });
-  }
-
   /** Limits, opt-in and pause/resume of one channel. */
   patchChannel(id: string, channel: Channel, body: ChannelPatch): Promise<SenderChannel> {
     return this.http.request({ method: 'PATCH', path: `/v1/senders/${enc(id)}/channels/${channel}`, body });
   }
 
-  /** Removes the sms or linkedin channel; its steps skip from now on. Email is removed by `disconnectGoogle`. */
-  deleteChannel(id: string, channel: 'sms' | 'linkedin'): Promise<{ deleted: true }> {
+  /** Removes the sms channel; its steps skip from now on. Email is removed by `disconnectGoogle`. */
+  deleteChannel(id: string, channel: 'sms'): Promise<{ deleted: true }> {
     return this.http.request({ method: 'DELETE', path: `/v1/senders/${enc(id)}/channels/${channel}` });
   }
 

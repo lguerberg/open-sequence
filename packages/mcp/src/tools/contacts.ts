@@ -26,11 +26,6 @@ export const contactFields = {
     .nullable()
     .optional()
     .describe('Phone in E.164 (+447700900123); needed for SMS and call steps.'),
-  linkedin_url: z
-    .string()
-    .nullable()
-    .optional()
-    .describe('LinkedIn profile URL; needed for LinkedIn steps.'),
   country: z.string().nullable().optional().describe('Two-letter ISO country code (GB, US).'),
   timezone: z
     .string()
@@ -182,7 +177,7 @@ export const reportContactEvent = defineTool({
       ),
     occurred_at: z.string().optional().describe('When it happened, ISO-8601 (default: now).'),
     channel: z
-      .enum(['email', 'sms', 'linkedin', 'all'])
+      .enum(['email', 'sms', 'all'])
       .optional()
       .describe('The channel: required for opt_out and reply.'),
     reason: z

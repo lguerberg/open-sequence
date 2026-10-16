@@ -2,7 +2,7 @@
 import type { Readiness } from '@opensequence/sdk';
 import { bullets, compact, count, defineTool, lines, nextPage, paging, ref } from '../tool.js';
 
-const CHANNELS = ['email', 'sms', 'linkedin'] as const;
+const CHANNELS = ['email', 'sms'] as const;
 
 export const listSenders = defineTool({
   name: 'list_senders',
@@ -32,7 +32,7 @@ export const getSenderReadiness = defineTool({
   name: 'get_sender_readiness',
   title: 'Check sender readiness',
   description:
-    'Says which kinds of steps a sender can run right now (email, sms, linkedin, task) and, for each one they cannot, why (google_not_connected, no_allo_number, no_linkedin_url, …). Check it before enrolling contacts with a sender.',
+    'Says which kinds of steps a sender can run right now (email, sms, task) and, for each one they cannot, why (google_not_connected, no_allo_number, …). Check it before enrolling contacts with a sender.',
   scope: 'read',
   input: { sender: ref('sender', 'snd_01J9…', 'u_42') },
   async run(client, args) {
