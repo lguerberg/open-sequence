@@ -19,7 +19,9 @@ The [Quickstart](/docs/get-started/quickstart) walks through a first sequence on
 | Service | Image | Port | Notes |
 |---|---|---|---|
 | `postgres` | `postgres:16-alpine` | `5432` | User, password and database `oseq` / `oseq` / `opensequence`. Data in the `pgdata` volume. Health-checked with `pg_isready`. |
-| `opensequence` | `opensequence/server:dev`, built from `apps/server/Dockerfile` | `8080` | Starts once Postgres is healthy. Runs the API and the workers in one process. |
+| `opensequence` | `ghcr.io/lguerberg/open-sequence:main`, pulled; `--build` builds this checkout from `apps/server/Dockerfile` instead | `8080` | Starts once Postgres is healthy. Runs the API and the workers in one process. |
+
+The `main` tag is built for amd64 only. On an Apple Silicon Mac, Docker runs it under emulation, which works but starts slower; `docker compose up -d --build` builds a native image from your checkout instead.
 
 On boot the `opensequence` container applies the database migrations, logs `mock providers are on`, starts the HTTP server, then starts the scheduler and one consumer per queue (`seq_email`, `seq_sms`, `seq_signals`, `seq_webhooks`).
 
@@ -115,7 +117,7 @@ services:
     environment:
       SEQ_ROLES: api
   worker:
-    image: opensequence/server:dev
+    image: ghcr.io/lguerberg/open-sequence:main
     depends_on:
       postgres:
         condition: service_healthy
@@ -156,8 +158,11 @@ Back up `SEQ_ENCRYPTION_KEYS` with the database. A database restored without its
 
 ```bash
 git pull
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
+
+To run changes from your own checkout, use `docker compose up -d --build`: it builds `apps/server/Dockerfile` and tags the result with the same name.
 
 The new container applies any new migrations on boot before it serves traffic, and each migration runs in its own transaction. Take a backup first. See [Upgrades](/docs/self-hosting/upgrades).
 

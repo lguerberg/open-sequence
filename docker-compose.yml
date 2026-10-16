@@ -21,10 +21,11 @@ services:
       retries: 10
 
   opensequence:
+    # The published image; `docker compose up --build` builds this checkout instead.
+    image: ghcr.io/lguerberg/open-sequence:main
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-    image: opensequence/server:dev
     depends_on:
       postgres:
         condition: service_healthy

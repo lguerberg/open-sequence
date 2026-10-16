@@ -1,9 +1,9 @@
 ---
 title: "Deploy on Qovery"
-description: "Run OpenSequence on Qovery: a managed Postgres, a migration job, and an api and a worker application built from the same Dockerfile."
+description: "Run OpenSequence on Qovery from the published image: a managed Postgres, a migration job, and an api and a worker application on the same tag."
 ---
 
-This guide sets up OpenSequence in one Qovery environment. You get a managed Postgres, a job that migrates on every deploy, a public `api` application and a private `worker` application, all from `apps/server/Dockerfile`.
+This guide sets up OpenSequence in one Qovery environment. You get a managed Postgres, a job that migrates on every deploy, a public `api` application and a private `worker` application, all from the published image `ghcr.io/lguerberg/open-sequence`.
 
 ```mermaid
 flowchart LR
@@ -21,9 +21,9 @@ flowchart LR
 | Service | Type | Source | Key settings |
 |---|---|---|---|
 | `postgres` | Database, PostgreSQL 14 or newer | managed by Qovery | private |
-| `migrate` | Lifecycle job, runs on deploy | your fork, `apps/server/Dockerfile` | command `node dist/cli.js migrate` |
-| `api` | Application | your fork, `apps/server/Dockerfile` | `SEQ_ROLES=api`, port 8080 public |
-| `worker` | Application | your fork, `apps/server/Dockerfile` | `SEQ_ROLES=worker`, port 8080 private |
+| `migrate` | Lifecycle job, runs on deploy | `ghcr.io/lguerberg/open-sequence`, one pinned tag | command `node dist/cli.js migrate` |
+| `api` | Application | `ghcr.io/lguerberg/open-sequence`, one pinned tag | `SEQ_ROLES=api`, port 8080 public |
+| `worker` | Application | `ghcr.io/lguerberg/open-sequence`, one pinned tag | `SEQ_ROLES=worker`, port 8080 private |
 
 No cronjob is needed. The scheduler runs inside the worker and coordinates replicas with lease rows in the database.
 
@@ -58,21 +58,27 @@ Every other variable has a working default. See [Configuration](/docs/self-hosti
 In the environment, add a PostgreSQL database, version 14 or newer, in managed mode for production. Keep it private.
 
 </Step>
+<Step title="Connect the registry">
+
+In the organization settings, add a container registry of type GitHub Container Registry, with the URL `https://ghcr.io` and a GitHub classic personal access token with the `read:packages` scope.
+
+Pick one tag for all three services. `main` follows every push to `main`; `sha-<commit>` pins a build; a release adds `<version>`, `<major>.<minor>` and `latest` (amd64 and arm64). Pin `sha-<commit>` or a version in production.
+
+</Step>
 <Step title="Create the migration job">
 
-Add a lifecycle job from your fork of the repository:
+Add a lifecycle job from that registry, image `lguerberg/open-sequence` and your tag:
 
-- Build with the Dockerfile at `apps/server/Dockerfile`, root path `/` (the Dockerfile copies the whole workspace).
 - Trigger it on the environment's start (deploy) event, with the command `node dist/cli.js migrate`.
 
-<Tip>You can skip the build: create the job and both applications from a container registry instead, with the image `ghcr.io/lguerberg/open-sequence` and a pinned tag (`sha-<commit>`, or a version once one is released). Every other setting on this page stays the same.</Tip>
+<Tip>To run your own changes, build from your fork instead: the Dockerfile at `apps/server/Dockerfile`, root path `/` (it copies the whole workspace), for the job and both applications. Every other setting on this page stays the same.</Tip>
 
 The command applies the `seq` and `auth` migrations and exits. It is safe to run on every deploy: an up-to-date database prints `already up to date`.
 
 </Step>
 <Step title="Create the api application">
 
-Add an application from the same repository, Dockerfile and root path.
+Add an application from the same registry, image and tag.
 
 - Port `8080`, publicly exposed. Add your custom domain and set `SEQ_PUBLIC_URL` to it.
 - Liveness probe: HTTP `GET /healthz` on 8080.
@@ -123,4 +129,4 @@ curl https://sequences.example.com/v1/admin/engine/health -H "Authorization: Bea
 
 - **Scaling.** Add api instances on CPU. Add worker instances when queue depth grows; replicas are safe. See [Scaling](/docs/self-hosting/scaling).
 - **Webhook receivers.** OpenSequence only delivers webhooks to public HTTPS addresses. A receiver in the same Qovery environment needs a public domain; its internal address is refused.
-- **Upgrades.** Pushing a new commit redeploys in pipeline order: migrate, api, worker. For a release that removes something, read [Upgrades](/docs/self-hosting/upgrades) first.
+- **Upgrades.** Change the tag on the three services (or let `main` move) and redeploy: the pipeline runs migrate, api, worker in order. For a release that removes something, read [Upgrades](/docs/self-hosting/upgrades) first.

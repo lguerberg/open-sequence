@@ -18,7 +18,7 @@ curl -s $SEQ/readyz
 # {"ok":true}
 ```
 
-Compose starts Postgres and one OpenSequence container. The container applies the database migrations on boot, serves the API on port 8080 and runs the background workers in the same process. If `/readyz` answers `{"ok":false,...}`, wait two seconds and try again: it turns ready once the database is migrated and the scheduler has run its first job.
+Compose pulls the published image (`ghcr.io/lguerberg/open-sequence:main`), then starts Postgres and one OpenSequence container. The container applies the database migrations on boot, serves the API on port 8080 and runs the background workers in the same process. If `/readyz` answers `{"ok":false,...}`, wait two seconds and try again: it turns ready once the database is migrated and the scheduler has run its first job.
 
 </Step>
 <Step title="Create a project">
