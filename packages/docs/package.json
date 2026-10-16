@@ -8,9 +8,10 @@
   "scripts": {
     "generate": "tsx scripts/generate.ts",
     "dev": "pnpm run generate && next dev",
-    "build": "pnpm run generate && next build",
+    "build": "pnpm run generate && next build && pnpm run redirects",
     "typecheck": "tsc --noEmit",
-    "preview": "npx serve out"
+    "preview": "npx serve out",
+    "redirects": "tsx scripts/redirects.ts"
   },
   "dependencies": {
     "fumadocs-core": "16.17.2",

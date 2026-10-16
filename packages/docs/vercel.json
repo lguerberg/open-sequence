@@ -1,4 +1,101 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "redirects": [
+    {
+      "source": "/docs/senders/senders",
+      "destination": "/docs/sending/senders",
+      "permanent": true
+    },
+    {
+      "source": "/docs/senders/connect-google",
+      "destination": "/docs/sending/email-gmail",
+      "permanent": true
+    },
+    {
+      "source": "/docs/senders/connect-allo",
+      "destination": "/docs/sending/sms-and-calls-allo",
+      "permanent": true
+    },
+    {
+      "source": "/docs/senders/connect-attio",
+      "destination": "/docs/sequences/crm-conditions",
+      "permanent": true
+    },
+    {
+      "source": "/docs/senders/connect-linkedin",
+      "destination": "/docs/sending/channels",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/task-node",
+      "destination": "/docs/sending/call-tasks",
+      "permanent": true
+    },
+    {
+      "source": "/docs/enrollments/tasks",
+      "destination": "/docs/sending/call-tasks",
+      "permanent": true
+    },
+    {
+      "source": "/docs/enrollments/enrolling",
+      "destination": "/docs/contacts/enrolling",
+      "permanent": true
+    },
+    {
+      "source": "/docs/enrollments/lifecycle",
+      "destination": "/docs/contacts/lifecycle",
+      "permanent": true
+    },
+    {
+      "source": "/docs/enrollments/journey",
+      "destination": "/docs/contacts/journey",
+      "permanent": true
+    },
+    {
+      "source": "/docs/security/email-compliance",
+      "destination": "/docs/sending/deliverability-and-compliance",
+      "permanent": true
+    },
+    {
+      "source": "/docs/security/sms-compliance",
+      "destination": "/docs/sending/deliverability-and-compliance",
+      "permanent": true
+    },
+    {
+      "source": "/docs/security/linkedin-automation",
+      "destination": "/docs/sending/channels",
+      "permanent": true
+    },
+    {
+      "source": "/docs/get-started/comparison",
+      "destination": "/docs",
+      "permanent": true
+    },
+    {
+      "source": "/docs/analytics/honest-comparisons",
+      "destination": "/docs/analytics/comparing-channels",
+      "permanent": true
+    },
+    {
+      "source": "/docs/tutorials/integrate-your-crm",
+      "destination": "/docs/use-cases/sales-outbound",
+      "permanent": true
+    },
+    {
+      "source": "/docs/tutorials/migrate-from-a-saas-tool",
+      "destination": "/docs/use-cases/sales-outbound",
+      "permanent": true
+    },
+    {
+      "source": "/docs/tutorials/build-a-sequence-editor",
+      "destination": "/docs/sequences/building-a-canvas",
+      "permanent": true
+    },
+    {
+      "source": "/docs/tutorials/agent-enrollment",
+      "destination": "/sdks/mcp",
+      "permanent": true
+    }
+  ]
 }
