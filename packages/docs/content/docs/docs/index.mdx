@@ -1,42 +1,25 @@
 ---
-title: "What OpenSequence is"
-description: "A self-hosted service that runs multi-step outreach sequences for any CRM, behind a small HTTP API."
+title: "Docs overview"
+description: "What OpenSequence is, who it is for, and how these docs are organised, with a link to every section from the quickstart to self-hosting."
 ---
 
-OpenSequence runs multi-step outreach flows (an email, a wait, a condition, a text, a call task) on behalf of your application. You keep your CRM, your UI and your users; OpenSequence keeps the scheduling, the sending, the listening and the bookkeeping. It is one Docker image, a Postgres you own, a queue you choose, an operator token that creates projects, per-project API keys, and signed outbound webhooks. If you have run a self-hosted Svix, the shape is familiar.
+OpenSequence is a self-hosted service that runs multi-step outreach for your application: emails, texts, waits, conditions and call tasks, sent from your own users' mailboxes and numbers. Your app talks to it over a small HTTP API and hears back through signed webhooks; the service does the scheduling, sending, reply tracking and bookkeeping.
 
-## What your application does
+It is for engineers who want sequences inside their own CRM or product without renting a sales engagement tool: you keep your UI, your data and your users, and run one Docker image next to a Postgres you own.
 
-| You do | With |
-|---|---|
-| Register the people who send (a **sender**: a user with a Google account for mail and calendar and an Allo number) | [`senders`](/docs/senders/senders) |
-| Register the people who receive (a **contact**: email, phone, free attributes, SMS consent) | [`contacts`](/docs/contacts/contacts) |
-| Design flows as JSON (a **sequence**, versioned, immutable once published) | [`sequences` and `versions`](/docs/sequences/definition) |
-| Start a contact on a sequence as a sender, or stop them | [`enrollments`](/docs/enrollments/enrolling) |
-| Let senders do the manual steps (a call, anything you define) | [`tasks`](/docs/enrollments/tasks) |
-| Read what happened: replies and meetings per sequence, channel and step, and one contact's path | [`analytics`](/docs/analytics/outcomes), [the journey](/docs/enrollments/journey) |
-| Branch on what the CRM knows (an open deal, its stage, a company attribute) | [`crm.*` conditions](/docs/sequences/crm-conditions), read live from Attio |
-| Get told when something happens | [outbound webhooks](/docs/webhooks/overview) |
+## How these docs are organised
 
-Everything else happens inside the service: it schedules each step, sends the email or the text through the sender's own accounts, pushes calls into the sender's dialer, throttles, listens for replies, bounces, opt-outs, call outcomes and calendar bookings, reads the CRM when a condition asks, exits contacts by rule, and records every decision. Your application never calls a provider, never runs a timer and never reads the service's database.
-
-## What it promises
-
-1. **Never double-send and never lose a contact.** Side effects are idempotent or at-most-once; the database is the source of truth; queues carry hints only.
-2. **Dozens of live sequences, thousands of contacts, no workflow engine.** External limits (mailbox caps, SMS lines) are the real constraint, so throttling and fairness come first.
-3. **Self-contained.** Own database, own queue, own workers, own provider connections. A client only needs HTTP.
-4. **JSON-first.** A sequence is one document, so a canvas, a script or an agent all edit the same thing through the same API.
-5. **Debuggable.** Every decision stores the facts it read and the branch it took.
-6. **Independently deployable.** One image, rollable back without touching any client.
-7. **Generic and open.** `project_id` on every table, one API key per project, providers behind ports, Apache-2.0.
-
-## What it does not do (v1)
-
-No built-in UI (you build yours on the API), no providers beyond Google, Allo and Attio (SMTP and IMAP, Twilio and HubSpot come later behind the same ports), no SMS without consent, no A/B on content, no open and click tracking, no WhatsApp, no holidays in business-day math.
+Start with **Get started**: the quickstart runs on your laptop in about ten minutes, and the three pages after it explain the model and the machinery. **Use cases** shows complete flows. The middle sections (**Sending**, **Sequences**, **Contacts and enrollments**, **Webhooks**, **Analytics**) each cover one part of the API. **Self-hosting** and **Security** are for whoever runs the service. Every endpoint is in the [API reference](/api/conventions), and the SDKs and the CLI have their own tab.
 
 <Cards>
-  <Card title="Quickstart" href="/docs/get-started/quickstart" description="Six calls from docker compose up to a first enrollment." />
-  <Card title="Concepts" href="/docs/get-started/concepts" description="Project, sender, contact, sequence, version, enrollment, run, task, signal, webhook." />
-  <Card title="How it works" href="/docs/get-started/how-it-works" description="Three loops, the database is truth, what happens to one contact." />
-  <Card title="API reference" href="/api/conventions" description="Every endpoint with a playground against your own instance." />
+  <Card title="Get started" href="/docs/get-started/quickstart">The quickstart, the concepts, one contact's journey, and the architecture.</Card>
+  <Card title="Use cases" href="/docs/use-cases/sales-outbound">Sales outbound, onboarding, re-engagement, event follow-up, sequences in your product.</Card>
+  <Card title="Sending" href="/docs/sending/senders">Senders and channels: Gmail, SMTP and IMAP, Allo for texts and calls, call tasks.</Card>
+  <Card title="Sequences" href="/docs/sequences/definition">The JSON definition, nodes, waits, conditions, templates and versions.</Card>
+  <Card title="Contacts and enrollments" href="/docs/contacts/contacts">Contacts, attributes, consent, enrolling and the journey.</Card>
+  <Card title="Webhooks" href="/docs/webhooks/overview">Receive, verify and replay the events the service sends you.</Card>
+  <Card title="Analytics" href="/docs/analytics/outcomes">Replies and meetings per sequence, step and channel.</Card>
+  <Card title="Self-hosting" href="/docs/self-hosting/install">Install, configure, scale, upgrade and observe the service.</Card>
+  <Card title="Security" href="/docs/security/security">Keys, encryption, tenancy and data retention.</Card>
+  <Card title="Community" href="/docs/community/contributing">Contribute, extend with new providers, and get help.</Card>
 </Cards>

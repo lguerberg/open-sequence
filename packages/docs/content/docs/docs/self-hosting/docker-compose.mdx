@@ -1,0 +1,166 @@
+---
+title: "Docker Compose"
+description: "What the repository's docker-compose.yml runs, the settings it uses, and how to switch the mocks off, connect Gmail, SMTP or Allo, and split roles."
+---
+
+The repository ships a `docker-compose.yml` that starts Postgres and one OpenSequence container with mock providers. Use it to try the API on your laptop, to develop against it, or as a starting point for a small single-host install.
+
+```bash
+git clone https://github.com/lguerberg/open-sequence && cd open-sequence
+docker compose up -d
+curl -s http://localhost:8080/readyz
+# {"ok":true}
+```
+
+The [Quickstart](/docs/get-started/quickstart) walks through a first sequence on this stack. For a production install, see [Install](/docs/self-hosting/install).
+
+## What it runs
+
+| Service | Image | Port | Notes |
+|---|---|---|---|
+| `postgres` | `postgres:16-alpine` | `5432` | User, password and database `oseq` / `oseq` / `opensequence`. Data in the `pgdata` volume. Health-checked with `pg_isready`. |
+| `opensequence` | `opensequence/server:dev`, built from `apps/server/Dockerfile` | `8080` | Starts once Postgres is healthy. Runs the API and the workers in one process. |
+
+On boot the `opensequence` container applies the database migrations, logs `mock providers are on`, starts the HTTP server, then starts the scheduler and one consumer per queue (`seq_email`, `seq_sms`, `seq_signals`, `seq_webhooks`).
+
+## The settings it uses
+
+| Variable | Compose value | Meaning |
+|---|---|---|
+| `SEQ_DB_DSN` | `postgres://oseq:oseq@postgres:5432/opensequence` | The Postgres connection string |
+| `SEQ_QUEUE` | `postgres` | Queue backend: `postgres`, `redis` or `memory` |
+| `SEQ_ROLES` | `all` | `api`, `worker` or `all` |
+| `SEQ_RUN_MIGRATIONS` | `1` | Apply migrations on boot |
+| `SEQ_PUBLIC_URL` | `http://localhost:8080` | The URL the outside world reaches the API on: OAuth callbacks, unsubscribe links, Allo webhooks |
+| `SEQ_PORT` | `8080` | The port the process listens on |
+| `SEQ_ENCRYPTION_KEYS` | a fixed development key | Encrypts every stored secret |
+| `SEQ_ADMIN_TOKEN` | `dev-admin-token` | The operator token that creates projects |
+| `SEQ_DEV_MOCK_PROVIDERS` | `1` | Fake Google, Allo and Attio |
+| `NODE_ENV` | `development` | The image defaults to `production`, which refuses mock providers |
+| `SEQ_LOG_LEVEL` | `info` | `fatal` to `trace` |
+
+Every variable, with its default, is in [Configuration](/docs/self-hosting/configuration).
+
+<Warning>The encryption key and the admin token in the compose file are public. Replace both before the stack holds anything real.</Warning>
+
+```bash
+docker compose exec opensequence node dist/cli.js secrets new-key
+# kmvb284zu:gja00xckw1l3NGJQItZej3ya4NXhemLOn909J8OKpw8=
+```
+
+Put the output in `SEQ_ENCRYPTION_KEYS`, and set `SEQ_ADMIN_TOKEN` to a long random string. Change the key before you store credentials: secrets encrypted with one key cannot be read without it.
+
+## What the mocks do
+
+With `SEQ_DEV_MOCK_PROVIDERS=1`, nothing leaves the machine:
+
+- `POST /v1/senders/{id}/connections/google` makes the sender's `email` channel active at once, with no OAuth.
+- Emails and texts go to an in-memory mailbox. They show up as messages in the journey (`GET /v1/enrollments/{id}`) and the contact timeline.
+- `POST /hooks/mock/{project slug}` accepts inbound events (a reply, a bounce, a meeting) as JSON, as if a provider had sent them.
+
+The process refuses to start with mocks on when `NODE_ENV=production`.
+
+## Switch the mocks off
+
+Remove `SEQ_DEV_MOCK_PROVIDERS` (or set it to `0`) and restart. Real providers need a few things the mocks do not:
+
+<Steps>
+<Step title="A public URL">
+
+Set `SEQ_PUBLIC_URL` to the address Google and Allo can reach, such as an HTTPS tunnel to port 8080 on your laptop. The service builds the Google OAuth callback (`{SEQ_PUBLIC_URL}/v1/oauth/google/callback`), unsubscribe links and the Allo webhook URL from it.
+
+</Step>
+<Step title="Gmail">
+
+Create an OAuth client in Google Cloud with that callback as an authorized redirect URI, then store it on the project. Senders then connect with the same call as before; it now returns an `auth_url` for the sender to open once.
+
+```bash
+curl -X PUT $SEQ/v1/project/providers/google -H "Authorization: Bearer $ADMIN_KEY" \
+  -H "Content-Type: application/json" -d '{"client_id":"...","client_secret":"..."}'
+```
+
+See [Email via Gmail](/docs/sending/email-gmail).
+
+</Step>
+<Step title="SMTP and IMAP">
+
+A sender without Gmail can send over SMTP and read replies over IMAP. The mailbox is set per sender with `PUT /v1/senders/{id}/channels/email`, and the passwords are write-only. Microsoft 365 is not supported. See [Email via SMTP and IMAP](/docs/sending/email-smtp).
+
+</Step>
+<Step title="Allo for texts and calls">
+
+Store the Allo API key on the project. The service registers its own webhook at Allo (`{SEQ_PUBLIC_URL}/hooks/allo/{project slug}`) and keeps the signing secret. Then give each sender their Allo number and user.
+
+```bash
+curl -X PUT $SEQ/v1/project/providers/allo -H "Authorization: Bearer $ADMIN_KEY" \
+  -H "Content-Type: application/json" -d '{"api_key":"..."}'
+curl -X PUT $SEQ/v1/senders/u_42/channels/sms -H "Authorization: Bearer $ADMIN_KEY" \
+  -H "Content-Type: application/json" -d '{"allo_user_id":"usr_...","number":"+14155550100"}'
+```
+
+See [SMS and calls via Allo](/docs/sending/sms-and-calls-allo).
+
+</Step>
+</Steps>
+
+Without mocks there is no mock CRM either: `crm.*` conditions need an Attio key (`PUT /v1/project/providers/attio`). See [CRM conditions](/docs/sequences/crm-conditions).
+
+## Run the api and worker roles apart
+
+One `all` process is fine for a laptop and for small installs. To scale the API and the workers separately, run the same image twice with different `SEQ_ROLES`. Save this as `docker-compose.override.yml` next to the compose file; Compose reads it automatically:
+
+```yaml title="docker-compose.override.yml"
+services:
+  opensequence:
+    environment:
+      SEQ_ROLES: api
+  worker:
+    image: opensequence/server:dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SEQ_DB_DSN: postgres://oseq:oseq@postgres:5432/opensequence
+      SEQ_QUEUE: postgres
+      SEQ_ROLES: worker
+      SEQ_PUBLIC_URL: http://localhost:8080
+      SEQ_ENCRYPTION_KEYS: 'the same value as the opensequence service'
+      # Match the api: drop these two lines when you switch the mocks off.
+      SEQ_DEV_MOCK_PROVIDERS: '1'
+      NODE_ENV: development
+```
+
+The rules:
+
+- Both roles need the same `SEQ_DB_DSN`, `SEQ_QUEUE`, `SEQ_ENCRYPTION_KEYS`, `SEQ_PUBLIC_URL` and `SEQ_DEV_MOCK_PROVIDERS`.
+- `SEQ_ADMIN_TOKEN` is required for `api` and `all`, not for `worker`.
+- Let one role run migrations (`SEQ_RUN_MIGRATIONS=1` on the api). Replicas that do it at the same time wait for each other on a lock row, so it is also safe on both.
+- The `memory` queue lives inside one process, so it cannot work across roles. Use `postgres` or `redis`.
+- A worker still listens on `SEQ_PORT` for `/healthz` and `/readyz`; do not expose it publicly.
+
+You can then run more workers with `docker compose up -d --scale worker=3`. See [Architecture](/docs/get-started/architecture) for what each role does and [Scaling](/docs/self-hosting/scaling) for sizing.
+
+## Your data
+
+Postgres keeps everything in the named volume `pgdata`. The OpenSequence container holds no state.
+
+| Command | Data |
+|---|---|
+| `docker compose down` | Kept |
+| `docker compose down -v` | Deleted, with the volume |
+| `docker compose exec postgres pg_dump -U oseq opensequence > backup.sql` | Copied to a file |
+
+Back up `SEQ_ENCRYPTION_KEYS` with the database. A database restored without its key has unreadable credentials.
+
+## Upgrade
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+The new container applies any new migrations on boot before it serves traffic, and each migration runs in its own transaction. Take a backup first. See [Upgrades](/docs/self-hosting/upgrades).
+
+## Production
+
+This compose file is a development setup: public secrets, mock providers, one process, the database on the same host. For production, use your own Postgres, real secrets, separate `api` and `worker` roles and HTTPS in front of the API. Start at [Install](/docs/self-hosting/install).

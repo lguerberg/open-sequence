@@ -1,70 +1,114 @@
 ---
 title: "Concepts"
-description: "Project, sender, contact, sequence, version, enrollment, run, task, signal, webhook endpoint, in one paragraph each."
+description: "The objects OpenSequence works with, from project and sender to enrollment, run and signal, in plain language and one diagram."
 ---
 
-```text
-project ─┬─ api keys (read | enroll | admin)
-         ├─ provider credentials (google client, allo key, attio key)   write-only
-         ├─ senders ──┬─ channels (email from a Google connection, sms from an Allo number)
-         │            └─ tasks
-         ├─ contacts ─┬─ suppressions
-         │            └─ enrollments ──┬─ runs (one per node, append-only)
-         │                             ├─ messages (sent and received)
-         │                             ├─ signals (reply, bounce, opt-out, meeting, call, task_completed, …)
-         │                             └─ tasks
-         ├─ sequences ─── versions (draft → published → archived; the definition is JSON)
-         └─ webhook endpoints ─── deliveries
+This page names the objects you meet in the API and says how they fit together. Read it once before you build on OpenSequence, and come back when an id prefix or a status puzzles you.
+
+```mermaid
+flowchart TD
+  P[Project] --> S[Sender]
+  S --> CH[Channel: email or sms]
+  P --> C[Contact]
+  C --> SU[Suppression]
+  P --> Q[Sequence]
+  Q --> V[Version: the JSON definition]
+  E[Enrollment] --- C
+  E --- V
+  E --- S
+  E --> R[Run: one per step]
+  R --> M[Message]
+  R --> T[Task]
+  SG[Signal] -->|exits, pauses or wakes| E
+  P --> W[Webhook endpoint] --> D[Delivery]
 ```
 
-## Project
+In one sentence: a **project** has **senders** and **contacts**; an **enrollment** runs one contact through one **version** of a **sequence** as one sender; every step it takes is a **run**; what comes back from the outside world is a **signal**; and **webhooks** tell your app about all of it.
 
-A tenant. Owns its senders, contacts, sequences, provider credentials, webhook endpoints and API keys. Every table carries `project_id`, every query is scoped by it, and a key from one project can never see another project's data (a cross-tenant request is a `404`). The operator creates projects with `SEQ_ADMIN_TOKEN` (`POST /v1/admin/projects` or `oseq projects create`); the response carries the first `admin` key, shown once. Ids are `prj_…`.
+## The setup objects
 
-## Sender
+### Project
 
-The acting user an enrollment runs as: a name, an email, a time zone and `attrs`. A sender has **channels**: `email` once a Google account is connected (Gmail and Calendar under one consent), `sms` once an Allo number is set. Each channel has limits (`daily_limit`, `weekly_limit`, `min_gap_seconds`) and a status (`active`, `paused`, `credentials_needed`, `restricted`, `disconnected`). You address a sender by your own id: `PUT /v1/senders/u_42`. Ids are `snd_…`; channels `chn_…`.
+A project is one tenant (`prj_`). Everything else belongs to exactly one project, and a key from one project never sees another project's data. The operator creates projects with the `SEQ_ADMIN_TOKEN`. A project holds its API keys, its provider credentials (a Google OAuth client, an Allo key, an Attio key, all write-only) and its settings, such as the countries texts may go to.
 
-## Connection
+API keys have one of three scopes, each including the ones before it:
 
-A sender's authorized account at an OAuth provider, with its tokens, owned by the auth module (`@opensequence/auth`). Google is the only OAuth provider today; API-key providers (Allo, Attio) have no connections, one workspace key per project. Tokens are encrypted and never returned.
+| Scope | Can |
+|---|---|
+| `read` | Read senders, contacts, sequences, journeys, tasks and analytics |
+| `enroll` | Also upsert contacts, enroll them, pause and resume enrollments, report contact events |
+| `admin` | Also manage senders, sequences, webhooks, keys, SMS consent and project settings |
 
-## Contact
+### Sender and channel
 
-The person who receives a sequence: `first_name`, `last_name`, `email`, `phone` (E.164), `country`, `timezone`, `sms_consent`, and free `attrs` JSON. Addressed by your own id (`PUT /v1/contacts/p_7`), `attrs` deep-merged on every upsert. A contact can be in **at most one active sequence per project**. Ids are `ctc_…`.
+A sender (`snd_`) is the person outreach comes from: a name, an email, an IANA time zone and free `attrs`. You address it by your own id, as in `PUT /v1/senders/u_42`.
 
-## Sequence and version
+A sender sends through **channels** (`chn_`), at most one per kind:
 
-A sequence is a named container of versions. A version holds one JSON **definition**; it is a `draft` while you edit it (optimistic lock on `lock_version`), `published` and immutable once validation passes, `archived` when you stop new enrollments into it. Publishing makes the version the sequence's default. Ids are `seq_…` and `ver_…`; versions also have a tag (`v1`, `v2`, free text).
+| Channel | Comes from | Default limits |
+|---|---|---|
+| `email` | A Gmail account connected with OAuth ([Email via Gmail](/docs/sending/email-gmail)), or a mailbox reached over SMTP and IMAP ([Email via SMTP and IMAP](/docs/sending/email-smtp)) | 30 a day, 60 seconds apart |
+| `sms` | An Allo number and the sender's Allo user ([SMS and calls via Allo](/docs/sending/sms-and-calls-allo)) | 100 a day |
 
-## Node (step)
+A channel has a status. Only an `active` channel sends; the others are `pending`, `paused`, `credentials_needed` (the sender must reconnect), `restricted` and `disconnected`.
 
-One box in the definition: `start`, `outreach` (with a `channel` and an `action`: `email send`, `sms send`), `wait`, `wait_for`, `condition`, `task`, `end`. Nodes have human-readable string ids chosen by you, named transitions (`sent`, `skipped`, `failed`, `then`, `yes`, `no`, `completed`, `no_answer`, one per waited event, `timeout`), and a closed vocabulary with no expressions or code.
+### Contact and suppression
 
-## Enrollment
+A contact (`ctc_`) is the person who receives a sequence: name, email, phone in E.164, country, time zone, SMS consent and free `attrs` JSON. You address it by your own id too, as in `PUT /v1/contacts/p_7`. Each upsert merges `attrs` one level deep.
 
-One contact running one version, as one sender. It has a status (`active`, `paused`, `waiting_limit`, `completed`, `exited`, `failed`), a current node, a timer (`next_run_at`), and the record of what happened: touches, the first reply and the first meeting, the exit reason. Ids are `enr_…`.
+A **suppression** says "do not contact this person on this channel" (or on all channels). The service adds one on an opt-out, a hard bounce or a spam complaint, and you can add one yourself. Suppressions are checked when you enroll and again right before every send.
 
-## Run
+### Sequence and version
 
-One execution of one node for one enrollment, in an append-only ledger: node, status (`done`, `skipped`, `deferred`, `failed`, `needs_review`, `waiting`, `skipped_dry_run`), the branch taken, and `result` (the facts a condition read, the values a template rendered, the message id of a send). The journey is this ledger. Ids are `run_…`.
+A sequence (`seq_`) is a named container. The flow itself lives in a **version** (`ver_`): one JSON document called the **definition**, made of **nodes** (steps) joined by named transitions.
 
-## Message
+A version is a `draft` while you edit it, `published` once it passes validation (after that it never changes), and `archived` when you stop new enrollments into it. Publishing makes the version the one new enrollments use. To change a live flow, you publish a new version; contacts already enrolled keep the version they started on.
 
-One email or text the service sent or received: direction, addresses, subject, body (inbound bodies only when the project opts in), provider ids and the thread reference replies are matched on. Ids are `msg_…`.
+The node types are `start`, `outreach` (send an email or a text), `wait`, `wait_for` (wait for a reply, a connected call or a meeting, with a timeout), `condition`, `task` and `end`. See [Nodes](/docs/sequences/nodes).
 
-## Task
+## The runtime objects
 
-A manual step for a human (a call, anything you define), created by a `task` node with a `kind`, a rendered title and body, a link, a due date and an expiry. Your application shows it and completes it with an outcome; a `call` task with `dialer: true` is also pushed into the sender's Allo dialer and completes itself from the call result. Ids are `tsk_…`.
+### Enrollment
 
-## Signal
+An enrollment (`enr_`) is one contact going through one version as one sender. It knows which node it is on and when it is next due. Its status is one of:
 
-A normalized fact from outside: `reply`, `bounce`, `complaint`, `opt_out`, `ooo` (out of office), `meeting_booked`, `call_connected`, `task_completed`, `connection_accepted`, `contact_suppressed`. Produced by provider webhooks and polls, task completions, or your own reports (`POST /v1/contacts/{id}/events`). Each signal is idempotent by its external id, attributed to a run, and applied to every enrollment it can touch (exit, pause, wake). Ids are `sig_…`.
+| Status | Meaning |
+|---|---|
+| `active` | Moving through the flow, or waiting for a timer or an event |
+| `paused` | Stopped by you, by an out-of-office reply or by a step that failed |
+| `waiting_limit` | Held back by the sender's daily limit, retried later |
+| `completed` | Reached an `end` node |
+| `exited` | Left early, with a reason such as `replied`, `meeting_booked`, `opt_out` or `bounced` |
 
-## Facts
+A contact can be in **one active enrollment per project**. Enrolling a contact who already is returns `409 ALREADY_IN_SEQUENCE`.
 
-The values a condition reads at decision time: contact columns and `attrs`, sender columns, history (`history.touches`, `history.last_task_outcome`, …) and live CRM values (`crm.deal.stage`). Stored on the run as `result.facts`, so "why did they take No" is answered from what the decision saw, not from today's data.
+### Run
 
-## Webhook endpoint
+A run (`run_`) records one execution of one node for one enrollment. Runs are append-only, so together they are the enrollment's history: which branch a condition took and the facts it read, the values a template rendered, the message a send produced, or why a step was skipped or deferred. [The journey](/docs/contacts/journey) is this list.
 
-A URL of yours the service calls when something happens, signed with [Standard Webhooks](https://www.standardwebhooks.com) headers, retried for three days, replayable. Ids are `wep_…`; deliveries `wdl_…`.
+### Message
+
+A message (`msg_`) is one email or text, sent or received. It carries the addresses, the subject, the rendered body and the thread reference a reply is matched against. Inbound bodies are stored only if the project opts in.
+
+### Task
+
+A task (`tsk_`) is a step for a human, such as a call. A `task` node creates it with a title, a due date and an expiry on the sender's calendar. Your app shows it to the sender and completes it with an outcome, and the outcome picks the next branch. Its status is `open`, `done`, `expired` or `cancelled`. See [Call tasks](/docs/sending/call-tasks).
+
+### Signal
+
+A signal (`sig_`) is a fact from outside the flow: a `reply`, a `bounce`, a `complaint`, an `opt_out`, an out-of-office (`ooo`), a `meeting_booked`, a `call_connected`, a `task_completed`. Signals come from mailbox and calendar polling, Allo webhooks, task completions and the events you report with `POST /v1/contacts/{id}/events`.
+
+Each signal is stored once per source and external id, so the same webhook twice changes nothing. It is credited to the step that earned it, then applied to the contact's enrollments: it can exit them (opt-out, bounce, or a reply when the definition says so), pause them (out of office) or wake a step that waits for it.
+
+### Webhook endpoint and delivery
+
+A webhook endpoint (`wep_`) is a URL of yours that subscribes to event types such as `enrollment.exited` or `signal.received`. Each event becomes one delivery (`wdl_`) per endpoint, signed with [Standard Webhooks](https://www.standardwebhooks.com) headers and tried up to nine times over about a day and a half. Deliveries about the same enrollment arrive in order. See [Receiving webhooks](/docs/webhooks/overview).
+
+## Ids
+
+Every object has a prefixed id (`prj_`, `snd_`, `chn_`, `ctc_`, `seq_`, `ver_`, `enr_`, `run_`, `msg_`, `tsk_`, `sig_`, `wep_`, `wdl_`). Senders and contacts also accept your own id in the URL, so you never have to store ours.
+
+<Cards>
+  <Card title="How it works" href="/docs/get-started/how-it-works">Follow one contact through one sequence.</Card>
+  <Card title="Architecture" href="/docs/get-started/architecture">The scheduler, the queues and the workers behind it.</Card>
+</Cards>

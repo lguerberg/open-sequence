@@ -1,65 +1,112 @@
 ---
 title: "How it works"
-description: "Three loops, the database is truth and queues are hints, ownership, and what happens to one contact."
+description: "Follow one contact through one sequence: enroll, the planner, waits and send windows, the checks before a send, a reply, the exit and the webhook."
 ---
 
-## One contact's life, in ten lines
+This page follows one contact, Dana, through one sequence: an email, then a wait of up to three days for a reply. Read it to know what the service does between your enroll call and the webhook that tells you Dana replied.
 
-1. Your app upserts a sender (`PUT /v1/senders/u_42`) and connects their Google account (`POST /v1/senders/u_42/connections/google`): one consent, Gmail and Calendar.
-2. Your app upserts a contact with an email, a time zone and some `attrs` (`PUT /v1/contacts/p_7`).
-3. Someone publishes a sequence version: an email, a two-day wait, a condition, a text, a call task.
-4. Your app enrolls the contact as that sender (`POST /v1/sequences/seq_x/enrollments`). The service refuses if the contact is already in any sequence.
-5. The planner sees the enrollment is due, runs the pure interpreter, and queues the email step.
-6. The email executor checks the gates (suppressions, channel caps, send window), gets a fresh access token from the auth module, sends through the sender's Gmail with its own `Message-ID`, records the message and the run, and schedules the wait.
-7. Two business days later the planner evaluates the condition: it asks Attio for the contact's open deal and reads its stage, records the facts it read, and takes a branch.
-8. The text step is skipped (`no_consent`) because the contact never opted in; the skip is recorded and the flow continues.
-9. The call step creates a task and pushes the number into the sender's Allo dialer; when Allo reports the call, the task completes itself with the outcome, which wakes the flow.
-10. The contact replies to the first email, or books a slot that lands in the sender's Google Calendar. The signal is attributed to the email step, the enrollment exits with `replied` or `meeting_booked`, and a webhook `enrollment.exited` reaches your app.
-
-## Three loops
-
-```text
-scheduler (lease rows, every few seconds)
-   │
-   ├─ loop 1: planner ── claim due enrollments, fair per sender, advance ──► queue seq_email, seq_sms
-   │
-   ├─ loop 2: executors and pollers ── send through the sender's accounts, poll Gmail and Calendar, check health
-   │
-   └─ loop 3: signals and webhooks ── process signals (exit, pause, wake, attribute) ──► queue seq_webhooks ──► your endpoints
-                                                                                                    ▲
-   api: provider webhooks, task completions, client events ── insert signals in the same transaction ┘
+```mermaid
+sequenceDiagram
+  participant App as Your app
+  participant API as OpenSequence API
+  participant Plan as Planner
+  participant Mail as Email worker
+  participant Gmail
+  participant Sig as Signal worker
+  App->>API: POST /v1/sequences/{id}/enrollments
+  API-->>App: 201, enrollment active
+  Plan->>Plan: due? run start, queue the email
+  Mail->>Mail: checks: suppression, channel, limits, window
+  Mail->>Gmail: send as the sender
+  Mail->>Mail: sent, advance to wait_for
+  Gmail-->>Sig: poll finds Dana's reply
+  Sig->>Sig: credit the email, exit the enrollment
+  Sig-->>App: webhook enrollment.exited
 ```
 
-The loops talk only through tables and queues, never by calling each other, so any loop can be stopped, restarted or scaled alone.
+## 1. You enroll the contact
 
-- **The database is the truth, queue messages are hints.** A lost or duplicated message costs a delay at most: the planner re-finds anything due, and every step re-checks state under a row lock before acting.
-- **Transactional outbox.** With `SEQ_QUEUE=postgres` the enqueue is an insert in the same transaction as the state change, so "run recorded" and "message queued" cannot diverge. With Redis, the reaper re-enqueues anything recorded but never queued.
-- **Timers are rows, not process timers.** `next_run_at` on the enrollment is the timer; the scheduler wakes the planner every five seconds. Nothing is lost on restart.
-- **Logic steps run inline** (wait, condition, end, task creation) in one transaction, up to 25 steps per advance; a `crm.*` condition makes one Attio call inside that step. Only steps with an external side effect (email, SMS) hop to a queue.
+```bash
+curl -X POST $SEQ/v1/sequences/$SEQ_ID/enrollments -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" -d '{"contacts":["p_7"],"sender":"u_42"}'
+```
 
-## The scheduler
+The API checks the request before it writes anything:
 
-No cron extension: each periodic job has a lease row in `seq.job_locks`, and whichever replica takes the lease runs it. A lease is a few periods long, so a crashed leader is replaced within seconds, and every job is idempotent, so an overlap is harmless. Plain statements only, so a transaction pooler is fine.
+- If any contact in the request is already in an active sequence in this project, the whole call fails with `409 ALREADY_IN_SEQUENCE` and nobody is enrolled.
+- Contacts that are suppressed, re-enrolled too soon, or that have no usable channel for the first step are left out and listed in `skipped`. The rest go ahead.
 
-| Job | Period | What it does |
-|---|---|---|
-| `plan` | 5 s | claim due enrollments fairly per sender (50 per sender, 500 per tick) and advance them; resume pauses whose `paused_until` passed |
-| `signals` | 30 s | process unprocessed signals (the safety net for a lost message) |
-| `poll` | 60 s | for every active email channel: Gmail history from the stored cursor (scoped to threads the service started in the last 30 days), Calendar events from its cursor; every 15 minutes a health check that raises `sender.channel_status` on a change |
-| `reap` | 60 s | release planner claims older than 10 minutes, re-enqueue runs recorded but never queued, fail runs stuck for 2 hours, re-enqueue deliveries whose next attempt is due |
-| `webhooks` | 30 s | sweep deliveries due for a retry |
-| `retention` | daily | prune idempotency keys after a day, dead-queue rows and delivered webhook deliveries after 30 days |
+Each accepted contact gets an enrollment with status `active`, sitting on the `start` node, with a due time (`next_run_at`). When you enroll many contacts at once, the due times are spread over days to fit the sender's daily limit, and each one is moved into the sequence's send window if it has one. The response's `first_touch_at` and `capacity` tell you when the first touches will go out.
 
-## Ownership, and why there is no double send
+## 2. The planner picks it up
 
-While an executor works on a step, the enrollment's `owner_run_id` points at that run and `next_run_at` is null, so the planner cannot see it; only the executor that finishes the run hands the enrollment back. Every email carries a `Message-ID` derived from the run's idempotency key, and a retry first asks the provider whether that id already went out (`findSent`) before sending again. A text has no such key, so an unknown outcome searches the last ten minutes of outbound texts to that number, and if that is inconclusive the run goes to `needs_review` instead of being retried: a double text is worse than a late one.
+Every five seconds the planner looks for enrollments that are due and not busy. It takes them fairly, up to 50 per sender, so one busy sender cannot starve the others.
 
-## Signals
+For each one, it runs the definition from the current node. Logic steps happen right away, in one database transaction: `start` moves on, a `condition` reads its facts and picks a branch, a `wait` sets the next due time, a `task` creates a task. When the flow reaches a step that talks to the outside world (an email or a text), the planner records a run for it, puts a message on that channel's queue, and hands the enrollment to that worker. Until the worker finishes, the planner cannot touch the enrollment again.
 
-Everything that comes from outside becomes a signal row, unique per `(project, source, external id)`, so a webhook delivered twice changes nothing. Processing a signal is, per enrollment it can touch and in its own transaction: attribute (the first reply and the first meeting per enrollment, never rewritten), then exit (an opt-out, a hard bounce, a complaint or a suppression always exits; a reply or a meeting exits when `exit_on` says so), pause (an out-of-office reply pauses until its stated date or seven days), or wake a `wait_for` or a task. The effect is recorded, so a redelivered signal is a no-op. Afterwards `signal.received` is delivered to your endpoints.
+## 3. The email worker checks, then sends
 
-## Gates at execution
+The checks happen at the last moment, just before the send, because things change while a contact waits:
 
-The planner checks nothing about deliverability; the executor does, at the last moment: the contact's email or phone exists, no suppression on the channel (or on all channels), the channel exists on the sender and is `active`, the daily cap and minimum gap, the sequence's send window, and for SMS also consent, an allowed country (`sms_countries`), a known recipient time zone and 08:00 to 21:00 recipient-local. A gate that cannot pass skips the step (recorded with its reason, the flow takes `skipped`); a gate that will pass later defers it (`send_window`, `daily_limit`, `min_gap`, `quiet_hours`, `kill_switch`, `credentials_needed`), and the enrollment goes back to the planner with a new `next_run_at`.
+| Check | If it fails |
+|---|---|
+| The contact has an email address | Skip (`no_email`) |
+| The contact is not suppressed for email | Skip (`suppressed`) |
+| The email channel is not switched off for the project | Try again in 5 minutes |
+| The sender has an email channel and it is `active` | Skip (for example `sender_channel_credentials_needed`) |
+| Fewer than the daily limit sent in the last 24 hours | Try again in an hour, status `waiting_limit` |
+| The minimum gap since the sender's last email has passed | Try again when it has |
+| Now is inside the sequence's send window | Try again when the window opens |
 
-Read the full design in the [architecture document](https://github.com/lguerberg/open-sequence/blob/main/docs/ARCHITECTURE.md); these docs are for integrating, not for building the engine.
+A skipped step follows the `skipped` transition of the node and the flow goes on. A deferred step goes back to the planner with a new due time.
+
+When every check passes, the worker renders the subject and body, adds a one-click unsubscribe header, and sends through the sender's own mailbox. The email carries a `Message-ID` built from the run, so a retry after a crash first asks the mailbox whether that email already left. The worker stores the message, marks the run `done` with the branch `sent`, and moves the enrollment on.
+
+Texts go through the same steps with stricter checks: SMS consent, a phone number, an allowed country, a known time zone for the contact, and the hours of 08:00 to 21:00 in the contact's time zone. See [Deliverability and compliance](/docs/sending/deliverability-and-compliance).
+
+## 4. The enrollment waits
+
+The next node is `wait_for` with `events: ["reply"]` and `timeout: "3d"`. The enrollment records what it waits for and when the timeout falls due. Nothing runs in the meantime: the wait is a row in the database, not a timer in a process, so a restart loses nothing.
+
+If three days pass with no reply, the planner finds the enrollment due again and follows the `timeout` branch.
+
+## 5. Dana replies
+
+Every minute, the poll job reads each active Gmail mailbox from where it last stopped, looking only at threads the service started in the last 30 days. It finds Dana's reply in the thread of the email that went out and stores it as a `reply` **signal**. A Calendar booking would become a `meeting_booked` signal the same way, and Allo sends call and text events to the service as webhooks.
+
+The signal worker then:
+
+1. **Credits** the reply to the step that earned it: the last email to Dana before the reply (`direct`), or the last touch on any channel (`assisted`).
+2. **Exits** the enrollment with the reason `replied`, because the definition's `exit_on` lists `reply`. Without that, the reply would instead **wake** the `wait_for` step and the flow would take its `reply` branch.
+3. Records what it did, so the same signal arriving twice changes nothing.
+
+Some signals always exit, whatever the definition says: an opt-out, a hard bounce, a spam complaint and a suppression you report. An out-of-office reply pauses the enrollment until the date it gives, or for seven days.
+
+## 6. Your app hears about it
+
+Every change above raises an event: `enrollment.created`, `run.done`, `signal.received`, `enrollment.exited` and more. Each event is written as a delivery for every webhook endpoint that subscribed to it, in the same transaction as the change itself, then posted to your URL with a signature. Deliveries for one enrollment arrive in order, and a failed delivery is tried nine times over about a day and a half.
+
+```json
+{
+  "id": "evt_...",
+  "type": "enrollment.exited",
+  "project": "prj_...",
+  "occurred_at": "2026-10-16T10:02:11.000Z",
+  "data": {
+    "enrollment": { "id": "enr_...", "status": "exited", "exit_reason": "replied", "touch_count": 1 },
+    "exit_reason": "replied",
+    "signal": "sig_..."
+  }
+}
+```
+
+You can also read the whole story at any time with `GET /v1/enrollments/{id}` (the [journey](/docs/contacts/journey)): every run, every message, every signal and every task.
+
+## What you never have to do
+
+Your app never calls Gmail or Allo, never runs a timer, never retries a send and never reads the service's database. It upserts contacts, enrolls them, and listens.
+
+<Cards>
+  <Card title="Architecture" href="/docs/get-started/architecture">The jobs, queues and workers that run each of these steps.</Card>
+  <Card title="Receiving webhooks" href="/docs/webhooks/overview">Subscribe, verify signatures and handle retries.</Card>
+</Cards>
