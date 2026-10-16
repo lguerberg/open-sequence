@@ -1,6 +1,26 @@
 ---
 title: "Support"
-description: "Where to report bugs, ask questions and privately disclose security vulnerabilities in OpenSequence."
+description: "Where to report bugs, ask questions and privately disclose security vulnerabilities."
 ---
 
-<Note>This page is not written yet. Bugs and feature requests go to [GitHub issues](https://github.com/lguerberg/open-sequence/issues); questions to the discussions; a security vulnerability to the address in the repository's `SECURITY.md`, privately, before any public report. Quote the `request_id` from the response envelope when you report an API problem.</Note>
+OpenSequence is an open source project without a paid support tier. Everything goes through the repository, [github.com/lguerberg/open-sequence](https://github.com/lguerberg/open-sequence).
+
+## Bugs and feature requests
+
+Open an [issue](https://github.com/lguerberg/open-sequence/issues). For an API problem, quote the `request_id` from the response envelope (`meta.request_id`, a `req_…` value): every log line the request produced carries it. For an enrollment that did something unexpected, include the enrollment id and, if you can, the relevant runs from the [journey](/docs/contacts/journey); the facts a condition read and the reason a step was skipped are stored there.
+
+```json
+{ "success": false, "error": { "code": "ALREADY_IN_SEQUENCE", "message": "…" }, "meta": { "request_id": "req_k3…" } }
+```
+
+## Questions
+
+Discussions are not open on the repository yet, so ask in an [issue](https://github.com/lguerberg/open-sequence/issues) too. Before you do, check the [FAQ](/docs/community/faq). Every page on this site is also available as Markdown at `/llms.mdx/<path>/content.md`, for pasting into an agent.
+
+## Security vulnerabilities
+
+Report a vulnerability privately, never in a public issue. The repository has no `SECURITY.md` and no private vulnerability reporting yet, so contact the maintainer directly through their [GitHub profile](https://github.com/lguerberg). Say what you found, how to reproduce it, and which version or commit. The [Security](/docs/security/security) page describes the threat model and the controls in place.
+
+## Self-hosting help
+
+Start with the health endpoints (`/healthz`, `/readyz`, `GET /v1/admin/engine/health`) and the logs: [Observability](/docs/self-hosting/observability) lists what to look at and what to alert on. When you open an issue about a deployment, include the `SEQ_*` variables with the secrets removed, the queue backend, the role split and the Postgres version.

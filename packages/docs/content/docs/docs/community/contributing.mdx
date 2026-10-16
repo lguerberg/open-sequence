@@ -6,13 +6,17 @@ description: "The repository, the package layout, the import-lint rule, and runn
 ```bash
 git clone https://github.com/lguerberg/open-sequence && cd open-sequence
 pnpm install
+scripts/test-db.sh start      # a throwaway Postgres on port 54329, for the integration tests
+pnpm build                    # packages resolve each other through dist/
 pnpm typecheck && pnpm lint && pnpm test
-pnpm dev                      # the server with SEQ_ROLES=all and mock providers
+pnpm dev                      # the server, SEQ_ROLES=all
 pnpm oseq -- --help           # the CLI
 pnpm --filter @opensequence/docs dev   # these docs
 ```
 
-Node 22 and pnpm 10. The repository is a pnpm workspace; `docs/ARCHITECTURE.md` is the authoritative design and `CLAUDE.md` the working rules.
+Node 22 and pnpm 10. The repository is a pnpm workspace; `docs/ARCHITECTURE.md` is the design and `CLAUDE.md` the working rules. Where the design and the code disagree, the code is right.
+
+`pnpm dev` reads its configuration from the process environment only, not from a file. Export the variables of `.env.example` first (it sets `SEQ_DEV_MOCK_PROVIDERS=1`, so no real provider is called) and point `SEQ_DB_DSN` at a Postgres.
 
 ## Layout
 
@@ -24,10 +28,12 @@ Node 22 and pnpm 10. The repository is a pnpm workspace; `docs/ARCHITECTURE.md` 
 | `packages/providers` | `google`, `allo`, `attio` and `mock`, registered by name |
 | `packages/auth` | provider credentials and the token lifecycle (the `auth` schema); destined for its own repository |
 | `packages/sdk` | `@opensequence/sdk`, types generated from the OpenAPI file |
+| `packages/mcp` | `@opensequence/mcp`, the MCP server over the SDK ([MCP server](/sdks/mcp)) |
 | `packages/docs` | this site |
 | `apps/server` | the Fastify API, the workers, the composition root, the `oseq` CLI, `openapi.json` |
+| `apps/site` | the landing page and the blog |
 
-Every package is DDD-shaped: `src/domain`, `src/application`, `src/infrastructure`. Dependencies point inward only, and `pnpm lint` enforces it with `eslint-plugin-boundaries`: `domain` imports nothing from `application` or `infrastructure`; `core` imports no I/O package and no workspace package; `queue`, `providers` and `auth` never import `engine`; the SDK imports nothing from the repository. A violation is a lint error, not a review comment.
+`engine` and `auth` are split into `src/domain`, `src/application` and `src/infrastructure`; `core` is all domain. Dependencies point inward only, and `pnpm lint` enforces it with `eslint-plugin-boundaries`: `domain` imports only `domain`, `application` imports `domain` and `application`, and neither imports `infrastructure`. A violation is a lint error, not a review comment. The other rules are kept in review: `core` imports no I/O package and no workspace package; `queue`, `providers` and `auth` never import `engine`; the SDK imports nothing from the repository.
 
 ## Tests
 

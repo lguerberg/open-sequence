@@ -1,6 +1,64 @@
 ---
 title: "FAQ"
-description: "Short answers to common questions: one active sequence per contact, events from other tools, SMS consent, immutable versions and backing up encryption keys."
+description: "Short answers to the questions people ask first, each with the page that has the long one."
 ---
 
-<Note>This page is not written yet. Until it is, the answers people need most: a contact can be in one active sequence per project ([Enrolling](/docs/enrollments/enrolling)); the service only sees its own channels, so report meetings and do-not-contact flags ([Contact events](/docs/contacts/events)); no text leaves without consent ([Consent](/docs/contacts/consent-and-suppressions)); published versions are immutable ([Versions](/docs/sequences/versions)); and `SEQ_ENCRYPTION_KEYS` must be backed up with the database ([Database](/docs/self-hosting/database)).</Note>
+## Can a contact be in two sequences at once?
+
+No. A contact can be in one active enrollment per project (`active`, `paused` or `waiting_limit`). Enrolling a batch that contains such a contact fails with `409 ALREADY_IN_SEQUENCE`, names the conflicts, and enrolls nobody. Exit them first, or remove them from the selection. [Enrolling](/docs/contacts/enrolling).
+
+## The contact booked a meeting in Calendly and the sequence kept going. Why?
+
+The service only sees its own channels: replies in threads it started, bounces, STOP texts, unsubscribe clicks, Allo call results and bookings on a connected Google Calendar. A meeting booked elsewhere, a do-not-contact flag in your CRM or a reply in a shared inbox must be reported with `POST /v1/contacts/{id}/events`. [Contact events](/docs/contacts/events).
+
+## Why was my SMS step skipped?
+
+The run's `result.skip_reason` says: `no_consent`, `no_phone`, `country_not_allowed`, `suppressed`, `no_timezone`, `no_sms_channel` or `sender_channel_<status>`. Consent is false by default and only an `admin` key can set it. The allowed countries are `settings.sms_countries` (default `["US"]`). A text due outside 08:00 to 21:00 in the contact's time zone is deferred, not skipped. These gates are fixed. [Deliverability and compliance](/docs/sending/deliverability-and-compliance).
+
+## Why was my email step skipped?
+
+Read the [journey](/docs/contacts/journey): a `skipped` run carries its reason (`no_email`, `suppressed`, `google_not_connected`, `sender_channel_credentials_needed`, …). A `deferred` run was not skipped: it waits for the send window, the daily cap, the minimum gap or a kill switch, and shows `retry_at`.
+
+## Can I edit a sequence that people are in?
+
+Not that version. A published version is immutable; create a new draft from it (`POST /v1/sequences/{id}/versions`), publish it, and new enrollments use it. People already enrolled finish on the version they started. To move them, exit and re-enroll (the `reenroll` setting applies). [Versions](/docs/sequences/versions).
+
+## Can I use Fastmail, iCloud or my own mail server?
+
+Yes. A sender on Google connects with the OAuth consent. Any other mailbox that accepts a password over SMTP and IMAP connects with those credentials (`PUT /v1/senders/{id}/channels/email`). Both create the same `email` channel. Microsoft 365 and Outlook.com cannot connect: Microsoft retired password sign-in for them. Meeting detection from a calendar is Google-only. [Email via SMTP and IMAP](/docs/sending/email-smtp).
+
+## How does the service know an email is a reply to my sequence?
+
+By thread. Every email goes out with the service's own `Message-ID`. The poll job reads new messages in the mailbox and keeps those whose thread or `In-Reply-To` matches an email it sent in the last 30 days; it ignores everything else. A reply outside a thread is matched by addresses only when the project sets `match_replies_outside_thread: true`. [Email via Gmail](/docs/sending/email-gmail).
+
+## Does OpenSequence write to my CRM?
+
+No. The CRM port is read-only: `crm.*` conditions read the person, company and open deal from Attio at decision time. To move a deal on a reply, handle the `signal.received` webhook and write to your CRM yourself. [Webhook recipes](/docs/webhooks/recipes).
+
+## What do I have to back up?
+
+The Postgres database and `SEQ_ENCRYPTION_KEYS`, together. Every stored secret (Google client secret, refresh tokens, mailbox credentials, Allo and Attio keys, webhook secrets) is encrypted under that variable; a restored database without it has unreadable credentials and every one must be entered again. [Database](/docs/self-hosting/database).
+
+## Can I run several workers or API replicas?
+
+Yes, any number. The planner claims with `FOR UPDATE SKIP LOCKED`, an executor owns a run while it works, scheduler jobs run on whichever replica takes the lease row, and every write re-checks state under a row lock. Two replicas never double-send. [Scaling](/docs/self-hosting/scaling).
+
+## Postgres queue or Redis?
+
+Postgres, unless the queue table itself becomes hot (many thousands of messages a minute). It needs nothing else and an enqueue joins the transaction that records the work. Redis is higher throughput; the reaper covers the gap between a database write and a queue message. [Queues](/docs/self-hosting/queues).
+
+## Can an AI agent use it?
+
+Yes, through the MCP server (`@opensequence/mcp`), hosted over HTTP or local over stdio, with a project key. Give agents an `enroll`-scoped key: through the server they can read, upsert contacts, preview and enroll, complete tasks and report events, and nothing else. [MCP server](/sdks/mcp).
+
+## How do I know a step was actually sent?
+
+`run.done` is delivered when the provider accepted the message, and the run's `result.outcome.delivered_at` is stamped (at send time for Gmail, which has no receipt; from Allo's `sms.sent` for texts). The [journey](/docs/contacts/journey) shows every run, message and signal of the enrollment.
+
+## What does it cost?
+
+Nothing per seat or per contact. OpenSequence is Apache-2.0; you run the container and the database. Your mailbox provider, Allo and Attio bill you directly.
+
+## Is there a UI?
+
+No. It is headless by design: your CRM or your application is the UI, built on the API, the SDK or the MCP server. [Building a canvas](/docs/sequences/building-a-canvas) covers the editor side.

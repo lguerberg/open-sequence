@@ -17,6 +17,8 @@ await oseq.contacts.upsert('p_7', { first_name: 'Dana', email: 'dana@example.com
 const { enrollments } = await oseq.sequences.enroll('seq_01J9…', { contacts: ['p_7'], sender: 'u_42' });
 ```
 
+<Note>The package is not on npm yet. Until it is, build it from the repository (`pnpm --filter @opensequence/sdk build`) and depend on `packages/sdk` by path or workspace.</Note>
+
 A typed, fetch-based client with zero runtime dependencies (global `fetch` and `node:crypto`), Node 20 or newer, ESM. The types come from the server's OpenAPI file, so a route that does not exist cannot be called.
 
 ## Configuration
@@ -61,14 +63,14 @@ for await (const task of oseq.tasks.listAll({ sender: 'u_42', status: 'open' }))
 <Accordion title="senders">
 
 ```ts
-await oseq.senders.upsert('u_42', { name, email, timezone, attrs });
+await oseq.senders.upsert('u_42', { name, email, timezone, attrs, signature_html });   // the signature is sanitized on save
 await oseq.senders.get('u_42');                                  // with channels, readiness, connections
 await oseq.senders.list({ limit: 50 });
 await oseq.senders.readiness('u_42');                            // { email: { ok, reason }, sms, task }
 await oseq.senders.connectGoogle('u_42', { return_url });        // { auth_url, connection_id } (mock: { status: 'active' })
 await oseq.senders.connections('u_42');
-await oseq.senders.disconnectGoogle('u_42');
-await oseq.senders.setSmtp('u_42', { provider: 'smtp', from, smtp: { host, port, secure, user, password }, imap: { host, port, secure, user, password } });
+await oseq.senders.disconnectGoogle('u_42');                    // a Gmail email channel goes disconnected; an SMTP one is left alone
+await oseq.senders.setSmtp('u_42', { provider: 'smtp', from, smtp: { host, port, secure, user, password }, imap: { host, port, secure, user, password } });   // checks both logins, replaces the email channel
 await oseq.senders.setSms('u_42', { allo_user_id, number });
 await oseq.senders.patchChannel('u_42', 'email', { daily_limit: 50, min_gap_seconds: 90, status: 'active' });
 await oseq.senders.deleteChannel('u_42', 'sms');                 // or 'email': also deletes stored SMTP passwords

@@ -40,7 +40,7 @@ The result is written once on the signal (`attributed_run`, `attribution`) and o
 
 ## Filters
 
-Every analytics endpoint accepts `version` (a version id), `from` and `to` (ISO dates, on the enrollment's creation), `sender` (a sender id) and `country` (the contact's). Responses are not cached.
+Every analytics endpoint accepts `version` (a version id), `from` and `to` (ISO dates), `sender` (a sender id) and `country` (the contact's). `from` and `to` filter on the enrollment date for `summary`, `exits` and the cross-sequence table, and on the run's creation date for `nodes` and `channels`. Responses are not cached.
 
 ## What the numbers are made from
 

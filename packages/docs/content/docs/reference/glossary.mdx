@@ -6,7 +6,7 @@ description: "The words these docs use, in one line each."
 | Term | Meaning |
 |---|---|
 | Project | A tenant. Owns its senders, contacts, sequences, provider credentials, webhook endpoints and API keys. |
-| Sender | The acting user an enrollment runs as. Has a Google connection and channels (`email` from Google, `sms` from an Allo number), a time zone and limits. |
+| Sender | The acting user an enrollment runs as. Has channels (`email` from a Google connection or from SMTP and IMAP credentials, `sms` from an Allo number), a time zone, limits and an optional email signature. |
 | Connection | A sender's authorized account at an OAuth provider (Google: Gmail and Calendar under one consent), with its tokens, owned by the auth module. API-key providers (Allo, Attio) have no connections: one workspace key per project. |
 | Channel | One way a sender can reach contacts: `email`, `sms`. Has an address, a status and limits. |
 | Contact | The person who receives a sequence. Has email, phone, country, time zone, `sms_consent`, and free `attrs` JSON. |

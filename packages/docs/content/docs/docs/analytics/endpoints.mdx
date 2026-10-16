@@ -25,7 +25,7 @@ const [summary, exits, nodes, channels, all] = await Promise.all([
 
 </CodeGroup>
 
-All five take `version`, `from`, `to`, `sender` and `country`; scope `read`. Rates are per 100 and rounded to one decimal; a rate with no denominator is `null`, never `NaN`.
+All five take `version` (a version id), `from`, `to`, `sender` and `country`; scope `read`. `from` and `to` apply to the enrollment date for `summary`, `exits` and the cross-sequence table, and to the run's creation date for `nodes` and `channels`. Rates are per 100 and rounded to one decimal; a rate with no denominator is `null`, never `NaN`.
 
 ## Summary
 
@@ -35,7 +35,7 @@ All five take `version`, `from`, `to`, `sender` and `country`; scope `read`. Rat
 |---|---|
 | `enrolled` | enrollments created (in the filter) |
 | `active`, `exited`, `completed` | by current status (`active` includes `paused` and `waiting_limit`) |
-| `touches_delivered` | outreach runs whose message was delivered (sent at for Gmail, which has no receipt; Allo's `sms.sent`); the second denominator |
+| `touches_delivered` | outreach runs whose message was delivered (the send time for email, which has no receipt; Allo's `sms.sent` for texts); the second denominator |
 | `replies`, `meetings` | enrollments with a first reply or a first meeting |
 | `reply_rate_per_100_enrolled`, `meeting_rate_per_100_enrolled` | per enrolled |
 | `reply_rate_per_100_delivered`, `meeting_rate_per_100_delivered` | per delivered touch |
@@ -63,7 +63,7 @@ All five take `version`, `from`, `to`, `sender` and `country`; scope `read`. Rat
 
 ## Channels
 
-`GET /v1/sequences/{id}/analytics/channels` returns one row per `(channel, touch_number)`: `reached`, `sent`, `skipped`, `delivered`, `bounced`, `replies`, `meetings`, `reply_rate_per_100_sent`, `meeting_rate_per_100_sent`. The split by touch number is deliberate: SMS usually comes later and to warmer contacts, so an email-versus-SMS chart is only fair at the same position in the sequence.
+`GET /v1/sequences/{id}/analytics/channels` returns one row per `(channel, touch_number)`: `reached`, `sent`, `skipped`, `delivered`, `bounced`, `replies`, `meetings`, `reply_rate_per_100_sent`, `meeting_rate_per_100_sent`. The touch number counts only messages actually sent (1 is the first one the contact received); a channel's skipped and failed runs share a row with `touch_number: 0`. The split is deliberate: SMS usually comes later and to warmer contacts, so an email-versus-SMS chart is only fair at the same position in the sequence. See [Comparing channels](/docs/analytics/comparing-channels).
 
 ## Cross-sequence
 

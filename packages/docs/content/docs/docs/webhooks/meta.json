@@ -1,4 +1,4 @@
 {
-  "title": "Receiving webhooks",
+  "title": "Webhooks",
   "pages": ["overview", "verifying", "retries-and-recovery", "polling", "recipes"]
 }

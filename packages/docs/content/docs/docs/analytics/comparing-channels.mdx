@@ -1,0 +1,61 @@
+---
+title: "Comparing channels"
+description: "Why an email versus SMS chart misleads, how to compare at the same touch number, and what a fair comparison looks like."
+---
+
+The question "does SMS work better than email?" has a wrong answer built into the data. A text in a typical sequence is the third or fourth touch: it reaches the people who did not reply to two emails, and only those with a phone, consent and an allowed country. Its reply rate measures a different population, later in the sequence, not a different channel.
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/sequences/seq_01J9…/analytics/channels -H "Authorization: Bearer $KEY"
+# {"sequence":"seq_01J9…","channels":[
+#   {"channel":"email","touch_number":0,"reached":14,"sent":0,"skipped":14,…},
+#   {"channel":"email","touch_number":1,"reached":398,"sent":398,"skipped":0,"delivered":398,"bounced":6,"replies":31,"meetings":4,"reply_rate_per_100_sent":7.8,"meeting_rate_per_100_sent":1},
+#   {"channel":"email","touch_number":2,…},
+#   {"channel":"sms","touch_number":0,"reached":179,"sent":0,"skipped":179,…},
+#   {"channel":"sms","touch_number":3,"reached":61,"sent":61,"skipped":0,"delivered":60,"replies":9,"reply_rate_per_100_sent":14.8,…}]}
+```
+
+```ts title="TypeScript"
+const { channels } = await oseq.analytics.channels('seq_01J9…');
+const byTouch = Object.groupBy(channels.filter((r) => r.touch_number > 0), (r) => r.touch_number);
+```
+
+</CodeGroup>
+
+## Compare at the same touch number
+
+`GET /v1/sequences/{id}/analytics/channels` returns one row per `(channel, touch_number)` on purpose. The touch number is the position of a message among those actually sent to the contact in that enrollment: 1 is the first one sent. A step that was skipped or failed takes no touch number, so all of a channel's unsent runs share one row with `touch_number: 0`.
+
+The 14.8 per 100 sent of the text above is not better than the 7.8 of the first email: it is the rate of touch 3 among people already filtered by two silences. Read the table by row, not by column:
+
+- Within one touch number, two channels are comparable only when the same people could have received either. That happens when a `condition` splits the population by something unrelated to the channel (a region, a plan), or when two versions of the sequence differ only in the channel of that step.
+- Across touch numbers, compare the same channel with itself: email at touch 1 against email at touch 2 says how much a follow-up adds.
+
+## What the numbers mean
+
+| Field | Meaning |
+|---|---|
+| `reached` | runs of this channel in this row |
+| `sent`, `skipped` | runs the provider accepted, runs a gate refused. Skipped runs are all in the `touch_number: 0` row; `skipped_by_reason` on the per-node endpoint says why |
+| `delivered`, `bounced` | from the run's recorded outcome |
+| `replies`, `meetings` | signals attributed to these runs (the first reply and the first meeting per enrollment) |
+| `reply_rate_per_100_sent`, `meeting_rate_per_100_sent` | rates on `sent`, rounded to one decimal, `null` without a denominator |
+
+Rates are per sent, not per reached, so a channel with many skips (SMS without consent) is not punished for the gates.
+
+## Isolate what you want to compare
+
+- **Per version**: every analytics endpoint takes `version`, a version id (`ver_…`). Publish `v2` with the text moved to touch 2, enroll the next batch on it, and compare `channels?version=<v1 id>` with `channels?version=<v2 id>` at the same touch number.
+- **Per step**: `GET /v1/sequences/{id}/analytics/nodes` returns `reached`, `executed`, `skipped_by_reason`, `replies`, `meetings` and `median_time_to_reply_seconds` per node, so two steps of the same channel at different positions are told apart.
+- **Per sender and country**: `sender` and `country` filters remove the two biggest confounders between batches.
+- **Per period**: `from` and `to` filter `channels` and `nodes` on when the run was created, and `summary` and `exits` on when the contact was enrolled. To separate a batch enrolled before a copy change from one enrolled after, filter by version rather than by date.
+
+## What a fair comparison looks like
+
+Two versions that differ in one step, the same senders, the same period, enough enrollments for the rates to mean something (`GET /v1/analytics/sequences?min_enrolled=` hides small samples on the cross-sequence table). Then one row of `channels` per version, at the touch number that changed.
+
+A `split` node that assigns each enrollment to a cohort at random, so one sequence can run both variants on the same population, is planned and not shipped. Until then, two versions are the experiment.
+
+See [Outcomes and attribution](/docs/analytics/outcomes) for how replies and meetings are credited, and [Endpoints](/docs/analytics/endpoints) for every field.

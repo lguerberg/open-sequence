@@ -40,7 +40,7 @@ Optional. A no-op that makes the entry obvious on a canvas.
 }
 ```
 
-Sends through the sender's Gmail with the service's own `Message-ID`. `format: "html"` sends the body as HTML with a text alternative and HTML-escapes every rendered value; `text` (default) sends plain text. `reply_in_thread: true` replies in the thread of the previous email of this enrollment (`In-Reply-To` and the same Gmail thread), which is how a follow-up shows under the first message. A body without `{{ unsubscribe_url }}` publishes with the warning `NO_UNSUBSCRIBE`.
+Sends from the sender's mailbox (Gmail, or SMTP and IMAP) with the service's own `Message-ID`. `format: "html"` sends the body as HTML with a text alternative and HTML-escapes every rendered value; `text` (default) sends plain text. `reply_in_thread: true` replies in the thread of the previous email of this enrollment (`In-Reply-To` and `References`, plus the same thread on Gmail), which is how a follow-up shows under the first message. A body without `{{ unsubscribe_url }}` publishes with the warning `NO_UNSUBSCRIBE`.
 
 `sent` is taken after the provider accepted the message; `skipped` after a gate refused it (no email, suppressed, channel missing or not active, country, and so on; `skipped` falls back to `sent` when unwired); `failed` after the retries ran out (five reads of the queue message), and when `failed` is unwired the enrollment pauses with `step_failed`. Caps and windows **defer** rather than skip. Limits: subject 300, body 100,000 characters.
 
@@ -101,7 +101,7 @@ The only event wait. Events: `reply`, `reply:email`, `reply:sms`, `call_connecte
 }
 ```
 
-Creates a task for the sender and waits. Completing it with an outcome takes `branches_by_outcome[outcome]`, else `completed`; expiry takes `no_answer`. Everything about kinds, outcomes and the dialer: [The task node](/docs/sequences/task-node).
+Creates a task for the sender and waits. Completing it with an outcome takes `branches_by_outcome[outcome]`, else `completed`; expiry takes `no_answer`. Everything about kinds, outcomes and the dialer: [Call tasks](/docs/sending/call-tasks).
 
 ## `end`
 

@@ -1,0 +1,110 @@
+---
+title: "MCP server"
+description: "@opensequence/mcp: let Claude Code, Cursor or any MCP client build sequences, enroll people and read results with a scoped project key."
+---
+
+`@opensequence/mcp` is an [MCP](https://modelcontextprotocol.io) server that exposes the API as tools. Say "enroll these three people in UK intro with Max" and the agent finds the sequence and the sender, previews the enrollment, and enrolls them. It talks to the API through `@opensequence/sdk` and nothing else; the key's scopes decide what succeeds.
+
+```bash title="Claude Code, hosted server"
+claude mcp add --transport http opensequence https://mcp.example.com/mcp \
+  --header "Authorization: Bearer sk_live_..."
+```
+
+<Warning>The package is not on npm yet. Until it is, build it from the repository with `pnpm --filter "@opensequence/mcp..." build` and replace `npx -y @opensequence/mcp` below with `node <repo>/packages/mcp/dist/cli.js`, or run the Docker image. It needs Node 22 or newer.</Warning>
+
+## Two ways to run it
+
+**Hosted, over HTTP** (the default). One server for everyone; each person's MCP client sends their own project key as `Authorization: Bearer sk_live_…`, and every call reaches the API with that key.
+
+```bash
+OPENSEQUENCE_URL=https://sequences.example.com npx -y @opensequence/mcp
+# or the image, built from the workspace root
+docker build -f packages/mcp/Dockerfile -t opensequence/mcp .
+docker run -p 8080:8080 -e OPENSEQUENCE_URL=https://sequences.example.com opensequence/mcp
+```
+
+| Variable | Meaning | Default |
+|---|---|---|
+| `OPENSEQUENCE_URL` | your OpenSequence API, without `/v1`; inside a cluster, its private address | required |
+| `HOST`, `PORT` | where to listen | `0.0.0.0`, `8080` |
+| `MCP_PATH` | the path clients are given | `/mcp` |
+| `LOG_LEVEL` | `debug`, `info`, `warn`, `error` or `silent`; JSON lines on stderr | `info` |
+
+`GET /health` answers without a key. Every other request needs a bearer shaped like an OpenSequence key, or the server answers `401` before any tool runs; whether the key is valid is the API's call on the first tool. The server is stateless and keys are never logged.
+
+**Local, over stdio** (`--stdio` or `MCP_TRANSPORT=stdio`). Your MCP client starts the server on your machine with one key from the environment: `OPENSEQUENCE_URL` and `OPENSEQUENCE_API_KEY` are required.
+
+<Tabs>
+<Tab title="Claude Code">
+
+```bash
+claude mcp add opensequence \
+  -e OPENSEQUENCE_URL=https://sequences.example.com \
+  -e OPENSEQUENCE_API_KEY=sk_live_… \
+  -- npx -y @opensequence/mcp --stdio
+```
+
+</Tab>
+<Tab title="Cursor and Claude Desktop">
+
+In `.cursor/mcp.json` or `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "opensequence": {
+      "command": "npx",
+      "args": ["-y", "@opensequence/mcp", "--stdio"],
+      "env": { "OPENSEQUENCE_URL": "https://sequences.example.com", "OPENSEQUENCE_API_KEY": "sk_live_…" }
+    }
+  }
+}
+```
+
+For the hosted server, Cursor takes `{ "url": "https://mcp.example.com/mcp", "headers": { "Authorization": "Bearer sk_live_…" } }` instead, and Claude Desktop reaches it through `mcp-remote` with `--header "Authorization:${OPENSEQUENCE_AUTH}"`.
+
+</Tab>
+</Tabs>
+
+## The tools
+
+Senders, contacts and sequences can be named by their service id (`snd_…`, `ctc_…`, `seq_…`) or by the external id your app gave them; versions by id or tag.
+
+| Tool | What it does | Scope |
+|---|---|---|
+| `list_sequences`, `get_sequence` | sequences with versions and counts; one sequence with the steps of a version and its validation problems | read |
+| `validate_sequence_definition` | checks a definition without saving it; every problem with its path | read |
+| `list_senders`, `get_sender_readiness` | senders; which steps one can run now and why not | read |
+| `upsert_contact` | creates or updates a contact by your external id | enroll |
+| `get_contact`, `list_contacts`, `get_contact_timeline` | one contact with suppressions and enrollment; a filtered list; messages, signals and tasks newest first | read |
+| `preview_enrollment` | who would be enrolled, first touch times, who would be skipped and why; no writes | read |
+| `enroll_contacts` | enrolls contacts as one sender; `mode: dry_run` sends nothing | enroll |
+| `exit_enrollment` | ends an enrollment now with exit reason `manual` | admin |
+| `get_enrollment_journey`, `list_enrollments` | one enrollment's path; enrollments by sequence, version, status, sender, contact, exit reason | read |
+| `list_tasks`, `complete_task` | tasks created for senders; mark one done with an outcome, which wakes the waiting step | read, enroll |
+| `analytics_summary`, `analytics_nodes` | replies and meetings per sequence (every sequence ranked without `sequence`); results per step | read |
+| `report_contact_event` | a meeting booked, an opt-out, a do-not-contact or a reply the service could not see | enroll |
+
+Every tool answers with a short plain-English summary first and the API's JSON second. A refusal is an error result with the API's stable code and message, for example `ALREADY_IN_SEQUENCE: Dana Whitfield is already in a sequence ("UK facilities managers", enrollment enr_01J9…). Nobody was enrolled; exit that enrollment first (exit_enrollment) or pick another contact.` The server also serves one resource, `opensequence://instructions`, on how the tools fit together.
+
+## Which key to give an agent
+
+```bash
+pnpm oseq -- api-keys create <project_id> --scopes enroll --name claude-code
+```
+
+- **`enroll`** is the right default. Through the API it reads everything, creates and updates contacts, enrolls, pauses and resumes enrollments, completes and cancels tasks, and reports events. It cannot exit enrollments, change senders, sequences or settings, or delete anything.
+- **`read`** for an agent that only answers questions; the write tools come back with the API's `403 INSUFFICIENT_SCOPE`.
+- **`admin`** only when the agent must exit enrollments; it can then also do everything else an admin key can through the API.
+
+## Why agent enrollment is safe
+
+The safety is in the engine, not in the prompt:
+
+- `preview_enrollment` shows conflicts and exclusions before anything is written.
+- `ALREADY_IN_SEQUENCE` is all-or-nothing: a batch with one conflict enrolls nobody.
+- Every enrollment from the server records `enrolled_by_kind: "agent"`, plus `enrolled_by` when the agent passes who asked.
+- `mode: "dry_run"` rehearses a sequence with real waits and conditions and no sends.
+- An `enroll` key cannot publish, edit or exit.
+
+See [Enrolling](/docs/contacts/enrolling) and [Security](/docs/security/security).

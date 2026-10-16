@@ -52,6 +52,6 @@ Every email body should contain `{{ unsubscribe_url }}` (publishing without it i
 | reply, connected call | exits when `exit_on` contains `reply`; otherwise may wake a `wait_for` |
 | meeting booked | exits when `exit_on` contains `meeting_booked` |
 | out-of-office auto-reply | **pauses** until the stated return date or 7 days; never exits |
-| sender channel `credentials_needed` | the step is deferred; the enrollment waits for the reconnect |
+| sender channel `credentials_needed` | the send that finds out is deferred an hour; from then on, email steps skip with `sender_channel_credentials_needed` until the sender reconnects |
 
 The service only sees its own channels: replies in threads it started, bounces, STOP texts, unsubscribe clicks, out-of-office messages. Everything in your world (a meeting booked in another tool, a do-not-contact flag in the CRM, a person who left) must be [reported](/docs/contacts/events), or the service keeps emailing people your users already excluded.

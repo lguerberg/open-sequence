@@ -16,7 +16,7 @@ const app = express();
 app.post('/hooks/opensequence', express.raw({ type: 'application/json' }), (req, res) => {
   try {
     const event = verifyWebhook({ secret: process.env.OSEQ_WEBHOOK_SECRET!, headers: req.headers, body: req.body });
-    // event.id, event.type, event.project, event.enrollment, event.occurred_at, event.data
+    // event.id, event.type, event.project, event.occurred_at, event.data
     handle(event);
     res.sendStatus(200);
   } catch (err) {

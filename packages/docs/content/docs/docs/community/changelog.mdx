@@ -1,10 +1,38 @@
 ---
 title: "Changelog"
-description: "Release notes for OpenSequence, one section per version, starting with 0.1.0."
+description: "Release notes for OpenSequence, one section per version."
 ---
 
-<Note>No release yet. This page gets one section per release, with deprecations marked inline in the affected pages with a callout and a date (the API is additive; there is no version switcher).</Note>
+The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this page says when it does.
 
 ## 0.1.0 (unreleased)
 
-The first version: the engine, the public API, outbound webhooks, analytics, the Google, Allo, Attio and mock providers, `@opensequence/sdk`, the `oseq` CLI, and this site.
+The first version. Nothing is published on npm or Docker Hub yet; build from the repository.
+
+**Engine**
+
+- The sequence definition: `start`, `outreach`, `wait`, `wait_for`, `condition`, `task` and `end` nodes; durations in `m`, `h`, `d` and `bd`; send windows and jitter; `exit_on` for replies and meetings; validation with a path, a stable code and a sentence per problem.
+- Versions: drafts with an optimistic lock, immutable published versions, archiving.
+- Enrollment with the one-active-sequence rule, the re-enrollment setting, capacity staggering, preview and dry run.
+- The planner, `advance` with run ownership, the email and SMS executors with idempotent sends, the signal pipeline with attribution, the reaper, the retention job, per-project and platform kill switches.
+- Conditions on `contact.*`, `attrs.*`, `sender.*`, `history.*` and live `crm.*` facts, every read recorded on the run.
+- Templates with fallbacks, and sender signatures: `signature_html` and `signature_text` on `PUT /v1/senders/{id}`, sanitized on save and rendered by `{{ sender.signature }}`.
+
+**Channels and providers**
+
+- Email through the sender's Gmail (Google OAuth per project, Gmail history polling for replies and bounces, Google Calendar polling for meetings). A follow-up sent with `reply_in_thread` carries the full `References` chain of the thread.
+- Email through any mailbox over SMTP and IMAP (`PUT /v1/senders/{id}/channels/email`, `senders.setSmtp`): both logins checked on save, passwords encrypted and write-only, a copy filed in Sent, replies, bounces and auto-replies read from the IMAP inbox every minute. `DELETE /v1/senders/{id}/channels/email` removes the channel and its passwords. Microsoft 365 is not supported.
+- SMS and call completion through Allo (consent, country, time zone and quiet-hours gates on every text, with no limit on texts per sequence; STOP words; `call.completed` completing call tasks).
+- Attio as the read-only CRM behind `crm.*` conditions.
+- A mock provider for development and CI, with `POST /hooks/mock/{slug}` to simulate inbound events.
+
+**Interfaces**
+
+- The REST API under `/v1` with an OpenAPI document, Swagger UI at `/docs`, a response envelope and stable error codes.
+- Outbound webhooks signed with Standard Webhooks, retried for three days, ordered per enrollment, with recover and replay.
+- Analytics: replies and meetings per sequence, step and channel, and the cross-sequence table.
+- `@opensequence/sdk` (TypeScript), `@opensequence/auth`, `@opensequence/mcp` (19 tools over HTTP or stdio) and the `oseq` operator CLI.
+
+**Operations**
+
+- One image, roles by `SEQ_ROLES`, migrations at boot under a row lock, Postgres, Redis or in-memory queues, encrypted write-only secrets, health endpoints, this site.

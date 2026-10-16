@@ -1,6 +1,39 @@
 ---
 title: "Python"
-description: "A Python client, generated from the OpenAPI file. Community-maintained."
+description: "There is no Python SDK. Call the REST API directly, or generate a client from the OpenAPI file with openapi-python-client."
 ---
 
-<Note>No Python SDK is published yet. The API is small and regular ([Conventions](/api/conventions)); until a client exists, call it with `requests` or generate one from the OpenAPI document your instance serves at `/docs/json` (or the copy on this site at [/openapi.json](/openapi.json)) with a generator such as `openapi-python-client`. The planned package name is `opensequence` on PyPI.</Note>
+There is no Python SDK: the repository ships only the [TypeScript SDK](/sdks/typescript). From Python, call the REST API directly or generate a client from the OpenAPI file.
+
+## Call the API directly
+
+The API is small and regular: JSON in, an envelope out, a bearer key ([Conventions](/api/conventions)).
+
+```python
+import os, requests
+
+SEQ = os.environ["SEQ_URL"]
+session = requests.Session()
+session.headers["Authorization"] = f"Bearer {os.environ['SEQ_KEY']}"
+
+r = session.put(f"{SEQ}/v1/contacts/p_7", json={"first_name": "Dana", "email": "dana@example.com"})
+body = r.json()
+if not body["success"]:
+    raise RuntimeError(f"{body['error']['code']}: {body['error']['message']}")
+contact = body["data"]
+```
+
+## Generate a client
+
+Your instance serves its OpenAPI document at `/docs/json`; this site has a copy at [/openapi.json](/openapi.json).
+
+```bash
+pip install openapi-python-client
+openapi-python-client generate --url https://sequences.example.com/docs/json
+```
+
+The generated request bodies and query parameters are typed. Responses are not: the OpenAPI file declares every `data` as any value, so read the shapes from the API reference pages.
+
+## Webhooks
+
+Deliveries follow [Standard Webhooks](https://www.standardwebhooks.com), so the `standardwebhooks` package verifies them with the endpoint secret (`whsec_…`) and the raw body. See [Verifying](/docs/webhooks/verifying) for the scheme.

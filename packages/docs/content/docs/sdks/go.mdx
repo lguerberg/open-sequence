@@ -1,6 +1,24 @@
 ---
 title: "Go"
-description: "A Go client, generated from the OpenAPI file. Community-maintained."
+description: "There is no Go SDK. Call the REST API with net/http, or generate a client from the OpenAPI 3.1 file with openapi-generator."
 ---
 
-<Note>No Go SDK is published yet. Generate one from the OpenAPI document ([/openapi.json](/openapi.json)) with `oapi-codegen`, and verify webhooks with the Standard Webhooks Go library using the endpoint secret ([Verifying](/docs/webhooks/verifying)).</Note>
+There is no Go SDK: the repository ships only the [TypeScript SDK](/sdks/typescript). From Go, call the REST API with `net/http` ([Conventions](/api/conventions)) or generate a client from the OpenAPI file.
+
+## Generate a client
+
+Your instance serves its OpenAPI document at `/docs/json`; this site has a copy at [/openapi.json](/openapi.json).
+
+```bash
+curl -o openapi.json https://sequences.example.com/docs/json
+docker run --rm -v "$PWD:/local" openapitools/openapi-generator-cli generate \
+  -i /local/openapi.json -g go -o /local/oseq --package-name oseq
+```
+
+The file is OpenAPI 3.1. Pick a generator that reads 3.1; some Go generators still read only 3.0.
+
+Every request carries `Authorization: Bearer sk_live_…`. The generated request bodies and query parameters are typed. Responses are not: the OpenAPI file declares every `data` as any value, so read the shapes from the API reference pages.
+
+## Webhooks
+
+Deliveries follow [Standard Webhooks](https://www.standardwebhooks.com), so the Standard Webhooks Go library verifies them with the endpoint secret (`whsec_…`) and the raw body. See [Verifying](/docs/webhooks/verifying) for the scheme.

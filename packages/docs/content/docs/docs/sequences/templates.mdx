@@ -22,7 +22,7 @@ Subjects, bodies, task titles, bodies and links are rendered by one small engine
 | `attrs.<path>` | the contact's attrs (`contact.attrs.<path>` is accepted as an alias) |
 | `sender.name`, `sender.first_name`, `sender.email`, `sender.timezone` | the sender's columns |
 | `sender.attrs.<path>` | the sender's attrs |
-| `sender.signature` | the sender's signature: the sanitized HTML in an html body, the text twin in a text body. The only path rendered without escaping ([Senders](/docs/senders/senders)) |
+| `sender.signature` | the sender's signature: the sanitized HTML in an html body, the text twin in a text body. The only path rendered without escaping ([Senders](/docs/sending/senders)) |
 | `sequence.name` | the sequence's name |
 | `unsubscribe_url` | the hosted opt-out link for this run |
 
@@ -37,7 +37,7 @@ Store each sender's signature once (`PUT /v1/senders/{id}` with `signature_html`
 "format": "html"
 ```
 
-The HTML is sanitized when saved: text, links (`http`, `https`, `mailto`, `tel`), images over `https`, line breaks and simple tables stay; scripts, forms, frames and event handlers are dropped. An empty signature renders as nothing, or as the fallback when you give one.
+The HTML is sanitized when saved: text, links (`http`, `https`, `mailto`, `tel`), images over `http` or `https`, line breaks and simple tables stay; scripts, forms, frames and event handlers are dropped. An empty signature renders as nothing, or as the fallback when you give one.
 
 ## Missing values and fallbacks
 
@@ -57,4 +57,4 @@ Every run that rendered something stores the values it used in `result.rendered`
 
 ## Preview
 
-Render a definition against a sample contact before publishing: the `POST /v1/sequences:simulate` endpoint the architecture document describes is **not implemented yet**. Use `POST /v1/sequences:validate` for the template path and fallback checks, and a `dry_run` enrollment ([Enrolling](/docs/enrollments/enrolling)) to see rendered outreach steps recorded as `skipped_dry_run`.
+Render a definition against a sample contact before publishing: the `POST /v1/sequences:simulate` endpoint the architecture document describes is **not implemented yet**. Use `POST /v1/sequences:validate` for the template path and fallback checks, and a `dry_run` enrollment ([Enrolling](/docs/contacts/enrolling)) to see rendered outreach steps recorded as `skipped_dry_run`.
