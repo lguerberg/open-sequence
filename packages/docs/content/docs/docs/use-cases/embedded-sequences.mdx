@@ -16,7 +16,7 @@ The pieces map like this:
 
 ## Why one project per workspace
 
-Everything that must not leak between your customers lives on the project: the Allo and Attio keys (each customer brings their own), the contacts and their suppressions, the rule that a contact is in one active sequence at a time, `sms_countries`, `attrs_schema`, the kill switches and the webhook endpoints. One project per workspace keeps those apart without any filtering on your side.
+Everything that must not leak between your customers lives on the project: the provider keys (each customer brings their own), the contacts and their suppressions, the rule that a contact is in one active sequence at a time, `sms_countries`, `attrs_schema`, the kill switches and the webhook endpoints. One project per workspace keeps those apart without any filtering on your side.
 
 ```ts title="TypeScript"
 import { OpenSequenceAdmin, OpenSequence } from '@opensequence/sdk';
@@ -143,7 +143,6 @@ Never hard-code node types or fields. Read them, so your editor follows the serv
 |---|---|
 | `oseq.schema.definition()` (`GET /v1/schema`) | Every node type with its `label`, `transitions` (`keys` in display order, and which are `required`) and its `params` as JSON Schema; every channel with its actions, their params and transitions; the JSON Schema of the whole definition |
 | `oseq.schema.fields()` (`GET /v1/schema/fields`) | The condition picker: each source (`contact`, `attrs`, `sender`, `history`, `crm`) with its fields and types, plus the project's `attrs_schema` |
-| `oseq.project.attioSchema()` | Attio slugs, labels and select values for `crm.*` pickers |
 | `oseq.sequences.validate(definition)` | Problems with a JSON path, a code and a sentence, as the user edits |
 
 ```ts title="TypeScript"
@@ -215,7 +214,7 @@ app.post('/hooks/opensequence/:ws', express.raw({ type: 'application/json' }), a
 
 ## What to watch
 
-- **Provider keys are per workspace.** Each customer's Allo and Attio keys go on their project with `oseq.project.setProvider`. A user's number is checked against their workspace's Allo key when they connect it, and `crm.*` conditions read their workspace's Attio.
+- **Provider keys are per workspace.** Each customer's provider keys go on their project with `oseq.project.setProvider`. A user's number is checked against their workspace's SMS provider key when they connect it.
 - **Kill switches per workspace.** `oseq.project.flags.set('global', { value: false })` stops all sending in one workspace, and `channel:sms` stops one channel; set them back to `true` to resume.
 - **Limits per sender.** Each user sends at most 30 emails a day by default. Expose `oseq.senders.patchChannel(user.id, 'email', { daily_limit })` in your settings if users may raise it.
 

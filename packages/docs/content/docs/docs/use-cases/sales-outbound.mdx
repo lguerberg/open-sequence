@@ -1,15 +1,15 @@
 ---
 title: "Sales outbound"
-description: "A rep's outbound sequence: email, a dialer call with a voicemail text, follow-ups in thread, an Attio check, and an exit on reply or meeting booked."
+description: "A rep's outbound sequence: email, a dialer call with a voicemail text, follow-ups in thread, a check on data your app keeps fresh, and an exit on reply or meeting booked."
 ---
 
 A rep works a list of leads with a mix of emails, a call and a text, and stops the moment a lead replies or books a meeting. Use this page when your app decides who to prospect and which rep owns each lead, and you want the cadence to run on the rep's own mailbox and number.
 
-Before the call, the sequence reads Attio: a lead who already has an open deal leaves the sequence, so nobody cold-calls a live opportunity.
+Before the call, the sequence checks a flag your app keeps on the contact: a lead who already has an open deal leaves the sequence, so nobody cold-calls a live opportunity.
 
 ```mermaid
 flowchart TD
-  A[Email: intro] -->|2 business days| B{Open deal in Attio?}
+  A[Email: intro] -->|2 business days| B{Open deal?}
   B -->|yes| X[End: already in the pipeline]
   B -->|no| C{Lead has a phone and rep has Allo?}
   C -->|yes| D[Call task in the dialer]
@@ -42,15 +42,15 @@ A reply on any channel, a connected call, or a meeting booked ends the enrollmen
     "email_intro": {
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
-        "subject": "Missed calls at {{ attrs.company | \"your team\" }}",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nMost teams we talk to lose a few inbound calls a day to voicemail, and with them a few deals a month. We route every call to someone who can answer and text back the ones nobody could.\n\nWorth a 15-minute look this week?\n\n{{ sender.signature }}\n\nNot for you? {{ unsubscribe_url }}"
+        "subject": "Quick question, {{ contact.first_name | \"there\" }}",
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nI saw {{ attrs.company | \"your team\" }} is growing the team that handles this. We help teams like yours cut the manual work around it, and I think there's a fit.\n\nWorth a 15-minute look this week?\n\n{{ sender.signature }}\n\nNot for you? {{ unsubscribe_url }}"
       },
       "next": { "sent": "wait_2bd", "skipped": "wait_2bd" }
     },
-    "wait_2bd": { "type": "wait", "params": { "duration": "2bd" }, "next": { "then": "check_crm" } },
-    "check_crm": {
+    "wait_2bd": { "type": "wait", "params": { "duration": "2bd" }, "next": { "then": "check_deal" } },
+    "check_deal": {
       "type": "condition",
-      "params": { "mode": "all", "rules": [{ "field": "crm.deal.exists", "op": "is_true" }] },
+      "params": { "mode": "all", "rules": [{ "field": "attrs.has_open_deal", "op": "is", "value": "true" }] },
       "next": { "yes": "end_in_pipeline", "no": "check_phone" }
     },
     "end_in_pipeline": { "type": "end", "params": { "label": "Already in the pipeline" } },
@@ -67,7 +67,7 @@ A reply on any channel, a connected call, or a meeting booked ends the enrollmen
       "params": {
         "kind": "call",
         "title": "Call {{ contact.first_name | \"the lead\" }} at {{ attrs.company | \"their company\" }}",
-        "body": "They got the intro email two days ago. Ask about missed inbound calls.",
+        "body": "They got the intro email two days ago. Ask what they use today.",
         "due": "4h",
         "expire": "2bd",
         "dialer": true
@@ -77,15 +77,15 @@ A reply on any channel, a connected call, or a meeting booked ends the enrollmen
     },
     "sms_voicemail": {
       "type": "outreach", "channel": "sms", "action": "send",
-      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} here. Just left you a voicemail about missed calls. Happy to text instead if that's easier. Reply STOP to opt out." },
+      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} here. Just left you a voicemail. Happy to text instead if that's easier. Reply STOP to opt out." },
       "next": { "sent": "wait_3bd", "skipped": "wait_3bd" }
     },
     "wait_3bd": { "type": "wait", "params": { "duration": "3bd" }, "next": { "then": "email_bump" } },
     "email_bump": {
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
-        "subject": "Missed calls at {{ attrs.company | \"your team\" }}",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nBumping this in case it got buried. One number worth knowing: how many calls went unanswered last week?\n\n{{ sender.signature }}\n\nNot for you? {{ unsubscribe_url }}",
+        "subject": "Quick question, {{ contact.first_name | \"there\" }}",
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nBumping this in case it got buried. Is this something your team is looking at this quarter?\n\n{{ sender.signature }}\n\nNot for you? {{ unsubscribe_url }}",
         "reply_in_thread": true
       },
       "next": { "sent": "wait_4bd", "skipped": "wait_4bd" }
@@ -94,8 +94,8 @@ A reply on any channel, a connected call, or a meeting booked ends the enrollmen
     "email_last": {
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
-        "subject": "Missed calls at {{ attrs.company | \"your team\" }}",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nI'll stop here. If missed calls become a priority, reply to this thread and I'll pick it up.\n\n{{ sender.signature }}\n\nNot for you? {{ unsubscribe_url }}",
+        "subject": "Quick question, {{ contact.first_name | \"there\" }}",
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nI'll stop here. If it becomes a priority, reply to this thread and I'll pick it up.\n\n{{ sender.signature }}\n\nNot for you? {{ unsubscribe_url }}",
         "reply_in_thread": true
       },
       "next": { "sent": "end", "skipped": "end" }
@@ -109,7 +109,7 @@ A reply on any channel, a connected call, or a meeting booked ends the enrollmen
 
 What each part does:
 
-- **`check_crm`** reads Attio when the step runs, not when the lead was enrolled. `crm.deal.exists` is true when the person or their company has an open deal. See [CRM conditions](/docs/sequences/crm-conditions) for the lookup and every field.
+- **`check_deal`** reads the contact's `attrs` when the step runs, not when the lead was enrolled. Your app sets `attrs.has_open_deal` when a deal opens (`oseq.contacts.patch(id, { attrs: { has_open_deal: true } })`), so a lead who entered the pipeline in the meantime stops here.
 - **`call_1`** gives the rep a call task and puts the number in their Allo power dialer within a minute. When the rep calls, Allo completes the task with the call's outcome: `voicemail` takes the text, anything else takes `completed`. If nobody calls within two business days, the task expires and takes `no_answer`.
 - **`reply_in_thread`** sends the follow-ups as replies to the intro, with `In-Reply-To` and `References` set, so they read as one conversation.
 - **`exit_on`** lists both `reply` and `meeting_booked`. Meetings are detected on the rep's Google Calendar (an event with the lead as an attendee), or reported by your app.
@@ -124,10 +124,9 @@ import { OpenSequence } from '@opensequence/sdk';
 
 const oseq = new OpenSequence({ baseUrl: process.env.SEQ_URL!, apiKey: process.env.SEQ_ADMIN_KEY! });
 
-// Once per project. The Allo and Attio keys are checked against the provider before they are stored.
+// Once per project. Provider keys are checked against the provider before they are stored.
 await oseq.project.setProvider('google', { client_id: process.env.GOOGLE_CLIENT_ID!, client_secret: process.env.GOOGLE_CLIENT_SECRET! });
 await oseq.project.setProvider('allo', { api_key: process.env.ALLO_API_KEY! });
-await oseq.project.setProvider('attio', { api_key: process.env.ATTIO_API_KEY! });
 
 // Once per rep.
 await oseq.senders.upsert('rep_maya', { name: 'Maya Chen', email: 'maya@acme.com', timezone: 'America/Chicago', signature_html: mayaSignature });
@@ -148,7 +147,7 @@ await oseq.contacts.batch(
     email: l.email,
     phone: l.phone, // E.164, or leave it out
     country: l.country,
-    attrs: { company: l.companyName, source: 'list_q4' },
+    attrs: { company: l.companyName, source: 'list_q4', has_open_deal: l.hasOpenDeal },
   })),
 );
 ```
@@ -184,7 +183,7 @@ Enrolling is all or nothing on conflicts: a lead already in any sequence of the 
 </Step>
 <Step title="Write outcomes back to your CRM">
 
-Attio is read-only here: the service never writes to it. To record a reply or a meeting in the CRM, listen for `enrollment.exited` and write it yourself.
+The service never writes to your CRM. To record a reply or a meeting there, listen for `enrollment.exited` and write it yourself.
 
 ```ts title="TypeScript"
 import { verifyWebhook } from '@opensequence/sdk';
@@ -222,16 +221,16 @@ await oseq.enrollments.exitMany({ contact: leadId, label: 'handed_to_marketing' 
 
 ## What to watch
 
-- **CRM down means `no`.** A failed Attio lookup records the fact as `null`, which never matches, so the lead takes `no` and gets the call. Here that is the safe side; design your own `no` branches the same way.
-- **CRM attributes compare as text.** `crm.deal.stage` and any `crm.person.<slug>` support `is`, `is_not`, `contains`, `is_empty` and `is_not_empty`. Numbers are compared as strings.
+- **A missing flag means `no`.** A contact without `attrs.has_open_deal` takes `no` and gets the call. Here that is the safe side; design your own `no` branches the same way.
+- **`attrs` compare as text.** Conditions on `attrs.*` support `is`, `is_not`, `contains`, `is_empty` and `is_not_empty`. Numbers are compared as strings.
 - **Texts after a voicemail need consent.** Without `sms_consent` the text is skipped and the flow goes on to the bump email. Consent is set with an `admin` key on `PUT /v1/contacts/{id}/sms-consent`.
 - **A connected call is a reply.** It exits the enrollment through `exit_on: ["reply"]` and is credited to the call task.
 - **Volume.** Each rep sends at most 30 emails in a rolling 24 hours and waits 60 seconds between emails, by default. Raise them per channel with `PATCH /v1/senders/{id}/channels/email`.
 
 ## Variations
 
-- **Branch on the deal stage** instead of its existence: `{ "field": "crm.deal.stage", "op": "is", "value": "Lead" }`. Pick which deal counts with `settings.crm.deal_selection` (`newest_open`, `highest_value`, `any_open`).
+- **Branch on the deal stage** instead of a flag: push `attrs.deal_stage` and test `{ "field": "attrs.deal_stage", "op": "is", "value": "Lead" }`.
 - **No dialer**: set `"dialer": false`. The task then waits in the rep's task list (`GET /v1/senders/{id}/tasks`) and your UI completes it with `POST /v1/tasks/{id}/complete`.
-- **Email only**: drop `check_phone`, `call_1` and `sms_voicemail`, and point `check_crm.no` at `wait_3bd`.
+- **Email only**: drop `check_phone`, `call_1` and `sms_voicemail`, and point `check_deal.no` at `wait_3bd`.
 
 Related: [Call tasks](/docs/sending/call-tasks), [Enrolling](/docs/contacts/enrolling), [Verifying webhooks](/docs/webhooks/verifying).

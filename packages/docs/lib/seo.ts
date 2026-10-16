@@ -46,23 +46,46 @@ let titleCounts: Map<string, number> | undefined;
  */
 export function pageTitle(page: Page): string {
   titleCounts ??= source.getPages().reduce((m, p) => m.set(p.data.title ?? '', (m.get(p.data.title ?? '') ?? 0) + 1), new Map<string, number>());
-  const title = page.data.title ?? '';
+  const title = shortTitle(page, page.data.title ?? '');
   if ((titleCounts.get(title) ?? 0) < 2) return title;
   const section = sectionNames(page).at(-1);
   return section ? `${title} (${section})` : title;
 }
 
+/**
+ * An API page's title is its route's one-line summary, which can run past 100 characters. For the
+ * `<title>`, keep the first clause: "Disconnect Google: revokes the token; ..." becomes "Disconnect Google".
+ * The page's heading keeps the whole summary.
+ */
+function shortTitle(page: Page, title: string): string {
+  if (page.type !== 'openapi' || title.length <= 60) return title;
+  const clause = title.split(/[:;(]| \u2014 /)[0]!.trim();
+  return clause.length >= 12 ? clause : title;
+}
+
 /** The meta description: the frontmatter one, or for an API page a sentence built from its operation. */
 export function pageDescription(page: Page): string {
-  if (page.data.description) return page.data.description;
+  if (page.data.description) return metaDescription(page.data.description);
   const ops = operations(page);
   if (ops.length > 0) {
     const summary = (page.data.title ?? '').replace(/\.$/, '');
     const op = ops.map((o) => `${o.method} ${o.path}`).join(', ');
-    return `${summary}. API reference for ${op} in the OpenSequence REST API, with parameters, request body, responses and a playground.`;
+    return metaDescription(`${summary}. ${op}: parameters, request body and responses.`);
   }
   return siteDescription;
 }
+
+/** Search results show about 160 characters: cut at the last sentence, else the last word, that fits. */
+export function metaDescription(text: string, max = 160): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const sentence = cut.lastIndexOf('. ');
+  if (sentence >= 70) return cut.slice(0, sentence + 1);
+  return `${cut.slice(0, cut.lastIndexOf(' ', max - 1)).replace(/[,;:]$/, '')}…`;
+}
+
+/** Above this, " · OpenSequence docs" would push the page's own words out of the search result. */
+const TITLE_WITH_SUFFIX_MAX = 65;
 
 /** The repository file a page is built from, for "edit on GitHub" and for its last modified date. */
 export function pageSourceFile(page: Page): string {
@@ -128,7 +151,8 @@ export function pageMetadata(page: Page): Metadata {
   const title = pageTitle(page);
   const description = pageDescription(page);
   return {
-    title,
+    // A long title drops the site suffix rather than the page's own words.
+    title: `${title} · ${siteTitle}`.length > TITLE_WITH_SUFFIX_MAX ? { absolute: title } : title,
     description,
     alternates: { canonical: page.url, types: { 'text/markdown': getPageMarkdownUrl(page).url } },
     ...socialMetadata({ title, description, url: page.url, image: getPageImage(page.slugs).url, type: 'article' }),

@@ -1,21 +1,20 @@
 ---
 title: "Customer onboarding"
-description: "A customer activation sequence sent by the account owner from their own mailbox and number: emails, texts and a day-3 call, started when a deal is won."
+description: "A 90-day activation sequence sent by the account owner from their own mailbox and number: emails, texts and a day-3 call, started when a deal is won."
 ---
 
 A new customer gets a planned run of emails, texts and one call from their account owner, so the first months feel personal without anyone keeping a calendar. Use this page when your backend knows the moment a deal is won and you want the activation plan to start, adapt and stop on its own.
 
-The example is a phone-system company. The account owner sends from their own mailbox and their own Allo number; replies end the plan; a cancelled contract ends it from your backend.
+The example is a B2B software product. The account owner sends from their own mailbox and their own phone number; a reply on any channel ends the plan, and a cancelled contract ends it from your backend.
 
 ```mermaid
 flowchart TD
   A[Day 1 email: welcome] -->|2 business days| B{Country?}
   B -->|US| C[Day 3 call task in the dialer]
-  B -->|FR| D[Day 3 text]
-  B -->|other| E[Day 4 email: set up your call flow]
-  C --> E
+  B -->|elsewhere| D[Day 3 text]
+  C --> E[Day 4 email: the first setup step]
   D --> E
-  E -->|1 business day| F{Call flow handled?}
+  E -->|1 business day| F{Setup done?}
   F -->|no| G[Day 5 text]
   F -->|yes| H[Day 8 email: invite your team]
   G --> H
@@ -32,15 +31,15 @@ Every wait is relative to the step before it and counts **business days** (`bd`:
 | Business day | Calendar day, if day 1 is a Monday | Step | Channel |
 |---|---|---|---|
 | 1 | 1 | Welcome | Email |
-| 3 | 3 | Check-in call (US) or check-in text (FR) | Call task or text |
-| 4 | 4 | Set up your call flow | Email |
-| 5 | 5 | Call flow nudge, only if not handled | Text |
+| 3 | 3 | Check-in call (US) or check-in text (elsewhere) | Call task or text |
+| 4 | 4 | The first setup step | Email |
+| 5 | 5 | Setup offer, only if setup is not done | Text |
 | 8 | 10 | Invite your team | Email |
-| 10 | 12 | How are the first calls going | Text |
-| 19 | 25 | Tip: missed-call texts | Text |
-| 26 | 36 | One month in: call analytics | Email |
-| 42 | 58 | Connect your CRM | Email |
-| 56 | 78 | Advanced routing | Email |
+| 10 | 12 | Anyone on the team not set up? | Text |
+| 19 | 25 | What have your users said? | Text |
+| 26 | 36 | One month in: your usage | Email |
+| 42 | 58 | Anything changed? | Email |
+| 56 | 78 | A score and one thing to change | Email |
 | 70 | 96 | Check-in | Text |
 | 84 | 116 | Quarterly review | Email |
 
@@ -48,7 +47,7 @@ Every wait is relative to the step before it and counts **business days** (`bd`:
 
 ## The definition
 
-<Accordion title="customer-onboarding.json (29 nodes)">
+<Accordion title="customer-onboarding.json">
 
 ```json title="customer-onboarding.json"
 {
@@ -65,7 +64,7 @@ Every wait is relative to the step before it and counts **business days** (`bd`:
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
         "subject": "Welcome aboard, {{ contact.first_name | \"there\" }}",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nI'm {{ sender.name }}, your account owner. Your lines are live. Over the next weeks I'll send you a few short notes, one thing at a time, so your team gets the most out of the phone system.\n\nFirst step: reply to this email with the best time for a 15-minute setup call.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nI'm {{ sender.name }}, your account owner, and I'm the person to write to about your plan, your team or getting more out of the product. Over the next weeks I'll send a few short notes, one thing at a time.\n\nOne quick question so I can help the right way: what is the first thing your team wants to get done with us?\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
       },
       "next": { "sent": "wait_to_d3", "skipped": "wait_to_d3" }
     },
@@ -73,77 +72,72 @@ Every wait is relative to the step before it and counts **business days** (`bd`:
     "is_us": {
       "type": "condition",
       "params": { "mode": "all", "rules": [{ "field": "contact.country", "op": "is", "value": "US" }] },
-      "next": { "yes": "call_d3", "no": "is_fr" }
+      "next": { "yes": "call_d3", "no": "sms_d3" }
     },
     "call_d3": {
       "type": "task",
       "params": {
         "kind": "call",
         "title": "Day-3 check-in call with {{ contact.first_name | \"the customer\" }}",
-        "body": "Ask whether the call flow is set up and offer to build it together.",
+        "body": "Ask how the first days went and whether anything blocks the setup.",
         "due": "4h",
         "expire": "1bd",
         "dialer": true
       },
       "next": { "completed": "wait_to_d4", "no_answer": "email_d4" }
     },
-    "is_fr": {
-      "type": "condition",
-      "params": { "mode": "all", "rules": [{ "field": "contact.country", "op": "is", "value": "FR" }] },
-      "next": { "yes": "sms_d3", "no": "wait_to_d4" }
-    },
     "sms_d3": {
       "type": "outreach", "channel": "sms", "action": "send",
-      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} here, your account owner. How is the setup going? Reply here if you want a hand with your call flow. Reply STOP to opt out." },
+      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} here, your account owner. How are your first days going? Even a quick \"all good\" helps. Reply STOP to opt out." },
       "next": { "sent": "wait_to_d4", "skipped": "wait_to_d4" }
     },
     "wait_to_d4": { "type": "wait", "params": { "duration": "1bd" }, "next": { "then": "email_d4" } },
     "email_d4": {
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
-        "subject": "Set up your call flow in 10 minutes",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nThe call flow decides who rings when a customer calls: business hours, the welcome message, and where missed calls go. It is the one setting that changes the most for your callers.\n\nThe guide walks through it in 10 minutes. If you would rather do it together, reply and I'll set up a call.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
+        "subject": "The one setup step that matters most",
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nTeams that get value in the first month almost always finish one step in week one: connecting their own data. The guide takes about 10 minutes. If you would rather do it together, reply and I'll set up a call.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
       },
       "next": { "sent": "wait_to_d5", "skipped": "wait_to_d5" }
     },
-    "wait_to_d5": { "type": "wait", "params": { "duration": "1bd" }, "next": { "then": "flow_handled" } },
-    "flow_handled": {
+    "wait_to_d5": { "type": "wait", "params": { "duration": "1bd" }, "next": { "then": "setup_done" } },
+    "setup_done": {
       "type": "condition",
-      "params": { "mode": "all", "rules": [{ "field": "attrs.call_flow_handled", "op": "is", "value": "true" }] },
+      "params": { "mode": "all", "rules": [{ "field": "attrs.setup_complete", "op": "is", "value": "true" }] },
       "next": { "yes": "wait_to_d8", "no": "sms_d5" }
     },
     "sms_d5": {
       "type": "outreach", "channel": "sms", "action": "send",
-      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, it's {{ sender.name }}. Your call flow isn't set up yet. Want me to build it with you this week? Just reply with a time. Reply STOP to opt out." },
+      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, it's {{ sender.name }}. I have some time this week. Want me to finish your setup with you? Just reply with a day that works. Reply STOP to opt out." },
       "next": { "sent": "wait_to_d8", "skipped": "wait_to_d8" }
     },
     "wait_to_d8": { "type": "wait", "params": { "duration": "3bd" }, "next": { "then": "email_d8" } },
     "email_d8": {
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
-        "subject": "Bring your team in",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nThe phone system pays off when everyone who takes calls is on it. Invite your team from the settings page; each person gets the desktop and mobile apps and their own line or a shared one.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
+        "subject": "Your setup, checked by me",
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nYour first week is done. Here's an offer: I'll take 15 minutes to look over your setup with you and tell you what I'd change. Nothing to prepare. Reply \"yes\" and I'll send a couple of times.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
       },
       "next": { "sent": "wait_to_d10", "skipped": "wait_to_d10" }
     },
     "wait_to_d10": { "type": "wait", "params": { "duration": "2bd" }, "next": { "then": "sms_d10" } },
     "sms_d10": {
       "type": "outreach", "channel": "sms", "action": "send",
-      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} here. How are the first calls going? Anything that feels off, reply and I'll look into it. Reply STOP to opt out." },
+      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} here. Is anyone on your team still not set up? Text me their name and I'll reach out to them directly. Reply STOP to opt out." },
       "next": { "sent": "wait_to_d19", "skipped": "wait_to_d19" }
     },
     "wait_to_d19": { "type": "wait", "params": { "duration": "9bd" }, "next": { "then": "sms_d19" } },
     "sms_d19": {
       "type": "outreach", "channel": "sms", "action": "send",
-      "params": { "body": "Tip from {{ sender.name }}: turn on the automatic text for missed calls, so nobody who calls you is left without an answer. Reply STOP to opt out." },
+      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} here. Have your users said anything since you switched? Good or bad, I'd love to hear it. Reply STOP to opt out." },
       "next": { "sent": "wait_to_d26", "skipped": "wait_to_d26" }
     },
     "wait_to_d26": { "type": "wait", "params": { "duration": "7bd" }, "next": { "then": "email_d26" } },
     "email_d26": {
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
-        "subject": "Your first month in numbers",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nOne month in, the analytics page shows who answers, how long callers wait and when you miss the most calls. Five minutes there usually points to one change worth making.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
+        "subject": "Your first month",
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nOne month in, the usage page shows who on your team uses the product and how. Five minutes there usually points to one change worth making. If you'd rather I go through it with you, reply with a time.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
       },
       "next": { "sent": "wait_to_d42", "skipped": "wait_to_d42" }
     },
@@ -151,8 +145,8 @@ Every wait is relative to the step before it and counts **business days** (`bd`:
     "email_d42": {
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
-        "subject": "Calls in your CRM, automatically",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nConnect your CRM and every call, recording and summary lands on the right contact without anyone typing notes. It takes two clicks from the integrations page.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
+        "subject": "Anything changed?",
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nIt's been about six weeks. Has anything changed on your side since you started? New people, a new process, a new tool? Each of those usually means a small change in your setup. Tell me what changed and I'll take care of it.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
       },
       "next": { "sent": "wait_to_d56", "skipped": "wait_to_d56" }
     },
@@ -160,15 +154,15 @@ Every wait is relative to the step before it and counts **business days** (`bd`:
     "email_d56": {
       "type": "outreach", "channel": "email", "action": "send",
       "params": {
-        "subject": "Routing that follows your day",
-        "body": "Hi {{ contact.first_name | \"there\" }},\n\nNow that the basics run, a few teams like yours add time-based routing and a fallback for busy hours. Reply if you want me to look at your setup and suggest one change.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
+        "subject": "Quick favor?",
+        "body": "Hi {{ contact.first_name | \"there\" }},\n\nTwo months in. On a scale of 0 to 10, how likely are you to recommend us to a peer? And if you could change one thing, what would it be? I read every answer.\n\n{{ sender.signature }}\n\nPrefer fewer emails? {{ unsubscribe_url }}"
       },
       "next": { "sent": "wait_to_d70", "skipped": "wait_to_d70" }
     },
     "wait_to_d70": { "type": "wait", "params": { "duration": "14bd" }, "next": { "then": "sms_d70" } },
     "sms_d70": {
       "type": "outreach", "channel": "sms", "action": "send",
-      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} checking in. Is the phone system doing what you need? A one-word reply is plenty. Reply STOP to opt out." },
+      "params": { "body": "Hi {{ contact.first_name | \"there\" }}, {{ sender.name }} here. You're almost 3 months in. Want a short summary of how your team has used the product? Reply \"yes\" and I'll send it. Reply STOP to opt out." },
       "next": { "sent": "wait_to_d84", "skipped": "wait_to_d84" }
     },
     "wait_to_d84": { "type": "wait", "params": { "duration": "14bd" }, "next": { "then": "email_d84" } },
@@ -190,10 +184,10 @@ Every wait is relative to the step before it and counts **business days** (`bd`:
 How the plan maps onto the definition:
 
 - **Business-day waits**: `"duration": "2bd"`. Waits start when the previous step finishes (an email starts its wait once it is sent).
-- **Send window**: `settings.send_window` with `"tz": "contact"`. Emails and texts outside 09:00 to 18:00 on a weekday wait for the window to open. Texts also obey the fixed 08:00 to 21:00 quiet hours; the send window is narrower, so it decides. A French customer's time zone comes from their country (France has one zone), so their window follows Paris time even without a `timezone`.
-- **Day 3 by country**: `contact.country` holds a two-letter ISO code, upper-cased on save, and `is` compares without case. A contact with no country takes `no` on both conditions and goes straight to the day-4 wait.
+- **Send window**: `settings.send_window` with `"tz": "contact"`. Emails and texts outside 09:00 to 18:00 on a weekday wait for the window to open. Texts also obey the fixed 08:00 to 21:00 quiet hours; the send window is narrower, so it decides. A customer in a single-zone country gets their zone from the country even without a `timezone`.
+- **Day 3 by country**: `contact.country` holds a two-letter ISO code, upper-cased on save, and `is` compares without case. US customers get a call, everyone else a text; a contact with no country takes `no` and gets the text.
 - **The call task**: `"kind": "call"` creates a task for the account owner and `"dialer": true` puts the number in their Allo power dialer within a minute ([Call tasks](/docs/sending/call-tasks)). When the call happens in Allo, the task completes on its own. The step waits for the task. A finished call (any outcome) waits one business day before the day-4 email. An unfinished task expires after `"expire": "1bd"`, which is already day 4, so `no_answer` goes straight to the email.
-- **Day-5 condition**: `attrs.*` fields compare as text. `is "true"` matches the boolean `true` or the string `"true"`; a missing attribute never matches, so the text goes out until your backend sets the flag.
+- **Day-5 condition**: `attrs.setup_complete` is whatever your product counts as the first real step (data connected, first project created). `attrs.*` fields compare as text: `is "true"` matches the boolean `true` or the string `"true"`, and a missing attribute never matches, so the text goes out until your backend sets the flag.
 - **Signature**: `{{ sender.signature }}` renders the account owner's `signature_text` in these text emails (the HTML version in `"format": "html"` emails).
 - **Exit**: `"exit_on": ["reply"]` ends the enrollment on an email reply, a text reply, or a connected call.
 
@@ -202,7 +196,7 @@ How the plan maps onto the definition:
 <Steps>
 <Step title="Set up the project once">
 
-Allo sends the texts and runs the dialer. A text goes only to a contact whose `country` is in `sms_countries`. The default is `["US"]`, so add `FR` or every text to a French customer is skipped with `country_not_allowed`.
+Allo sends the texts and runs the dialer. A text goes only to a contact whose `country` is in `sms_countries`. The default is `["US"]`, so list every country you text, or those texts are skipped with `country_not_allowed`.
 
 ```ts title="TypeScript"
 import { OpenSequence } from '@opensequence/sdk';
@@ -211,7 +205,7 @@ const oseq = new OpenSequence({ baseUrl: process.env.SEQ_URL!, apiKey: process.e
 
 await oseq.project.setProvider('google', { client_id: process.env.GOOGLE_CLIENT_ID!, client_secret: process.env.GOOGLE_CLIENT_SECRET! });
 await oseq.project.setProvider('allo', { api_key: process.env.ALLO_API_KEY! });
-await oseq.project.updateSettings({ sms_countries: ['US', 'FR'] });
+await oseq.project.updateSettings({ sms_countries: ['US', 'CA', 'GB'] });
 ```
 
 </Step>
@@ -265,9 +259,9 @@ export async function onDealWon(deal: WonDeal) {
     last_name: c.lastName,
     email: c.email,
     phone: c.phone, // E.164
-    country: c.country, // "US", "FR"
+    country: c.country, // ISO code, like "US"
     timezone: c.timezone,
-    attrs: { plan: deal.plan, call_flow_handled: false },
+    attrs: { plan: deal.plan, setup_complete: false },
   });
   if (c.smsConsent) await oseq.contacts.setSmsConsent(c.id, { consent: true, source: 'signup_form' });
 
@@ -275,10 +269,10 @@ export async function onDealWon(deal: WonDeal) {
 }
 ```
 
-When the customer finishes their call flow, set the flag so the day-5 condition reads it:
+When the customer finishes the setup step, set the flag so the day-5 condition reads it:
 
 ```ts title="TypeScript"
-await oseq.contacts.patch(customerId, { attrs: { call_flow_handled: true } });
+await oseq.contacts.patch(customerId, { attrs: { setup_complete: true } });
 ```
 
 </Step>
@@ -333,7 +327,7 @@ Exiting needs an `admin` key. The enrollment ends with `exit_reason: "manual"` a
 - **A connected call counts as a reply.** A US customer who picks up the day-3 call leaves the sequence, like one who replies. If they should keep the rest of the plan, set the task's `connected_outcomes` to an outcome your team never records, and accept that the call then gets no reply credit.
 - **Texts need consent, a known time zone and an allowed country.** A text without consent, without a phone, outside `sms_countries`, or to a contact whose time zone cannot be worked out (from `timezone`, the phone number, or a single-zone country) is skipped, and the flow moves on. See [Deliverability and compliance](/docs/sending/deliverability-and-compliance).
 - **The owner needs an sms channel for the dialer.** The dialer push uses the Allo user on the owner's sms channel. An owner without one keeps the task, but the number does not reach their dialer until the channel exists; open tasks are listed by `GET /v1/senders/{id}/tasks?status=open`.
-- **Templates have no logic.** All texts after day 3 are in one language. For French customers in French, run a second sequence and choose it when you enroll.
+- **Templates have no logic.** A sequence is written in one language. For customers in another language, run a second sequence and choose it when you enroll.
 - **One active enrollment per contact.** A customer still in a sales sequence gets `409 ALREADY_IN_SEQUENCE`; exit the sales enrollment first.
 - **Failures pause.** `failed` is not wired, so a step that fails for good pauses the enrollment with `step_failed` instead of skipping it. Watch for `enrollment.paused`.
 
