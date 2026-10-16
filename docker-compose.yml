@@ -36,9 +36,11 @@ services:
       SEQ_PUBLIC_URL: http://localhost:8080
       SEQ_PORT: '8080'
       # Development only. Generate real ones with `oseq secrets new-key` and a long random token.
-      SEQ_ENCRYPTION_KEYS: 'dev:ZGV2ZWxvcG1lbnQta2V5LW5vdC1mb3ItcHJvZHVjdGlvbi0hIQ=='
+      SEQ_ENCRYPTION_KEYS: 'dev:ZGV2LW9ubHkta2V5LW5vdC1mb3ItcHJvZHVjdGlvbiE='
       SEQ_ADMIN_TOKEN: dev-admin-token
       SEQ_DEV_MOCK_PROVIDERS: '1'
+      # The image defaults to production, which refuses the mock providers.
+      NODE_ENV: development
       SEQ_LOG_LEVEL: info
     ports:
       - '8080:8080'
