@@ -110,10 +110,9 @@ export default function HomePage() {
         <header className="flex flex-col gap-6">
           <p className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-fd-primary">Documentation</p>
           <h1 className="text-5xl leading-none font-semibold tracking-[-0.045em] sm:text-6xl">OpenSequence docs</h1>
-          <p className="max-w-3xl text-lg leading-relaxed text-fd-muted-foreground sm:text-xl">
-            OpenSequence is an open source, self-hosted service that runs multi-step outreach sequences of emails, texts and
-            call tasks for any CRM. Your app registers senders and contacts, publishes a sequence as JSON and enrolls people;
-            OpenSequence sends at the right time from each rep&rsquo;s own mailbox and number, and tells you what happened.
+          <p className="max-w-2xl text-base leading-relaxed text-fd-muted-foreground sm:text-lg">
+            Open source, self-hosted email, SMS and call sequences for any CRM. You publish a sequence and enroll contacts;
+            OpenSequence sends from each rep&rsquo;s own mailbox and number.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/docs/get-started/quickstart" className="inline-flex items-center gap-2 rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground transition-opacity hover:opacity-90">
