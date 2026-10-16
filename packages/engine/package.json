@@ -25,13 +25,15 @@
   "dependencies": {
     "@opensequence/core": "workspace:*",
     "drizzle-orm": "^0.45.4",
+    "libphonenumber-js": "^1.13.15",
     "postgres": "^3.4.9",
+    "sanitize-html": "2.17.0",
     "ulid": "^3.0.2",
-    "zod": "^4.6.7",
-    "libphonenumber-js": "^1.13.15"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",
+    "@types/sanitize-html": "2.16.0",
     "drizzle-kit": "^0.31.11",
     "typescript": "^5.9.3",
     "vitest": "^5.0.4"

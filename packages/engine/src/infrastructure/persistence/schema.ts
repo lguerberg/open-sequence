@@ -124,6 +124,9 @@ export const senders = seq.table(
     timezone: varchar('timezone', { length: 48 }).notNull().default('UTC'),
     status: text('status').notNull().default('active'),
     attrs: jsonb('attrs').$type<Record<string, unknown>>().notNull().default({}),
+    // The email signature, sanitized HTML and its plain-text twin; `{{ sender.signature }}` renders one or the other.
+    signatureHtml: text('signature_html'),
+    signatureText: text('signature_text'),
     createdAt: created(),
     updatedAt: updated(),
   },

@@ -145,6 +145,10 @@ export interface Sender {
   timezone: string;
   status: string;
   attrs: Record<string, unknown>;
+  /** Sanitized HTML, rendered raw by `{{ sender.signature }}` in html emails; null when unset. */
+  signatureHtml: string | null;
+  /** The plain-text twin, used by text emails. */
+  signatureText: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -3606,6 +3606,8 @@ export interface paths {
                         attrs?: {
                             [key: string]: unknown;
                         };
+                        signature_html?: string | null;
+                        signature_text?: string | null;
                     };
                 };
             };

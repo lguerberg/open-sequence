@@ -10,7 +10,6 @@ description: "Caps on definitions, batches, requests and retention, as enforced 
 | Node id | `^[a-z][a-z0-9_]*$`, 1 to 64 characters | schema |
 | Rules per condition | 1 to 20 | schema |
 | SMS body | 1000 characters; a warning (`TOO_LONG`) above 320 | schema and validator |
-| SMS sends per sequence | 1 (`TOO_MANY_SMS`) | validator |
 | Email subject and body | 300 and 100,000 characters | schema |
 | Task title, body, link, kind | 200, 4000, 2000 and 32 characters | schema |
 | Logic steps per advance | 25 before the enrollment is handed back to the planner | engine |

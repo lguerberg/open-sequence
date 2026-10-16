@@ -54,7 +54,7 @@ Sends through the sender's Gmail with the service's own `Message-ID`. `format: "
 }
 ```
 
-At most one SMS send per sequence (`TOO_MANY_SMS`). Gates that skip: `no_consent`, `no_phone`, `country_not_allowed`, `no_timezone`, `suppressed`, `no_sms_channel`; the quiet-hours gate (08:00 to 21:00 recipient-local) defers. Over 320 characters the validator warns (`TOO_LONG`, it is more than two segments); the hard limit is 1000. An unknown send outcome is never retried: the run goes `needs_review`.
+Gates that skip: `no_consent`, `no_phone`, `country_not_allowed`, `no_timezone`, `suppressed`, `no_sms_channel`; the quiet-hours gate (08:00 to 21:00 recipient-local) defers. Over 320 characters the validator warns (`TOO_LONG`, it is more than two segments); the hard limit is 1000. An unknown send outcome is never retried: the run goes `needs_review`.
 
 ## `wait`
 

@@ -1021,7 +1021,6 @@ Operators by type: enum `is`, `is not`; number `=`, `≠`, `>`, `≥`, `<`, `≤
 | Every transition target exists; `entry` exists | `UNKNOWN_NODE` |
 | Graph reachable from `entry`; no cycles except through a timed wait | `UNREACHABLE_NODE`, `CYCLE` |
 | Every path ends (an `end`, or a `task` with an unwired branch) | `NO_END` |
-| At most one SMS `send` step | `TOO_MANY_SMS` |
 | Condition fields and operators exist and values fit the type | `UNKNOWN_FIELD`, `BAD_VALUE` |
 | `wait_for` events allowed; each has a transition | `BAD_EVENT` |
 | `exit_on` contains only `reply` and `meeting_booked` | `BAD_EXIT` |

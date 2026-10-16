@@ -31,6 +31,8 @@ const sender = await oseq.senders.upsert('u_42', {
 | `email` | the address the Google connection is expected to use; with mock providers it becomes the mailbox |
 | `timezone` | an IANA zone, default `UTC`. Tasks are due and expire on the sender's calendar; a send window with `tz: "sender"` follows it; business-day math for a contact without a zone falls back to it |
 | `attrs` | free JSON; `{{ sender.attrs.<path> }}` in templates, `sender.attrs.<path>` in conditions |
+| `signature_html` | the email signature as HTML (photo, title, direct line, calendar link). Sanitized on save to text, links, images and simple tables; `{{ sender.signature }}` inserts it unescaped in `format: "html"` emails. Omit to keep, `null` to clear |
+| `signature_text` | the plain-text signature for `format: "text"` emails; derived from the HTML when omitted |
 
 ## Channels
 

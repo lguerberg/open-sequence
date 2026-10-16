@@ -45,7 +45,8 @@ export function templateContextFor(deps: Deps, ctx: StepContext, enrollment: Enr
   const token = runId ? deps.optOutToken({ projectId: enrollment.projectId, contactId: c.id, runId, exp }) : 'preview';
   return {
     contact: { first_name: c.firstName, last_name: c.lastName, email: c.email, phone: c.phone, country: c.country, timezone: c.timezone, attrs: c.attrs },
-    sender: { name: ctx.sender.name, first_name: ctx.sender.name.split(' ')[0], email: ctx.sender.email, timezone: ctx.sender.timezone, attrs: ctx.sender.attrs },
+    // `signature` is rendered raw by the template engine: the html in html emails, the text otherwise.
+    sender: { name: ctx.sender.name, first_name: ctx.sender.name.split(' ')[0], email: ctx.sender.email, timezone: ctx.sender.timezone, attrs: ctx.sender.attrs, signature: { html: ctx.sender.signatureHtml ?? '', text: ctx.sender.signatureText ?? '' } },
     sequence: { name: ctx.sequenceName },
     unsubscribe_url: `${deps.config.publicUrl}/u/${token}`,
   };

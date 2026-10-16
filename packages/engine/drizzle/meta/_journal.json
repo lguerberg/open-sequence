@@ -22,6 +22,13 @@
       "when": 1792157908811,
       "tag": "0002_remove_linkedin",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792160000000,
+      "tag": "0003_sender_signature",
+      "breakpoints": true
     }
   ]
 }

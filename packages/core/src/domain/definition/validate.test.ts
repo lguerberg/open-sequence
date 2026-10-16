@@ -75,14 +75,15 @@ describe('validateDefinition', () => {
     expect(r.problems.find((p) => p.code === 'NO_UNSUBSCRIBE')?.severity).toBe('warning');
   });
 
-  it('finds unreachable nodes, missing required transitions and more than one SMS', () => {
+  it('finds unreachable nodes and missing required transitions, and allows several texts', () => {
     const d = good();
     (d.nodes as Record<string, unknown>)['orphan'] = { type: 'end' };
     delete (d.nodes.check_stage.next as Record<string, string>)['no'];
     (d.nodes as Record<string, unknown>)['sms_2'] = { type: 'outreach', channel: 'sms', action: 'send', params: { body: 'x' }, next: {} };
     d.nodes.email_intro.next.skipped = 'sms_2';
     const r = validateDefinition(d);
-    expect(codes(r)).toEqual(expect.arrayContaining(['UNREACHABLE_NODE', 'MISSING_TRANSITION', 'TOO_MANY_SMS']));
+    expect(codes(r)).toEqual(expect.arrayContaining(['UNREACHABLE_NODE', 'MISSING_TRANSITION']));
+    expect(codes(r)).not.toContain('TOO_MANY_SMS');
   });
 
   it('rejects a loop with no wait in it and allows one through a wait', () => {

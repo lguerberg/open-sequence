@@ -18,7 +18,6 @@ Validation runs on `POST /v1/sequences:validate`, on every draft save (problems 
 | `MISSING_TRANSITION` | error | a required transition is unwired (`then` on `start` and `wait`, `yes` and `no` on `condition`) | wire it |
 | `UNREACHABLE_NODE` | error | a node no path from `entry` reaches | wire it or delete it |
 | `CYCLE` | error | a loop with no timed step on it (a `wait`, a `task`, or a `wait_for` with a `timeout`) | put a wait on the loop, or break it |
-| `TOO_MANY_SMS` | error | more than one `sms send` | one text per sequence |
 | `UNKNOWN_FIELD` | error | a condition names a field the registry does not know | pick one from `GET /v1/schema/fields` |
 | `BAD_OPERATOR` | error | the operator does not fit the field's type (`gte` on text, `contains` on a bool) | see the operators per type in [Conditions](/docs/sequences/conditions) |
 | `BAD_VALUE` | error | a missing value where the operator needs one, a non-number for a number field, a value outside an enum | fix the value |

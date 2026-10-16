@@ -42,7 +42,6 @@ export function validateDefinition(input: unknown): ValidationResult {
     problems.push({ path: 'entry', code: 'UNKNOWN_NODE', message: `The entry node "${def.entry}" does not exist.`, severity: 'error' });
   }
 
-  let smsSends = 0;
   for (const node of Object.values(nodes)) {
     const base = `nodes.${node.id}`;
     const spec = registry.node(node.type);
@@ -86,7 +85,6 @@ export function validateDefinition(input: unknown): ValidationResult {
       problems.push({ path: `${base}.next`, code: 'INVALID_DEFINITION', message: `An ${spec.label} step has no next steps.`, severity: 'error' });
     }
     if (spec.validate) problems.push(...spec.validate(node, { nodes, factFields: (f) => registry.factField(f) }));
-    if (node.type === 'outreach' && node.channel === 'sms' && node.action === 'send') smsSends += 1;
 
     // templates
     for (const key of TEMPLATE_PARAMS) {
@@ -100,9 +98,6 @@ export function validateDefinition(input: unknown): ValidationResult {
         }
       }
     }
-  }
-  if (smsSends > 1) {
-    problems.push({ path: 'nodes', code: 'TOO_MANY_SMS', message: `A sequence can send at most one text; this one has ${smsSends}.`, severity: 'error' });
   }
 
   // graph: reachability and cycles without a timed wait

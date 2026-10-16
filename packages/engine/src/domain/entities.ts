@@ -38,6 +38,8 @@ export interface Sender {
   timezone: string;
   status: string;
   attrs: Record<string, unknown>;
+  signatureHtml: string | null;
+  signatureText: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -13,7 +13,7 @@ export class DrizzleSenderRepository implements SenderRepository {
       .values(s)
       .onConflictDoUpdate({
         target: [senders.projectId, senders.externalId],
-        set: { name: s.name, email: s.email, timezone: s.timezone, status: s.status, attrs: s.attrs, updatedAt: new Date() },
+        set: { name: s.name, email: s.email, timezone: s.timezone, status: s.status, attrs: s.attrs, signatureHtml: s.signatureHtml, signatureText: s.signatureText, updatedAt: new Date() },
       })
       .returning();
     return row!;
