@@ -35,8 +35,17 @@ return out
 
 type ReadRow = [string, string, string, number];
 
+/** Width of a message id; 16 digits outlast any counter this queue will see. */
+const ID_WIDTH = 16;
+
 interface RedisWithRead extends Redis {
-  oseqRead(zsetKey: string, now: number, count: number, visibilityTimeoutMs: number, messagePrefix: string): Promise<ReadRow[]>;
+  oseqRead(
+    zsetKey: string,
+    now: number,
+    count: number,
+    visibilityTimeoutMs: number,
+    messagePrefix: string
+  ): Promise<ReadRow[]>;
 }
 
 export interface RedisQueueOptions {
@@ -61,18 +70,32 @@ export class RedisQueue implements Queue {
     }
   }
 
-  async send(queue: string, payload: unknown, opts: { delayMs?: number; tx?: unknown } = {}): Promise<void> {
+  async send(
+    queue: string,
+    payload: unknown,
+    opts: { delayMs?: number; tx?: unknown } = {}
+  ): Promise<void> {
     const at = this.now();
-    const id = String(await this.redis.incr(this.key('next_id')));
+    // Zero-padded so members with the same score (sent in the same millisecond) sort in send
+    // order: sorted sets order equal scores by member string, and "10" sorts before "9".
+    const id = String(await this.redis.incr(this.key('next_id'))).padStart(ID_WIDTH, '0');
     await this.redis
       .multi()
-      .hset(this.messageKey(id), { queue, payload: JSON.stringify(payload ?? null), read_ct: 0, created_at: at })
+      .hset(this.messageKey(id), {
+        queue,
+        payload: JSON.stringify(payload ?? null),
+        read_ct: 0,
+        created_at: at,
+      })
       .zadd(this.queueKey(queue), at + Math.max(0, Math.floor(opts.delayMs ?? 0)), id)
       .sadd(this.key('queues'), queue)
       .exec();
   }
 
-  async read(queue: string, opts: { visibilityTimeoutMs: number; count: number }): Promise<QueueMessage[]> {
+  async read(
+    queue: string,
+    opts: { visibilityTimeoutMs: number; count: number }
+  ): Promise<QueueMessage[]> {
     const count = Math.max(0, Math.floor(opts.count));
     if (count === 0) return [];
     const rows = await this.redis.oseqRead(
@@ -100,7 +123,12 @@ export class RedisQueue implements Queue {
     const queue = await this.redis.hget(this.messageKey(id), 'queue');
     if (queue === null) return;
     // XX: only move a member that is still queued; never resurrect a deleted or archived one.
-    await this.redis.zadd(this.queueKey(queue), 'XX', this.now() + Math.max(0, Math.floor(delayMs)), id);
+    await this.redis.zadd(
+      this.queueKey(queue),
+      'XX',
+      this.now() + Math.max(0, Math.floor(delayMs)),
+      id
+    );
   }
 
   async archive(id: string, reason: string): Promise<void> {
@@ -132,18 +160,46 @@ export class RedisQueue implements Queue {
         this.redis.zcard(this.queueKey(queue)),
         this.redis.zrangebyscore(this.queueKey(queue), '-inf', at, 'WITHSCORES', 'LIMIT', 0, 1),
       ]);
+      // Like the other backends, only queues that hold messages are reported; the `queues` set
+      // remembers every name ever seen.
+      if (depth === 0) continue;
       const score = oldest[1];
-      out.push({ queue, depth, oldestMs: score === undefined ? null : Math.max(0, at - Number(score)) });
+      out.push({
+        queue,
+        depth,
+        oldestMs: score === undefined ? null : Math.max(0, at - Number(score)),
+      });
     }
     return out;
   }
 
+  /** Every queue name this backend has seen, including empty ones; `stats` lists only those with messages. */
+  async queueNames(): Promise<string[]> {
+    return (await this.redis.smembers(this.key('queues'))).sort();
+  }
+
   /** The dead queue, oldest first, for inspection and replay. */
-  async dead(queue: string): Promise<Array<{ id: string; queue: string; payload: unknown; readCount: number; reason: string }>> {
+  async dead(
+    queue: string
+  ): Promise<
+    Array<{ id: string; queue: string; payload: unknown; readCount: number; reason: string }>
+  > {
     const items = await this.redis.lrange(this.deadKey(queue), 0, -1);
     return items.map((s) => {
-      const d = JSON.parse(s) as { id: string; queue: string; payload: unknown; read_ct: number; reason: string };
-      return { id: d.id, queue: d.queue, payload: d.payload, readCount: d.read_ct, reason: d.reason };
+      const d = JSON.parse(s) as {
+        id: string;
+        queue: string;
+        payload: unknown;
+        read_ct: number;
+        reason: string;
+      };
+      return {
+        id: d.id,
+        queue: d.queue,
+        payload: d.payload,
+        readCount: d.read_ct,
+        reason: d.reason,
+      };
     });
   }
 

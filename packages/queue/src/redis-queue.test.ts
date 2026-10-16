@@ -9,7 +9,9 @@ import { queueConformance, uniqueQueueName } from './test/conformance.js';
 const url = process.env['REDIS_URL'];
 
 describe.skipIf(!url)('RedisQueue (REDIS_URL)', () => {
-  const shared = new RedisQueue(url ?? 'redis://127.0.0.1:6379', { keyPrefix: `oseq-test:${Date.now()}:` });
+  const shared = new RedisQueue(url ?? 'redis://127.0.0.1:6379', {
+    keyPrefix: `oseq-test:${Date.now()}:`,
+  });
 
   afterAll(async () => {
     await shared.close();
@@ -19,8 +21,8 @@ describe.skipIf(!url)('RedisQueue (REDIS_URL)', () => {
     queue: () => shared,
     concurrentReaders: true,
     findDead: async (id) => {
-      for (const s of await shared.stats()) {
-        const d = (await shared.dead(s.queue)).find((x) => x.id === id);
+      for (const queue of await shared.queueNames()) {
+        const d = (await shared.dead(queue)).find((x) => x.id === id);
         if (d) return { queue: d.queue, reason: d.reason, readCount: d.readCount };
       }
       return undefined;

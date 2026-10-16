@@ -27,8 +27,18 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      # The Redis queue's conformance tests skip without REDIS_URL; run them here.
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       SEQ_TEST_DB_DSN: postgres://oseq:oseq@127.0.0.1:54329/opensequence_test
+      REDIS_URL: redis://127.0.0.1:6379/15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

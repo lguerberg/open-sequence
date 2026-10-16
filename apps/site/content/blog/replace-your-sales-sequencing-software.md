@@ -176,7 +176,7 @@ Watch for replies on old threads. OpenSequence detects replies only in threads i
 
 Sometimes contacts must move mid-sequence, because the contract ends before the drain does. In that case, export their sequence state, remove them from the sequence in the old tool, and enroll them in a second published sequence whose `entry` is the step they had reached. Its first email cannot thread onto the old one, because `reply_in_thread` only threads within the same enrollment. Write that email as a new message that makes sense without the earlier thread.
 
-Rehearse with `mode: "dry_run"` first. In dry-run mode, the engine records email and text steps with their rendered text instead of sending them. Waits, conditions and tasks run for real ([enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)).
+Rehearse with `mode: "dry_run"` first. In dry-run mode, the engine records email and text steps with their rendered text instead of sending them. Waits and conditions run for real. Task steps are recorded too, but no task reaches a rep's inbox ([enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)).
 
 ## CRM sync
 

@@ -74,7 +74,7 @@ First touches are staggered by the sender's email `daily_limit` (default 30) and
 
 ## Dry run
 
-`mode: "dry_run"` creates real enrollments whose outreach steps are recorded as `skipped_dry_run` instead of sent (with the rendered values), while waits, conditions and tasks run for real. Use it to rehearse a new sequence with one contact and read the journey; exit the enrollment afterwards.
+`mode: "dry_run"` creates real enrollments whose outreach steps are recorded as `skipped_dry_run` instead of sent (with the rendered values), while waits and conditions run for real. Task steps create no task: they are recorded as `skipped_dry_run` (with the rendered title and due date) and take their `completed` transition, so a rehearsal never lands in a rep's inbox. Use it to rehearse a new sequence with one contact and read the journey; exit the enrollment afterwards.
 
 ## What happens next
 
