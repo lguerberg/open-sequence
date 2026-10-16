@@ -68,9 +68,10 @@ await oseq.senders.readiness('u_42');                            // { email: { o
 await oseq.senders.connectGoogle('u_42', { return_url });        // { auth_url, connection_id } (mock: { status: 'active' })
 await oseq.senders.connections('u_42');
 await oseq.senders.disconnectGoogle('u_42');
+await oseq.senders.setSmtp('u_42', { provider: 'smtp', from, smtp: { host, port, secure, user, password }, imap: { host, port, secure, user, password } });
 await oseq.senders.setSms('u_42', { allo_user_id, number });
 await oseq.senders.patchChannel('u_42', 'email', { daily_limit: 50, min_gap_seconds: 90, status: 'active' });
-await oseq.senders.deleteChannel('u_42', 'sms');
+await oseq.senders.deleteChannel('u_42', 'sms');                 // or 'email': also deletes stored SMTP passwords
 await oseq.senders.disable('u_42');
 await oseq.senders.tasks('u_42', { status: 'open' });
 ```

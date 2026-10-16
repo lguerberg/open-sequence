@@ -13,7 +13,8 @@ Each phase is shippable alone and ends with an acceptance test; a phase is done 
 | 3 Allo, Attio and Calendar | SMS with the consent and time-zone gates, STOP, the dialer push, `call.completed` auto-completing call tasks, the Attio adapter with `crm.*` conditions, Calendar `meeting_booked` detection | the adapters exist; verification against real accounts is the acceptance test |
 | 4 First client integration | a client on `@opensequence/sdk` with a canvas, a people table, an enroll dialog and the journey | |
 | 5 Redis queue and load | the engine suite on `SEQ_QUEUE=redis`, 10,000 active enrollments with due lag under 2 minutes | the Redis backend exists |
-| 6 Later | more adapters behind the same ports (SMTP and IMAP, Twilio, HubSpot), the `crm_action` and `webhook` nodes, `split` and experiments, auto-enroll rules, a minimal admin page, holidays, AI drafting | |
+| SMTP and IMAP | any mailbox with a password as the email channel ([Connect SMTP and IMAP](/docs/senders/connect-smtp)): send over SMTP with a Sent copy, replies, bounces and auto-replies read over IMAP | done: proven against GreenMail in the test suite |
+| 6 Later | more adapters behind the same ports (Microsoft 365 with OAuth, Twilio, HubSpot), the `crm_action` and `webhook` nodes, `split` and experiments, auto-enroll rules, a minimal admin page, holidays, AI drafting | |
 
 ## Described in the design, not in the code yet
 

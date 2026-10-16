@@ -28,7 +28,7 @@ const sender = await oseq.senders.upsert('u_42', {
 | Field | Notes |
 |---|---|
 | `name` | required, up to 160 characters; `{{ sender.name }}` and `{{ sender.first_name }}` in templates |
-| `email` | the address the Google connection is expected to use; with mock providers it becomes the mailbox |
+| `email` | the address the Google connection is expected to use, and the SMTP `from` fallback; with mock providers it becomes the mailbox |
 | `timezone` | an IANA zone, default `UTC`. Tasks are due and expire on the sender's calendar; a send window with `tz: "sender"` follows it; business-day math for a contact without a zone falls back to it |
 | `attrs` | free JSON; `{{ sender.attrs.<path> }}` in templates, `sender.attrs.<path>` in conditions |
 | `signature_html` | the email signature as HTML (photo, title, direct line, calendar link). Sanitized on save to text, links, images and simple tables; `{{ sender.signature }}` inserts it unescaped in `format: "html"` emails. Omit to keep, `null` to clear |
@@ -40,7 +40,7 @@ A sender sends through channels; each one is created by its own call and has its
 
 | Channel | How it is created | Provider |
 |---|---|---|
-| `email` | `POST /v1/senders/{id}/connections/google` and the sender's consent ([Connect Google](/docs/senders/connect-google)) | the sender's own Gmail and Calendar, through your project's OAuth client |
+| `email` | `POST /v1/senders/{id}/connections/google` and the sender's consent ([Connect Google](/docs/senders/connect-google)), or `PUT /v1/senders/{id}/channels/email` with SMTP and IMAP settings ([Connect SMTP and IMAP](/docs/senders/connect-smtp)) | the sender's own Gmail and Calendar, through your project's OAuth client, or any mailbox with a password (Fastmail, Zoho, iCloud, a Google app password, your own server) |
 | `sms` | `PUT /v1/senders/{id}/channels/sms` with an Allo user and number ([Connect Allo](/docs/senders/connect-allo)) | the project's Allo key |
 
 Statuses: `pending`, `active`, `paused`, `credentials_needed`, `restricted`, `disconnected`. Only `active` channels send; a step on any other status is skipped with `sender_channel_<status>`, and `credentials_needed` additionally pauses the step and raises `sender.channel_status` so you can ask the user to reconnect.
@@ -88,7 +88,7 @@ if (!readiness.email.ok) console.log(readiness.email.reason); // google_not_conn
 
 </CodeGroup>
 
-Reasons are `google_not_connected` and `no_allo_number` when the channel does not exist, and `<channel>_<status>` (`email_credentials_needed`, `sms_paused`, …) when it exists but is not active. `GET /v1/senders/{id}` returns the sender with `channels`, `readiness` and `connections` in one call.
+Reasons are `google_not_connected` (no email channel yet, whether you connect Google or SMTP) and `no_allo_number` when the channel does not exist, and `<channel>_<status>` (`email_credentials_needed`, `sms_paused`, …) when it exists but is not active. `GET /v1/senders/{id}` returns the sender with `channels`, `readiness` and `connections` in one call.
 
 ## Listing
 
@@ -108,4 +108,4 @@ await oseq.senders.disable('u_42');
 
 </CodeGroup>
 
-`DELETE` disables; nothing is deleted. New enrollments as this sender are refused (`409 SENDER_DISABLED`); their steps skip from now on. `PUT` the sender again to re-enable. Removing one channel (`DELETE /v1/senders/{id}/channels/sms`) keeps the sender and makes that channel's steps skip; disconnecting Google (`DELETE /v1/senders/{id}/connections/google`) revokes the token at Google and sets the email channel `disconnected`.
+`DELETE` disables; nothing is deleted. New enrollments as this sender are refused (`409 SENDER_DISABLED`); their steps skip from now on. `PUT` the sender again to re-enable. Removing one channel (`DELETE /v1/senders/{id}/channels/sms` or `/channels/email`) keeps the sender and makes that channel's steps skip; removing email also deletes stored SMTP passwords. Disconnecting Google (`DELETE /v1/senders/{id}/connections/google`) revokes the token at Google and sets a Gmail email channel `disconnected`.

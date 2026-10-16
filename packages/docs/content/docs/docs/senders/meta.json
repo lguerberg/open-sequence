@@ -1,4 +1,4 @@
 {
   "title": "Senders",
-  "pages": ["senders", "connect-google", "connect-allo", "connect-attio"]
+  "pages": ["senders", "connect-google", "connect-smtp", "connect-allo", "connect-attio"]
 }
