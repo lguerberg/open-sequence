@@ -16,10 +16,15 @@
   "dependencies": {
     "@opensequence/core": "workspace:*",
     "googleapis": "^185.0.0",
+    "imapflow": "2.5.2",
+    "mailparser": "3.9.40",
+    "nodemailer": "10.1.2",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@types/mailparser": "3.9.0",
     "@types/node": "^22.19.0",
+    "@types/nodemailer": "8.0.2",
     "msw": "^2.12.0",
     "typescript": "^5.9.3",
     "vitest": "^5.0.4"

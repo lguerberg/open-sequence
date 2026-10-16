@@ -1,5 +1,5 @@
 import type { ProviderSet } from '@opensequence/core';
-import type { CredentialSource } from './credentials.js';
+import type { ConnectionSecretSource, CredentialSource } from './credentials.js';
 import type { TokenSource } from './google/token-source.js';
 
 /**
@@ -11,6 +11,8 @@ export interface ProviderFactoryContext {
   credentials: CredentialSource;
   /** Per-connection access tokens (OAuth providers); the auth module provides it. */
   tokens?: TokenSource;
+  /** Per-connection password settings (SMTP and IMAP); the auth module provides it. */
+  connectionSecrets?: ConnectionSecretSource;
   /** Adapter options such as a base URL override; shape is per provider. */
   options?: Record<string, unknown>;
 }

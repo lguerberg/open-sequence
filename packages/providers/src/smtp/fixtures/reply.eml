@@ -1,0 +1,22 @@
+From: Dana Lee <dana@acme.com>
+To: rep@example.com
+Subject: Re: Quick question
+Date: Tue, 13 Oct 2026 12:00:00 +0000
+Message-ID: <reply-1@acme.com>
+In-Reply-To: <seq.enr1.n2.a1@example.com>
+References: <seq.enr1.n1.a1@example.com> <seq.enr1.n2.a1@example.com>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="=_r1"
+
+--=_r1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Sure, let=E2=80=99s talk Thursday.
+
+--=_r1
+Content-Type: text/html; charset="UTF-8"
+
+<p>Sure, let&#8217;s talk Thursday.</p>
+
+--=_r1--

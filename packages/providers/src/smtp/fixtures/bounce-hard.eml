@@ -1,0 +1,49 @@
+Return-Path: <>
+From: Mail Delivery Subsystem <mailer-daemon@mail.example.net>
+To: rep@example.com
+Subject: Undelivered Mail Returned to Sender
+Date: Tue, 13 Oct 2026 10:05:00 +0000
+Message-ID: <dsn-1@mail.example.net>
+MIME-Version: 1.0
+Content-Type: multipart/report; report-type=delivery-status; boundary="=_dsn1"
+
+--=_dsn1
+Content-Type: text/plain; charset=us-ascii
+
+This is the mail system at host mail.example.net.
+
+I am sorry to have to inform you that your message could not
+be delivered to one or more recipients.
+
+<lead@acme.com>: host mx.acme.com[203.0.113.5] said: 550 5.1.1
+    <lead@acme.com>: Recipient address rejected: User unknown
+
+--=_dsn1
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; mail.example.net
+X-Postfix-Queue-ID: 4ABCDEF
+Arrival-Date: Tue, 13 Oct 2026 10:04:58 +0000
+
+Final-Recipient: rfc822; lead@acme.com
+Original-Recipient: rfc822;lead@acme.com
+Action: failed
+Status: 5.1.1
+Remote-MTA: dns; mx.acme.com
+Diagnostic-Code: smtp; 550 5.1.1 <lead@acme.com>: Recipient address rejected: User unknown
+
+--=_dsn1
+Content-Type: message/rfc822
+Content-Description: Undelivered Message
+
+From: rep@example.com
+To: lead@acme.com
+Subject: Quick question
+Date: Tue, 13 Oct 2026 10:04:57 +0000
+Message-ID: <seq.enr1.n1.a1@example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Hello there
+
+--=_dsn1--
