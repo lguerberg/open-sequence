@@ -4,6 +4,8 @@ import { makeDeps, seedCallTask, seedEnrollment, seedTouch, seedWorld } from '..
 import { ingestInboundEvents } from '../signals/ingest-inbound-events.js';
 import { processSignal } from '../signals/process-signal.js';
 import { SIGNAL_QUEUE } from '../signals/record-signal.js';
+import { exitEnrollment } from '../enrollments/exit-enrollment.js';
+import { JOBS } from '../scheduler/jobs.js';
 import { cancelTask } from './cancel-task.js';
 import { completeTask } from './complete-task.js';
 import { pushDialerTasks } from './push-dialer-tasks.js';
@@ -99,6 +101,22 @@ describe('completeTask', () => {
     expect(done.outcome).toBe('voicemail');
     expect(done.note).toBe('Line busy');
     expect((await repos.signals.byContact(w.contact.id, 10)).map((s) => s.source)).toEqual(['allo']);
+  });
+
+  it('an exit through the API closes the waiting call step and cancels its open task', async () => {
+    const w = await seedWorld(deps, []);
+    const e = await seedEnrollment(deps, w);
+    const task = await seedCallTask(deps, e);
+
+    const exited = await exitEnrollment(deps, w.projectId, e.id, { label: 'Cancelled' });
+    expect(exited.status).toBe('exited');
+    expect((await repos.runs.byId(task.runId))!.status).toBe('done');
+    expect((await repos.tasks.byId(w.projectId, task.id))!.status).toBe('cancelled');
+  });
+
+  it('the scheduler runs the dialer push', () => {
+    expect(JOBS['dialer']).toBeDefined();
+    expect(JOBS['dialer']!.periodMs).toBeLessThanOrEqual(60_000);
   });
 
   it('pushes unpushed dialer tasks to the sender\'s Allo queue once', async () => {

@@ -8,7 +8,7 @@ import type { Enrollment, Signal, Suppression } from '../../domain/entities.js';
 import type { Repositories, TransactionScope } from '../../domain/repositories.js';
 import type { Deps } from '../deps.js';
 import { advanceEnrollment } from '../enrollments/advance-enrollment.js';
-import { ACTIVE_STATUSES, enrollmentPayload, finishEnrollment, loadDefinition, taskPayload } from '../enrollments/shared.js';
+import { ACTIVE_STATUSES, closeWaitingStep, enrollmentPayload, finishEnrollment, loadDefinition } from '../enrollments/shared.js';
 import { effectiveSettings } from '../projects/shared.js';
 import { attributeSignal, builtInExitReason, chosenExitReason, contactPayload, REPLY_KINDS, signalPayload, wakeEventNames, type Credit } from './shared.js';
 
@@ -155,16 +155,6 @@ async function chosenExit(repos: Repositories, signal: Signal, e: Enrollment): P
   return chosenExitReason(signal, def.exit_on);
 }
 
-/** An exit closes the step the enrollment was waiting on and cancels its open task, if any. */
-async function closeWaitingStep(scope: TransactionScope, e: Enrollment, branch: string, now: Date): Promise<void> {
-  if (!e.waiting) return;
-  await scope.repos.runs.update(e.waiting.runId, { status: 'done', branch, finishedAt: now });
-  const task = await scope.repos.tasks.byRun(e.waiting.runId);
-  if (task && task.status === 'open') {
-    const cancelled = await scope.repos.tasks.update(task.id, { status: 'cancelled' });
-    scope.raise({ type: 'task.expired', projectId: e.projectId, enrollmentId: e.id, payload: { task: taskPayload(cancelled) } });
-  }
-}
 
 function parseDate(v: unknown): Date | null {
   if (v instanceof Date) return v;

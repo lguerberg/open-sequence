@@ -8,6 +8,7 @@ import { planTick } from './plan-tick.js';
 import { pollTick } from './poll-tick.js';
 import { reapTick } from './reap-tick.js';
 import { retentionTick } from './retention-tick.js';
+import { pushDialerTasks } from '../tasks/push-dialer-tasks.js';
 import { DAY_MS, HOUR_MS, MINUTE_MS } from './shared.js';
 import { signalsTick } from './signals-tick.js';
 import { webhooksTick } from './webhooks-tick.js';
@@ -26,4 +27,6 @@ export const JOBS: Readonly<Record<string, JobSpec>> = {
   reap: { periodMs: MINUTE_MS, ttlMs: 5 * MINUTE_MS, fn: reapTick },
   retention: { periodMs: DAY_MS, ttlMs: HOUR_MS, fn: retentionTick },
   webhooks: { periodMs: 30_000, ttlMs: 2 * MINUTE_MS, fn: webhooksTick },
+  // Open `dialer: true` call tasks into each sender's Allo power-dialer queue, within a minute of creation.
+  dialer: { periodMs: 30_000, ttlMs: 2 * MINUTE_MS, fn: (deps) => pushDialerTasks(deps, 200) },
 };

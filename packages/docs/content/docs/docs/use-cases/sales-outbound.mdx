@@ -110,7 +110,7 @@ A reply on any channel, a connected call, or a meeting booked ends the enrollmen
 What each part does:
 
 - **`check_crm`** reads Attio when the step runs, not when the lead was enrolled. `crm.deal.exists` is true when the person or their company has an open deal. See [CRM conditions](/docs/sequences/crm-conditions) for the lookup and every field.
-- **`call_1`** gives the rep a call task marked for their Allo power dialer (the push job is not scheduled yet, so today the rep dials from Allo or the task's link). When the rep calls, Allo completes the task with the call's outcome: `voicemail` takes the text, anything else takes `completed`. If nobody calls within two business days, the task expires and takes `no_answer`.
+- **`call_1`** gives the rep a call task and puts the number in their Allo power dialer within a minute. When the rep calls, Allo completes the task with the call's outcome: `voicemail` takes the text, anything else takes `completed`. If nobody calls within two business days, the task expires and takes `no_answer`.
 - **`reply_in_thread`** sends the follow-ups as replies to the intro, with `In-Reply-To` and `References` set, so they read as one conversation.
 - **`exit_on`** lists both `reply` and `meeting_booked`. Meetings are detected on the rep's Google Calendar (an event with the lead as an attendee), or reported by your app.
 

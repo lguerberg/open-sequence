@@ -90,12 +90,12 @@ await oseq.tasks.cancel(open[1].id);
 | `dueAt`, `expiresAt` | When it is due, and when it expires and takes `no_answer`. |
 | `status` | `open`, `done`, `expired` or `cancelled`. |
 | `outcome`, `note`, `completedAt` | Set on completion. When Allo completed the task, the note is the call summary. |
-| `dialer`, `dialerPushedAt` | Whether the task is marked for the dialer, and when it was pushed (always null today). |
+| `dialer`, `dialerPushedAt` | Whether the task is marked for the dialer, and when it was pushed into the sender's Allo queue. |
 | `enrollmentId`, `contactId`, `senderId` | The links. Join with `GET /v1/contacts/{id}` for the contact card. |
 
 `GET /v1/tasks` needs a `read` key and filters by `sender`, `status`, `kind`, `contact` and `updated_since`, with cursor pagination. `GET /v1/senders/{id}/tasks` does the same for one sender, `status=open` by default. `complete` takes an `outcome` and an optional `note` (up to 4,000 characters); `complete` and `cancel` need an `enroll` key.
 
-When a reply, an opt-out or a bounce exits the enrollment, its open task is cancelled and `task.expired` is delivered. Exiting an enrollment through the API leaves its task open today: cancel the task yourself.
+When the enrollment exits, by a reply, an opt-out, a bounce or an exit through the API, its open task is cancelled and `task.expired` is delivered.
 
 ## Calls through Allo
 
@@ -109,7 +109,11 @@ The sender's `sms` channel holds their Allo user and number ([SMS and calls via 
 
 Change the mapping with `settings.allo.outcome_map`, for example `PUT /v1/project/settings` with `{ "allo": { "outcome_map": { "VOICEMAIL": "no_answer" } } }`. Whichever completion arrives first wins, from Allo or from your app; the later one finds the task closed and changes nothing.
 
-<Warning>`dialer: true` is stored on the task, and the engine has the code to push marked tasks into the sender's Allo power-dialer queue, but nothing runs it yet. Today the number does not reach the dialer by itself: the rep dials from Allo or from the task's `link`, and auto-completion still closes the task. Completing a call task from Allo's queue state, when a webhook was missed, is not wired either.</Warning>
+## The power dialer
+
+With `dialer: true`, a scheduler job pushes the contact's number into the sender's Allo power-dialer queue within a minute of the task's creation, and stamps `dialerPushedAt`. A number already in the queue counts as pushed. The push uses the Allo user on the sender's sms channel, so a sender without one, or a contact without a phone, is skipped and retried on the next run until it is fixed.
+
+<Note>Completing a call task from Allo's queue state, when a `call.completed` webhook was missed, is not wired yet: the task then waits for your app to complete it, or expires.</Note>
 
 ## Building a task inbox
 

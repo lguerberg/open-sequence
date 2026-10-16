@@ -141,3 +141,14 @@ export function finishEnrollment(scope: TransactionScope, e: Enrollment, patch: 
     payload: { enrollment: enrollmentPayload({ ...e, ...patch, status } as Enrollment), exit_reason: status === 'exited' ? patch.exitReason : null, ...extra },
   });
 }
+
+/** An exit closes the step the enrollment was waiting on and cancels its open task, if any. */
+export async function closeWaitingStep(scope: TransactionScope, e: Enrollment, branch: string, now: Date): Promise<void> {
+  if (!e.waiting) return;
+  await scope.repos.runs.update(e.waiting.runId, { status: 'done', branch, finishedAt: now });
+  const task = await scope.repos.tasks.byRun(e.waiting.runId);
+  if (task && task.status === 'open') {
+    const cancelled = await scope.repos.tasks.update(task.id, { status: 'cancelled' });
+    scope.raise({ type: 'task.expired', projectId: e.projectId, enrollmentId: e.id, payload: { task: taskPayload(cancelled) } });
+  }
+}
