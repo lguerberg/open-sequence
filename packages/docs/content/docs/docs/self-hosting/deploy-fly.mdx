@@ -17,6 +17,8 @@ kill_timeout = 40
 
 [build]
   dockerfile = "apps/server/Dockerfile"
+  # Or skip the build and run the published image (pin a sha- or version tag):
+  # image = "ghcr.io/lguerberg/open-sequence:main"
 
 [deploy]
   release_command = "node /app/dist/cli.js migrate"
@@ -89,7 +91,7 @@ Create a Fly Managed Postgres cluster, version 14 or newer, in the same region, 
 <Step title="Set the secrets">
 
 ```bash
-KEY=$(docker run --rm opensequence/server node dist/cli.js secrets new-key)   # or any built image
+KEY=$(docker run --rm ghcr.io/lguerberg/open-sequence:main node dist/cli.js secrets new-key)   # or any built image
 
 fly secrets set --stage \
   SEQ_DB_DSN='postgres://oseq:…@…:5432/opensequence' \

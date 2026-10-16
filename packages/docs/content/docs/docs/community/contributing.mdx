@@ -37,7 +37,7 @@ Node 22 and pnpm 10. The repository is a pnpm workspace; `docs/ARCHITECTURE.md` 
 
 ## Tests
 
-`pnpm test` runs Vitest across every package. Core tests are pure. Engine integration tests and the server's quickstart test need a throwaway Postgres: `scripts/test-db.sh` starts one on port 54329, or set `SEQ_TEST_DB_DSN`. Provider tests use recorded fixtures (`msw`); the `mock` provider runs everything else. CI (`.github/workflows/ci.yml`) runs build, typecheck, lint and test against a Postgres service, checks that `apps/server/openapi.json` matches the routes (`pnpm --filter @opensequence/server openapi`), and builds the Docker image.
+`pnpm test` runs Vitest across every package. Core tests are pure. Engine integration tests and the server's quickstart test need a throwaway Postgres: `scripts/test-db.sh` starts one on port 54329, or set `SEQ_TEST_DB_DSN`. Provider tests use recorded fixtures (`msw`); the `mock` provider runs everything else. CI (`.github/workflows/ci.yml`) runs build, typecheck, lint and test against Postgres and Redis services, checks that `apps/server/openapi.json` matches the routes (`pnpm --filter @opensequence/server openapi`), and builds the Docker image. A push to `main` also publishes the image to `ghcr.io/lguerberg/open-sequence`, and a `v*` tag publishes a release.
 
 ## Conventions
 

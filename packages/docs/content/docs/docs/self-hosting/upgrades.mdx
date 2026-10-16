@@ -11,7 +11,7 @@ pg_dump --format=custom --schema=seq --schema=auth "$SEQ_DB_DSN" > before-upgrad
 
 # 2. Apply the new image's migrations, once
 docker run --rm -e SEQ_DB_DSN -e SEQ_ENCRYPTION_KEYS \
-  registry.example.com/opensequence/server:NEW node dist/cli.js migrate
+  ghcr.io/lguerberg/open-sequence:NEW node dist/cli.js migrate
 # applied 1 migration(s)   or   already up to date
 
 # 3. Roll the api, then the worker, to the new image

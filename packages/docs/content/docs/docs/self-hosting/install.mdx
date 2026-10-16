@@ -16,14 +16,15 @@ flowchart LR
 ```
 
 <Steps>
-<Step title="Build the image">
+<Step title="Get the image">
 
 ```bash
-git clone https://github.com/lguerberg/open-sequence && cd open-sequence
-docker build -f apps/server/Dockerfile -t opensequence/server .
+docker pull ghcr.io/lguerberg/open-sequence:main
 ```
 
-The image runs Node 22 on Alpine as the non-root user `oseq` (uid 100, gid 101). It starts `node dist/main.js`, listens on port 8080 and has a Docker `HEALTHCHECK` on `/healthz`. `NODE_ENV=production` is baked in. The operator CLI ships inside as `dist/cli.js`. No image is published yet, so build your own and push it to your registry.
+Every push to `main` publishes `ghcr.io/lguerberg/open-sequence:main` and `:sha-<commit>` (amd64). A release tag `v*` publishes `:<version>`, `:<major>.<minor>` and `:latest` for amd64 and arm64. Pin a `sha-` or version tag in production so a redeploy never changes the code under you. To build it yourself instead: `docker build -f apps/server/Dockerfile -t opensequence/server .` from a clone.
+
+The image runs Node 22 on Alpine as the non-root user `oseq` (uid 100, gid 101). It starts `node dist/main.js`, listens on port 8080 and has a Docker `HEALTHCHECK` on `/healthz`. `NODE_ENV=production` is baked in. The operator CLI ships inside as `dist/cli.js`.
 
 </Step>
 <Step title="Provision Postgres">
@@ -34,7 +35,7 @@ Give OpenSequence its own database on Postgres 14 or newer. It needs no extensio
 <Step title="Generate the secrets">
 
 ```bash
-docker run --rm opensequence/server node dist/cli.js secrets new-key
+docker run --rm ghcr.io/lguerberg/open-sequence:main node dist/cli.js secrets new-key
 # kmvb1mvo3:Y2ItLFqx5NZ9+b+jHrY01i2ZrnGE+pnxdoeMna58BzM=   -> SEQ_ENCRYPTION_KEYS
 openssl rand -base64 32                                   # -> SEQ_ADMIN_TOKEN
 ```
@@ -54,7 +55,7 @@ docker run -d --name oseq-api -p 8080:8080 \
   -e SEQ_ADMIN_TOKEN='…' \
   -e SEQ_PUBLIC_URL=https://sequences.example.com \
   -e SEQ_RUN_MIGRATIONS=1 \
-  opensequence/server
+  ghcr.io/lguerberg/open-sequence:main
 ```
 
 With `SEQ_RUN_MIGRATIONS=1` the process applies the `seq` and `auth` migrations before it opens its port. Each migration runs in its own transaction behind a row lock, so replicas that start together do not race. If a migration fails, the process exits with code 1. To migrate from a pipeline instead, see [Upgrades](/docs/self-hosting/upgrades).
@@ -70,7 +71,7 @@ docker run -d --name oseq-worker \
   -e SEQ_DB_DSN=postgres://oseq:secret@db.internal:5432/opensequence \
   -e SEQ_ENCRYPTION_KEYS='kmvb1mvo3:…' \
   -e SEQ_PUBLIC_URL=https://sequences.example.com \
-  opensequence/server
+  ghcr.io/lguerberg/open-sequence:main
 ```
 
 The worker runs the scheduler and the queue consumers. It needs no `SEQ_ADMIN_TOKEN`. It still listens on `SEQ_PORT` for `/healthz` and `/readyz`, but the API routes answer on that port too, so never expose it. It needs the same `SEQ_PUBLIC_URL` because it writes the unsubscribe links into emails.

@@ -13,6 +13,11 @@
       "permanent": true
     },
     {
+      "source": "/docs/senders/connect-smtp",
+      "destination": "/docs/sending/email-smtp",
+      "permanent": true
+    },
+    {
       "source": "/docs/senders/connect-allo",
       "destination": "/docs/sending/sms-and-calls-allo",
       "permanent": true

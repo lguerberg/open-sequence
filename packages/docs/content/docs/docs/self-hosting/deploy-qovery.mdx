@@ -32,7 +32,7 @@ No cronjob is needed. The scheduler runs inside the worker and coordinates repli
 Generate the two secrets once, on your machine or in any built image:
 
 ```bash
-docker run --rm opensequence/server node dist/cli.js secrets new-key   # SEQ_ENCRYPTION_KEYS
+docker run --rm ghcr.io/lguerberg/open-sequence:main node dist/cli.js secrets new-key   # SEQ_ENCRYPTION_KEYS
 openssl rand -base64 32                                                # SEQ_ADMIN_TOKEN
 ```
 
@@ -64,6 +64,8 @@ Add a lifecycle job from your fork of the repository:
 
 - Build with the Dockerfile at `apps/server/Dockerfile`, root path `/` (the Dockerfile copies the whole workspace).
 - Trigger it on the environment's start (deploy) event, with the command `node dist/cli.js migrate`.
+
+<Tip>You can skip the build: create the job and both applications from a container registry instead, with the image `ghcr.io/lguerberg/open-sequence` and a pinned tag (`sha-<commit>`, or a version once one is released). Every other setting on this page stays the same.</Tip>
 
 The command applies the `seq` and `auth` migrations and exits. It is safe to run on every deploy: an up-to-date database prints `already up to date`.
 
