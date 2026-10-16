@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { ImageResponse } from 'next/og';
 
 /**
@@ -7,24 +9,55 @@ import { ImageResponse } from 'next/og';
  */
 
 const NAVY = '#0f1b2a';
+const BLUE = '#2b7bc0';
 const CELESTE = '#74acdf';
 
-function Mark({ size }: { size: number }) {
+/** Geist, the site's type, for the wordmark and the headlines (next/og bundles only the regular weight). */
+const fontDir = path.join(process.cwd(), 'lib/fonts');
+const fonts = [
+  { name: 'Geist', data: fs.readFileSync(path.join(fontDir, 'Geist-Regular.ttf')), weight: 400 as const, style: 'normal' as const },
+  { name: 'Geist', data: fs.readFileSync(path.join(fontDir, 'Geist-SemiBold.ttf')), weight: 600 as const, style: 'normal' as const },
+];
+
+/**
+ * The mark: a sequence in code braces, one step forking on a reply, on a 64 by 64 grid (the same as
+ * components/ds/brand.tsx). `tile="square"` drops the rounded tile and its hairline for a full-bleed
+ * white square, for the app icons, where the launcher applies its own mask.
+ */
+function Mark({ size, tile = 'rounded' }: { size: number; tile?: 'rounded' | 'square' }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <rect x="1" y="1" width="22" height="22" rx="6" fill={CELESTE} />
-      <path
-        d="M5.5 12h3.4l2.1-4.8 2.3 9.6 2.1-4.8h3.1"
-        stroke={NAVY}
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      {tile === 'rounded' ? (
+        <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.5" fill="#ffffff" stroke="#dbe6f1" strokeWidth="1.5" />
+      ) : (
+        <rect width="64" height="64" fill="#ffffff" />
+      )}
+      <path d="M19 13C14 13 13 16 13 21v6c0 3-2 5-5 5 3 0 5 2 5 5v6c0 5 1 8 6 8" stroke={NAVY} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M45 13c5 0 6 3 6 8v6c0 3 2 5 5 5-3 0-5 2-5 5v6c0 5-1 8-6 8" stroke={NAVY} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22 32h5c5 0 5-7 10-7h4" stroke={NAVY} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M27 32c5 0 5 7 10 7h4" stroke={BLUE} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="22" cy="32" r="3.4" fill={NAVY} />
+      <circle cx="41.5" cy="25" r="3.4" fill={NAVY} />
+      <circle cx="41.5" cy="39" r="3.6" fill={BLUE} />
     </svg>
   );
 }
 
-/** The square app icon: the mark on white, with a little air for maskable launchers. */
+/** The lockup: the mark and the two-tone wordmark, "open" in navy and "sequence" in brand blue. */
+function Lockup({ size }: { size: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: Math.round(size * 0.42) }}>
+      <Mark size={Math.round(size * 1.65)} />
+      <div style={{ display: 'flex', fontSize: size, fontWeight: 600, letterSpacing: -size * 0.035 }}>
+        {/* satori leaves a gap between two text runs; the margin closes it to plain letter spacing */}
+        <span style={{ color: NAVY, marginRight: -size * 0.14 }}>open</span>
+        <span style={{ color: BLUE }}>sequence</span>
+      </div>
+    </div>
+  );
+}
+
+/** The square app icon: the mark on white, with a little air so the braces survive a maskable launcher's circle. */
 export function iconPng(size: number) {
   return new ImageResponse(
     <div
@@ -37,9 +70,9 @@ export function iconPng(size: number) {
         background: '#ffffff',
       }}
     >
-      <Mark size={Math.round(size * 0.78)} />
+      <Mark size={Math.round(size * 0.9)} tile="square" />
     </div>,
-    { width: size, height: size }
+    { width: size, height: size, fonts }
   );
 }
 
@@ -55,22 +88,11 @@ export function ogPng() {
         justifyContent: 'space-between',
         background: '#ffffff',
         color: NAVY,
-        fontFamily: 'sans-serif',
+        fontFamily: 'Geist',
         padding: 56,
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
-          fontSize: 32,
-          letterSpacing: -1.2,
-        }}
-      >
-        <Mark size={44} />
-        <span>opensequence</span>
-      </div>
+      <Lockup size={34} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
         <div style={{ fontSize: 96, fontWeight: 500, letterSpacing: -4.5, lineHeight: 0.95 }}>
           Sales sequences, as code.
@@ -106,7 +128,7 @@ export function ogPng() {
         </span>
       </div>
     </div>,
-    { width: 1200, height: 630 }
+    { width: 1200, height: 630, fonts }
   );
 }
 
@@ -126,7 +148,7 @@ export function postOgPng({ title, eyebrow }: { title: string; eyebrow: string }
         justifyContent: 'space-between',
         background: '#ffffff',
         color: NAVY,
-        fontFamily: 'sans-serif',
+        fontFamily: 'Geist',
         padding: 56,
       }}
     >
@@ -135,21 +157,16 @@ export function postOgPng({ title, eyebrow }: { title: string; eyebrow: string }
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          fontSize: 32,
-          letterSpacing: -1.2,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Mark size={44} />
-          <span>opensequence</span>
-        </div>
+        <Lockup size={34} />
         <span
           style={{
             fontFamily: 'monospace',
             fontSize: 20,
             letterSpacing: 2,
             textTransform: 'uppercase',
-            color: '#2b7bc0',
+            color: BLUE,
           }}
         >
           {eyebrow}
@@ -186,6 +203,6 @@ export function postOgPng({ title, eyebrow }: { title: string; eyebrow: string }
         </span>
       </div>
     </div>,
-    { width: 1200, height: 630 }
+    { width: 1200, height: 630, fonts }
   );
 }

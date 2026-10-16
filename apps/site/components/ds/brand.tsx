@@ -1,17 +1,29 @@
 import { cn } from '@/lib/utils';
 
-/** The mark: one step of a sequence, a signal passing through it. Celeste tile, navy trace. */
-export function LogoMark({ className }: { className?: string }) {
+/**
+ * The mark: a sequence in code braces, one step forking on a reply. `tone="light"` is the version for
+ * dark grounds (the footer). The braces and the fork are drawn on a 64 by 64 grid.
+ */
+export function LogoMark({ className, tone = 'ink' }: { className?: string; tone?: 'ink' | 'light' }) {
+  const dark = tone === 'light';
+  const ink = dark ? '#ffffff' : '#0f1b2a';
+  const accent = dark ? '#74acdf' : '#2b7bc0';
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={cn('size-9', className)}>
-      <rect x="1" y="1" width="22" height="22" rx="6" fill="#74acdf" />
-      <path
-        d="M5.5 12h3.4l2.1-4.8 2.3 9.6 2.1-4.8h3.1"
-        stroke="#0f1b2a"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden="true" className={cn('size-9', className)}>
+      {dark ? (
+        <rect width="64" height="64" rx="16" fill="#1c2c40" />
+      ) : (
+        <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.5" fill="#ffffff" stroke="#dbe6f1" strokeWidth="1.5" />
+      )}
+      <g stroke={ink} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 13C14 13 13 16 13 21v6c0 3-2 5-5 5 3 0 5 2 5 5v6c0 5 1 8 6 8" />
+        <path d="M45 13c5 0 6 3 6 8v6c0 3 2 5 5 5-3 0-5 2-5 5v6c0 5-1 8-6 8" />
+      </g>
+      <path d="M22 32h5c5 0 5-7 10-7h4" stroke={ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M27 32c5 0 5 7 10 7h4" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="22" cy="32" r="3.4" fill={ink} />
+      <circle cx="41.5" cy="25" r="3.4" fill={ink} />
+      <circle cx="41.5" cy="39" r="3.6" fill={accent} />
     </svg>
   );
 }
@@ -20,13 +32,15 @@ export function Logo({ className, tone = 'ink' }: { className?: string; tone?: '
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-2.5 text-[22px] font-medium tracking-[-0.04em]',
+        'inline-flex items-center gap-2.5 text-[22px] font-semibold tracking-[-0.035em]',
         tone === 'ink' ? 'text-foreground' : 'text-surface',
         className
       )}
     >
-      <LogoMark />
-      <span>opensequence</span>
+      <LogoMark tone={tone} />
+      <span>
+        open<span className={tone === 'ink' ? 'text-brand' : 'text-sky'}>sequence</span>
+      </span>
     </span>
   );
 }

@@ -1,18 +1,41 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { ImageResponse } from 'next/og';
-import { brand, markPath } from './shared';
+import { brand, markPaths } from './shared';
 
-/** The mark as an SVG element, for the Open Graph cards and the apple touch icon. */
+/** Geist, the docs' type, for the wordmark and the titles (next/og bundles only the regular weight). */
+const fontDir = path.join(process.cwd(), 'lib/fonts');
+const fonts = [
+  { name: 'Geist', data: fs.readFileSync(path.join(fontDir, 'Geist-Regular.ttf')), weight: 400 as const, style: 'normal' as const },
+  { name: 'Geist', data: fs.readFileSync(path.join(fontDir, 'Geist-SemiBold.ttf')), weight: 600 as const, style: 'normal' as const },
+];
+
+/**
+ * The mark as an SVG element, for the Open Graph cards: white rounded tile with a hairline. `rounded={false}`
+ * draws a full-bleed white square instead, for icons the platform masks itself.
+ */
 export function Mark({ size, rounded = true }: { size: number; rounded?: boolean }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {rounded ? <rect x="1" y="1" width="22" height="22" rx="6" fill={brand.celeste} /> : <rect x="0" y="0" width="24" height="24" fill={brand.celeste} />}
-      <path d={markPath} stroke={brand.navy} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      {rounded ? (
+        <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.5" fill={brand.white} stroke={brand.hairline} strokeWidth="1.5" />
+      ) : (
+        <rect width="64" height="64" fill={brand.white} />
+      )}
+      {markPaths.braces.map((d) => (
+        <path key={d} d={d} stroke={brand.navy} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      ))}
+      <path d={markPaths.fork} stroke={brand.navy} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={markPaths.reply} stroke={brand.blue} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="22" cy="32" r="3.4" fill={brand.navy} />
+      <circle cx="41.5" cy="25" r="3.4" fill={brand.navy} />
+      <circle cx="41.5" cy="39" r="3.6" fill={brand.blue} />
     </svg>
   );
 }
 
 /**
- * The 1200x630 link preview card: white, a celeste band on top, the mark and "OpenSequence docs",
+ * The 1200x630 link preview card: white, a celeste band on top, the logo and "docs",
  * the section, the page title in navy and its description. Rendered once per page at build time.
  */
 export function ogImage(input: { title: string; description?: string; section?: string; method?: string }) {
@@ -22,13 +45,17 @@ export function ogImage(input: { title: string; description?: string; section?: 
 
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: brand.white, color: brand.navy }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: brand.white, color: brand.navy, fontFamily: 'Geist' }}>
         <div style={{ display: 'flex', height: 18, width: '100%', background: brand.celeste }} />
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '56px 72px 52px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <Mark size={56} />
-            <div style={{ display: 'flex', fontSize: 34, letterSpacing: -0.5 }}>OpenSequence</div>
-            <div style={{ display: 'flex', fontSize: 34, color: brand.muted }}>docs</div>
+            <div style={{ display: 'flex', fontSize: 34, fontWeight: 600, letterSpacing: -1.2 }}>
+              {/* satori leaves a gap between two text runs; the margin closes it to plain letter spacing */}
+              <span style={{ color: brand.navy, marginRight: -4.8 }}>open</span>
+              <span style={{ color: brand.blue }}>sequence</span>
+            </div>
+            <div style={{ display: 'flex', fontSize: 34, color: brand.muted, marginLeft: 4 }}>docs</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', gap: 22 }}>
             {input.section || input.method ? (
@@ -51,6 +78,6 @@ export function ogImage(input: { title: string; description?: string; section?: 
         </div>
       </div>
     ),
-    { width: 1200, height: 630 },
+    { width: 1200, height: 630, fonts },
   );
 }

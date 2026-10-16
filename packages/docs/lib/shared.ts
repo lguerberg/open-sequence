@@ -11,10 +11,18 @@ export const repoBranch = 'main';
 /** Where the hand-written pages live in the repository, for the "edit on GitHub" link. */
 export const contentDir = 'packages/docs/content/docs';
 
-/** The brand colours, shared by the icons and the Open Graph cards (the same as opensequence.dev). */
-export const brand = { navy: '#0f1b2a', celeste: '#74acdf', white: '#ffffff', muted: '#5b6b7f' } as const;
-/** The mark's trace: a navy pulse on a celeste tile, viewBox 0 0 24 24. */
-export const markPath = 'M5.5 12h3.4l2.1-4.8 2.3 9.6 2.1-4.8h3.1';
+/** The brand colours, shared by the logo and the Open Graph cards (the same as opensequence.dev). */
+export const brand = { navy: '#0f1b2a', blue: '#2b7bc0', celeste: '#74acdf', white: '#ffffff', muted: '#5b6b7f', hairline: '#dbe6f1' } as const;
+
+/**
+ * The mark, on a 64 by 64 grid: two code braces around a sequence, one step forking on a reply.
+ * `braces` and `fork` are drawn in ink (navy, or white on dark grounds), `reply` in brand blue.
+ */
+export const markPaths = {
+  braces: ['M19 13C14 13 13 16 13 21v6c0 3-2 5-5 5 3 0 5 2 5 5v6c0 5 1 8 6 8', 'M45 13c5 0 6 3 6 8v6c0 3 2 5 5 5-3 0-5 2-5 5v6c0 5-1 8-6 8'],
+  fork: 'M22 32h5c5 0 5-7 10-7h4',
+  reply: 'M27 32c5 0 5 7 10 7h4',
+} as const;
 
 /** A path on this site as an absolute URL, for canonical links, Open Graph and JSON-LD. */
 export function absoluteUrl(path: string): string {
