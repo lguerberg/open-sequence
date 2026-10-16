@@ -1,4 +1,4 @@
 {
-  "title": "Security and compliance",
-  "pages": ["security", "data-retention", "email-compliance", "sms-compliance"]
+  "title": "Security",
+  "pages": ["security", "data-retention"]
 }

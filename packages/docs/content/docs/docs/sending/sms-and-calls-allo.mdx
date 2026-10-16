@@ -1,0 +1,88 @@
+---
+title: "SMS and calls via Allo"
+description: "Store one Allo API key per project, then map each sender to an Allo user and number for texts and for call tasks that complete themselves."
+---
+
+[Allo](https://withallo.com) carries texts and calls. Set it up once per project with a workspace API key, then give each sender an Allo user and number; there is no OAuth and no per-sender consent.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/project/providers/allo -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"api_key":"allo_…"}'
+
+curl $SEQ/v1/project/providers/allo/users   -H "Authorization: Bearer $KEY"   # [{id, email, name}]
+curl $SEQ/v1/project/providers/allo/numbers -H "Authorization: Bearer $KEY"   # [{address, ref, country, capabilities, users}]
+
+curl -X PUT $SEQ/v1/senders/u_42/channels/sms -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"allo_user_id":"usr-…","number":"+14155551234"}'
+```
+
+```ts title="TypeScript"
+await oseq.project.setProvider('allo', { api_key: 'allo_…' });
+
+const users = await oseq.project.alloUsers();
+const numbers = await oseq.project.alloNumbers();
+const max = users.find((u) => u.email === 'max@acme.com')!;
+const line = numbers.find((n) => n.users.some((u) => u.id === max.id) && n.capabilities.includes('SMS'))!;
+
+await oseq.senders.setSms('u_42', { allo_user_id: max.id, number: line.address });
+```
+
+</CodeGroup>
+
+## The key
+
+`PUT /v1/project/providers/allo` takes `api_key` and needs an `admin` key. When you save it, the service:
+
+1. registers its own webhook at Allo for `sms.received`, `sms.sent` and `call.completed`, pointing at `SEQ_PUBLIC_URL/hooks/allo/{slug}`, and keeps the signing secret Allo returns, so there is nothing to set up in Allo's app;
+2. checks the key with Allo and refuses it with `422 INVALID_CREDENTIAL` when it is rejected or lacks a scope (`details.missing` lists them);
+3. stores the key and the signing secret encrypted. Neither is ever returned: the response shows the provider, status, key id and the key's last four characters.
+
+The key needs these scopes: `SMS_SEND`, `DIALING_QUEUE_READ_WRITE`, `PHONE_NUMBERS_READ`, `USERS_READ`, `WEBHOOKS_READ_WRITE`, `CONVERSATIONS_READ`. Save it again to rotate it.
+
+## Mapping a sender
+
+`PUT /v1/senders/{id}/channels/sms` takes `allo_user_id` and `number` (E.164). The number must be one the key can see (`422 UNKNOWN_NUMBER`) and must be able to send SMS (`422 NUMBER_HAS_NO_SMS`). Build the pickers in your UI from `GET /v1/project/providers/allo/users` and `.../numbers`; each number lists the users who can use it.
+
+The `sms` channel is also the sender's **Allo identity for calls**: call tasks are matched to the sender by this number. Set it even for senders who only call.
+
+## Texts
+
+An `outreach` step with `channel: "sms"` sends from the sender's number. Before it sends, the executor checks consent, the phone number, the country (`settings.sms_countries`, default `["US"]`), suppressions, the channel and its limits, a known recipient time zone, and the hours of 08:00 to 21:00 in the recipient's zone. These gates are fixed; [Deliverability and compliance](/docs/sending/deliverability-and-compliance#sms) explains each one.
+
+The body is a template of up to 1,000 characters; the validator warns (`TOO_LONG`) above 320. Nothing is appended, so write "Reply STOP to opt out" yourself where it is expected.
+
+Allo has no idempotency key for texts, so the service never retries a text blindly:
+
+- A send that Allo answers with a rate-limit error is tried again an hour later.
+- A send Allo refuses outright (an invalid number, an unsupported country) is skipped with the reason `provider_rejected:` followed by the start of Allo's error.
+- Anything else leaves the outcome unknown: the run becomes `needs_review` and the enrollment stops there, because a double text is worse than a late one.
+- If a send is interrupted and runs again, it first searches the last ten minutes of outbound texts to that number for the same body, and marks the step sent if it finds one.
+
+## Replies and STOP
+
+Allo's `sms.received` webhook brings inbound texts. A text from a contact's number to a sender's number is a **reply**: it wakes a `wait_for`, and exits the enrollment when `exit_on` lists `reply`. A text made only of `STOP`, `QUIT`, `END`, `CANCEL`, `UNSUBSCRIBE`, `OPT OUT` or `STOPALL` (any case) is an **opt-out** instead: it suppresses SMS for the contact and exits every active enrollment. The body of a reply is stored only when the project sets `store_inbound_bodies: true`.
+
+## Calls
+
+A `task` step with `kind: "call"` gives the rep a call to make. When Allo reports `call.completed` for an **outbound** call from the sender's number to the contact's number, the sender's open call task for that contact is completed with an outcome mapped from Allo's result, and Allo's call summary becomes the task note. The rep never marks anything by hand. Outcomes, branches, the dialer flag and the task inbox are in [Call tasks and the task inbox](/docs/sending/call-tasks).
+
+## The inbound webhook
+
+`POST /hooks/allo/{slug}` checks the Standard Webhooks signature with the stored secret. A bad signature or timestamp gets `401`. Once the signature passes, the route always answers `200`, even when processing fails (the error is logged), so Allo never disables the endpoint. Events are idempotent by Allo's ids, so a redelivery changes nothing.
+
+## Rate limits
+
+The adapter keeps to Allo's limit of five writes a second per key, counted per server process.
+
+## With mock providers
+
+With `SEQ_DEV_MOCK_PROVIDERS=1` you need no Allo key and nothing reaches Allo. The mock exposes one user, `usr-mock-1`, and one number, `+15550000001`; map senders to that number. Texts are recorded as sent messages in the contact's timeline. To simulate a call, post an event to the mock hook (its URL is in `GET /v1/project` as `webhook_urls.mock`):
+
+```bash
+curl -X POST $SEQ/hooks/mock/acme -H "Content-Type: application/json" -d '{
+  "kind": "call_completed", "externalId": "call-1", "occurredAt": "2026-10-16T15:00:00Z",
+  "direction": "outbound", "from": "+15550000001", "to": "+14155550123", "result": "ANSWERED"
+}'
+```

@@ -1,0 +1,101 @@
+---
+title: "Email via Gmail"
+description: "Register your Google OAuth client once, then let each sender consent to Gmail and Calendar so the service sends from their mailbox."
+---
+
+This page connects senders on Google Workspace or Gmail: the service then sends from their own mailbox and reads their replies. You need it once per project for the OAuth client, then once per sender for their consent.
+
+<Note>A sender on any other mailbox (Fastmail, iCloud, a company mail server) connects it with [SMTP and IMAP](/docs/sending/email-smtp) instead. The resulting `email` channel works the same in every sequence.</Note>
+
+<CodeGroup>
+
+```bash title="curl"
+# once per project
+curl -X PUT $SEQ/v1/project/providers/google -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"client_id":"1234-abc.apps.googleusercontent.com","client_secret":"GOCSPX-…"}'
+
+# per sender: returns the URL the sender opens once
+curl -X POST $SEQ/v1/senders/u_42/connections/google -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"return_url":"https://app.acme.com/settings/mailbox?connected=1"}'
+# {"success":true,"data":{"auth_url":"https://accounts.google.com/o/oauth2/v2/auth?…","connection_id":"con_…"},…}
+```
+
+```ts title="TypeScript"
+await oseq.project.setProvider('google', { client_id: '1234-abc.apps.googleusercontent.com', client_secret: 'GOCSPX-…' });
+
+const res = await oseq.senders.connectGoogle('u_42', { return_url: 'https://app.acme.com/settings/mailbox?connected=1' });
+if ('auth_url' in res) redirect(res.auth_url); // send the sender's browser there
+```
+
+</CodeGroup>
+
+<Steps>
+<Step title="Create the OAuth client in Google Cloud">
+
+In a Google Cloud project, enable the **Gmail API** and the **Google Calendar API**, configure the OAuth consent screen, and create an OAuth client of type **Web application**. Add your instance's redirect URI to it:
+
+```bash
+curl $SEQ/v1/project -H "Authorization: Bearer $KEY"
+# data.google_redirect_uri: "https://sequences.example.com/v1/oauth/google/callback"
+```
+
+It is `SEQ_PUBLIC_URL` followed by `/v1/oauth/google/callback`.
+
+</Step>
+<Step title="Store the client in the project">
+
+`PUT /v1/project/providers/google` with `client_id` and `client_secret` (an `admin` key). The secret is encrypted under `SEQ_ENCRYPTION_KEYS` and never returned: `GET /v1/project` lists the credential with its status, key id, the last four characters of the client id, and timestamps. Call the same endpoint again to rotate it.
+
+</Step>
+<Step title="Send the sender through consent">
+
+`POST /v1/senders/{id}/connections/google` returns `auth_url` and `connection_id`. Redirect the sender's browser to `auth_url`. The URL asks Google for offline access and forces the consent screen, so Google issues a refresh token every time. It carries a signed `state` that names the project, the sender and the connection and expires after ten minutes, so a callback cannot be replayed or pointed at another sender.
+
+</Step>
+<Step title="The callback creates the email channel">
+
+Google sends the browser to `/v1/oauth/google/callback`. The service checks the state, exchanges the code, stores the refresh token encrypted, and gives the sender an `active` `email` channel at the Google account's address. The browser then goes to `return_url`, or sees a plain "Google connected" page. From then on `readiness.email.ok` is true.
+
+</Step>
+</Steps>
+
+## The scopes
+
+| Scope | Why |
+|---|---|
+| `gmail.send` | Send as the sender. Required. |
+| `gmail.readonly` | Read replies and bounces in the threads the service started. Required. |
+| `calendar.readonly` | Detect meetings: events with a contact as attendee. |
+| `userinfo.email` | Learn which account consented, to set the channel's address. |
+
+If the sender unticks `gmail.send` or `gmail.readonly` on the consent screen, the callback page says "Could not connect Google" and the connection is left `reauth_needed`. Start the flow again and ask them to allow every box. Gmail scopes are "restricted" or "sensitive" in Google's terms: an app used by accounts outside your own Workspace needs Google's verification before the consent screen stops warning users.
+
+## What the service reads
+
+Every minute, the poll job reads new inbox messages from the Gmail history feed and keeps only those that belong to a thread the service started in the last 30 days, or whose `In-Reply-To` or `References` names an email it sent. Everything else in the mailbox is skipped and never stored.
+
+What it keeps from a matching message:
+
+- A **reply**: sender, recipient, subject and thread. Reply bodies are not fetched from Gmail today.
+- An **auto-reply** (an out-of-office): it pauses the enrollment until the return date it states, or for seven days, instead of counting as a reply.
+- A **bounce** (from `mailer-daemon` or `postmaster`): the failed address, the status and the reason. A 4.x.x status is soft and suppresses nothing. Anything else is hard: it suppresses email for the contact and exits the enrollment with `bounced`.
+
+From the calendar it reads events where a contact is an attendee (not the organizer, not someone who declined) and keeps only the event id, its start and that attendee's email, never the title, the description or the other guests.
+
+## When a connection breaks
+
+Access tokens are cached per replica and refreshed two minutes before they expire, one refresh at a time per connection. When Google refuses the refresh token (the user revoked access, an admin removed the app, or the token aged out), the connection becomes `credentials_needed`. At the sender's next email step the send fails, the email channel becomes `credentials_needed` and that step is retried in an hour. Until the sender reconnects, their email steps are skipped with `sender_channel_credentials_needed`, and polling for their replies and meetings stops.
+
+Readiness then reports `email_credentials_needed`: show a "reconnect" button that starts the consent flow again. Check readiness, or the channel status in `GET /v1/senders/{id}`, rather than waiting for a webhook: the change made at send time does not raise `sender.channel_status` today.
+
+## Disconnecting
+
+`DELETE /v1/senders/{id}/connections/google` revokes the token at Google (best effort), deletes it, and sets the email channel `disconnected`. Connecting again later reuses the same connection.
+
+## Pub/Sub push
+
+`POST /hooks/google/{slug}` accepts a Gmail Pub/Sub push and answers `204`, but it changes nothing: the minute poll is how replies are found. Registering a Gmail `watch` is not wired yet.
+
+## With mock providers
+
+With `SEQ_DEV_MOCK_PROVIDERS=1`, nothing talks to Google. `POST /v1/senders/{id}/connections/google` answers `{ "status": "active", "mock": true, "channel": … }` at once, and the mailbox is the sender's `email`, or `<id>@mock.local` when it has none.

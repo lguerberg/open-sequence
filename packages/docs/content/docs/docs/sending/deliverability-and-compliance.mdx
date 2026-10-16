@@ -1,0 +1,89 @@
+---
+title: "Deliverability and compliance"
+description: "What the service enforces for email and SMS, what your mailbox provider and Allo handle, and what to set up so messages arrive. Not legal advice."
+---
+
+OpenSequence sends from each sender's own mailbox and number, so there is no shared sending domain to warm up or to burn. This page lists what the service enforces for you, what it leaves to your mail provider and to Allo, and what is worth doing on your side.
+
+<Note>This is not legal advice. The rules that apply to you depend on where you and your contacts are.</Note>
+
+## Email authentication
+
+The service hands each email to the sender's mailbox (Gmail's API or the sender's SMTP server), so the mailbox provider signs and sends it. There is no DNS record to add for OpenSequence. Check the sending domain itself:
+
+| Record | What to check |
+|---|---|
+| SPF | The domain's SPF record includes the mail provider (for Google Workspace, `include:_spf.google.com`). |
+| DKIM | Signing is turned on at the provider for your own domain. Google Workspace needs an admin to generate the key and publish it. |
+| DMARC | The domain has a DMARC record, even `p=none` to start. Gmail and Yahoo require one from bulk senders. |
+
+The `From` header is the bare address of the sender's mailbox, with no display name. Keep the mailbox's own name set correctly at the provider.
+
+## What every email carries
+
+- A `Message-ID` the service derives from the step, so a retry can never send the same step twice.
+- `List-Unsubscribe: <SEQ_PUBLIC_URL/u/{token}>` and `List-Unsubscribe-Post: List-Unsubscribe=One-Click`, so Gmail, Outlook and Apple Mail show their own unsubscribe button and can unsubscribe in one click.
+- The body you wrote. Put `{{ unsubscribe_url }}` in it: publishing without it is allowed but returns the warning `NO_UNSUBSCRIBE`.
+
+```text
+Not the right time? {{ unsubscribe_url }}
+```
+
+## The hosted opt-out link
+
+`{{ unsubscribe_url }}` and the header point at a page on your own instance, `SEQ_PUBLIC_URL/u/{token}`. The token is signed, names the contact and the step, and is valid for 90 days.
+
+- Opening the link shows a page with one **Unsubscribe** button. Opening alone changes nothing, so link scanners cannot unsubscribe people.
+- Pressing the button, or the mail client's one-click `POST`, records an opt-out: the contact gets an `email` suppression and every enrollment they are in exits with `opt_out`.
+- An expired or tampered link shows a page asking the person to reply instead.
+
+This behaviour is fixed. You can report opt-outs that arrive elsewhere (a reply saying "remove me", a request to a colleague) with [contact events](/docs/contacts/events): `{ "id": "…", "type": "opt_out", "channel": "email" }`.
+
+## Warm-up and volume
+
+Thirty emails a day, a minute apart, is the shape of a person writing email, which is what mailbox providers expect from a personal account. The caps live on the sender's email channel ([Senders](/docs/sending/senders#limits)):
+
+| Control | Default | Use it to |
+|---|---|---|
+| `daily_limit` | 30 in a rolling 24 hours | warm up a new mailbox: 10 to 15 a day for two weeks, then raise it slowly |
+| `min_gap_seconds` | 60 | avoid bursts from one mailbox |
+| `settings.send_window` | none | send only in working hours, in the contact's or the sender's zone |
+| `settings.jitter` | none | add a random delay so sends do not all land on the hour |
+
+Over the cap, a step waits an hour and tries again, and the enrollment shows `waiting_limit`. Enrolling 300 people as a sender capped at 30 spreads their first touches over ten days; the enroll preview shows this as `capacity`.
+
+## Bounces, complaints and suppressions
+
+The poll job reads bounces from the sender's inbox ([Gmail](/docs/sending/email-gmail#what-the-service-reads), [SMTP and IMAP](/docs/sending/email-smtp#replies-auto-replies-and-bounces)):
+
+| Event | Effect |
+|---|---|
+| Hard bounce (any status other than 4.x.x) | an `email` suppression with reason `hard_bounce`, and every enrollment of the contact exits with `bounced` |
+| Soft bounce (4.x.x) | nothing is suppressed and the sequence carries on |
+| Spam complaint | not visible: neither Gmail nor IMAP tells a sender who marked them as spam. Watch Google Postmaster Tools for your domain |
+
+A suppression is `email`, `sms` or `all`. Every send checks it just before sending. Enrolling skips only contacts suppressed for `all`. Report what you know and the service cannot see, such as a do-not-contact flag in your CRM, as a `suppressed` [contact event](/docs/contacts/events) ([Consent and suppressions](/docs/contacts/consent-and-suppressions)).
+
+Good habits the service cannot enforce: keep `reply_in_thread: true` on follow-ups so a sequence reads as one conversation; give `contact.first_name` a fallback (`{{ contact.first_name | "there" }}`, which the validator requires); prefer plain text (`format: "text"`) and real links over shorteners. The service adds no tracking pixel.
+
+## SMS
+
+The SMS gates follow the rules that apply to texting in most places, so they are built into the executor and cannot be turned off:
+
+| Gate | Behaviour |
+|---|---|
+| Consent | `sms_consent` is false by default and only an `admin` key can set it: `PUT /v1/contacts/{id}/sms-consent` with `consent`, and optionally `source` and `at` for your records. Without it the step skips with `no_consent`. |
+| Phone | The contact needs a phone number, or the step skips with `no_phone`. |
+| Country | The contact's `country` must be in `settings.sms_countries`, default `["US"]`, or the step skips with `country_not_allowed`. |
+| Recipient time zone | The contact's `timezone`, or one inferred from a North American area code or a one-zone country. Without one the step skips with `no_timezone`. |
+| Quiet hours | 08:00 to 21:00 in the recipient's zone, every day. Outside it the step waits until 08:00. |
+| STOP | A reply made only of `STOP`, `QUIT`, `END`, `CANCEL`, `UNSUBSCRIBE`, `OPT OUT` or `STOPALL` suppresses SMS for the contact and exits every enrollment they are in. |
+| Cap | 100 texts a day per sender number by default. |
+
+There is no limit on how many texts a sequence sends; the gates apply to each one. The service does not append "Reply STOP to opt out": write it in the body where it is expected. A text whose outcome is unknown is never retried; the step goes to `needs_review` for a person to check ([SMS and calls via Allo](/docs/sending/sms-and-calls-allo#texts)).
+
+**10DLC.** In the US, carriers require businesses that text from ordinary 10-digit numbers to register a brand and a campaign (10DLC). That registration is between you and Allo. The service sends through whatever numbers your Allo key can see and does not know whether they are registered.
+
+## Calls
+
+A call task is a reminder for a person, not an automated call, so the service enforces no calling rules. The task's `due` follows the sender's calendar, not the contact's. If your reps call across time zones, branch on `contact.timezone` with a [condition](/docs/sequences/conditions) or add a `wait` first.

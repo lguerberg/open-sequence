@@ -1,0 +1,4 @@
+{
+  "title": "Sending",
+  "pages": ["senders", "channels", "email-gmail", "email-smtp", "sms-and-calls-allo", "call-tasks", "deliverability-and-compliance"]
+}
