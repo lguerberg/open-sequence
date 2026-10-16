@@ -1,6 +1,6 @@
 # OpenSequence: a standalone sequences service (design and architecture)
 
-Status: draft v5, 2026-10-13. Version 5 fixes the provider set and the repositories: two repositories in the `open-sequence` organization from day one (`opensequence`, the service with every package inside, and `auth`, the provider-connection and token module), **Google** for email and calendar (the project brings its own OAuth client; the service owns the token lifecycle), **Allo** for SMS and call tasks, **Attio** as the CRM behind a port, and a `mock` provider for development and CI. Version 4 applied the review of v3: the correctness fixes (planner and executor hand-off, time zones for SMS, Gmail privacy, idempotent migrations and `Idempotency-Key` storage), the pieces an independent release needs (operator bootstrap, channel connection, hosted opt-out, templating), the pieces an open-source release needs (a default provider set anyone can use, a generic `task` node, outbound webhooks early), and the simplifications (three loops, two roles, fewer node and run states, no rollup until it is needed). Items marked **verify** were inferred and must be confirmed at kickoff. The first client, Harpoon, appears only in section 13.
+Status: draft v6, 2026-10-16. Version 6 removes LinkedIn from the product: the channels are email and SMS, and everything a human does is a `task` (a call through Allo, or any kind the client defines). Version 5 fixes the provider set and the repositories: two repositories in the `open-sequence` organization from day one (`opensequence`, the service with every package inside, and `auth`, the provider-connection and token module), **Google** for email and calendar (the project brings its own OAuth client; the service owns the token lifecycle), **Allo** for SMS and call tasks, **Attio** as the CRM behind a port, and a `mock` provider for development and CI. Version 4 applied the review of v3: the correctness fixes (planner and executor hand-off, time zones for SMS, Gmail privacy, idempotent migrations and `Idempotency-Key` storage), the pieces an independent release needs (operator bootstrap, channel connection, hosted opt-out, templating), the pieces an open-source release needs (a default provider set anyone can use, a generic `task` node, outbound webhooks early), and the simplifications (three loops, two roles, fewer node and run states, no rollup until it is needed). Items marked **verify** were inferred and must be confirmed at kickoff. The first client, Harpoon, appears only in section 13.
 
 ## 1. What this system does, in one page
 
@@ -8,11 +8,11 @@ Status: draft v5, 2026-10-13. Version 5 fixes the provider set and the repositor
 
 | You do | With |
 |---|---|
-| Register the people who send (a **sender**: a user with a Google account for mail and calendar, an Allo number, a LinkedIn profile) | `senders` |
-| Register the people who receive (a **contact**: email, phone, LinkedIn URL, free attributes, SMS consent) | `contacts` |
+| Register the people who send (a **sender**: a user with a Google account for mail and calendar and an Allo number) | `senders` |
+| Register the people who receive (a **contact**: email, phone, free attributes, SMS consent) | `contacts` |
 | Design flows as JSON (a **sequence**, versioned, immutable once published) | `sequences` and `versions` |
 | Start a contact on a sequence as a sender, or stop them | `enrollments` |
-| Let senders do the manual steps (a call, a LinkedIn action) | `tasks` |
+| Let senders do the manual steps (a call, anything the client defines) | `tasks` |
 | Read what happened: replies and meetings per sequence, channel and step, and one contact's path | `analytics`, `enrollments/{id}` |
 | Branch on what the CRM knows (an open deal, its stage, a company attribute) | `conditions` on `crm.*` facts, read live from Attio |
 | Get told when something happens | outbound `webhooks` |
@@ -22,14 +22,14 @@ Everything else happens **inside the service**: it schedules each step, sends th
 Design goals, in priority order:
 
 1. **Never double-send and never lose a contact.** Side effects are idempotent or at-most-once; the database is the source of truth; queues carry hints only.
-2. **Scale to dozens of live sequences** with thousands of contacts without a workflow engine. Throughput is easy; external limits (mailbox caps, SMS lines, LinkedIn) are the real constraint, so throttling and fairness are first-class.
+2. **Scale to dozens of live sequences** with thousands of contacts without a workflow engine. Throughput is easy; external limits (mailbox caps, SMS lines) are the real constraint, so throttling and fairness are first-class.
 3. **Self-contained.** Own database, own queue, own workers, own provider connections. A client only needs HTTP.
 4. **JSON-first.** A sequence is one document, so a canvas, a script or an agent all edit the same thing through the same API.
 5. **Debuggable.** Every decision stores the facts it read and the branch it took.
 6. **Independently deployable.** One image, a Postgres you connect, a queue you choose; deployable and rollable back without touching any client.
 7. **Generic and open.** Tenant-aware (`project_id` on every table, one API key per project), providers behind ports, no knowledge of any client's domain, so it can be published and used by anyone.
 
-Non-goals for v1: a built-in UI (clients build their own on the API; a minimal admin page is planned later), providers beyond Google, Allo and Attio (SMTP+IMAP, Twilio, HubSpot and automated LinkedIn come later behind the same ports), SMS without consent, A/B on content, open and click tracking, WhatsApp, holidays in business-day math, a hosted workflow engine.
+Non-goals for v1: a built-in UI (clients build their own on the API; a minimal admin page is planned later), providers beyond Google, Allo and Attio (SMTP+IMAP, Twilio and HubSpot come later behind the same ports), SMS without consent, A/B on content, open and click tracking, WhatsApp, holidays in business-day math, a hosted workflow engine.
 
 ### 1.1 One contact's life, in ten lines
 
@@ -81,17 +81,17 @@ curl $SEQ/v1/sequences/seq_x/analytics/summary -H "Authorization: Bearer $KEY"
 | Term | Meaning |
 |---|---|
 | Project | A tenant. Owns its senders, contacts, sequences, provider credentials, webhook endpoints and API keys. |
-| Sender | The acting user an enrollment runs as. Has a Google connection and channels (email from Google, sms from an Allo number, linkedin manual); plus a time zone and limits. |
+| Sender | The acting user an enrollment runs as. Has a Google connection and channels (email from Google, sms from an Allo number); plus a time zone and limits. |
 | Connection | A sender's authorized account at an OAuth provider (Google: Gmail and Calendar under one consent), with its tokens, owned by the auth module. API-key providers (Allo, Attio) have no connections: one workspace key per project. |
-| Contact | The person who receives a sequence. Has email, phone, LinkedIn URL, country, time zone, `sms_consent`, and free `attrs` JSON. |
+| Contact | The person who receives a sequence. Has email, phone, country, time zone, `sms_consent`, and free `attrs` JSON. |
 | Sequence | A named container of versions. |
 | Version | One immutable JSON definition once published. Has a tag (`v1`, `v2`, free text). |
 | Node (step) | One box in the definition. Types: `start`, `outreach`, `wait`, `wait_for`, `condition`, `task`, `end` (+ `split` later). |
-| Outreach step | A node with `channel` email, sms or linkedin and an `action`. |
+| Outreach step | A node with `channel` email or sms and an `action`. |
 | Enrollment | One contact running one version, as one sender. |
 | Run | One execution of one node for one enrollment. Append-only ledger. |
-| Message | One email, text or LinkedIn message the service sent or received. |
-| Task | A manual step for a human (a call, a LinkedIn action, anything the client defines), created by a `task` node and completed through the API. |
+| Message | One email or text the service sent or received. |
+| Task | A manual step for a human (a call, anything the client defines), created by a `task` node and completed through the API. |
 | Signal | A normalized fact from outside (reply, bounce, meeting booked, call outcome, opt-out), produced by provider webhooks and polls, task completions or the client. |
 | CRM facts | Values a condition reads live from the CRM (Attio) at decision time: the contact's person, company and open deal. |
 | Facts | The data a condition reads at evaluation time, stored on the run. |
@@ -149,7 +149,7 @@ One Docker image, one process, three settings of `SEQ_ROLES`:
 
 | | `api` | `worker` |
 |---|---|---|
-| Writes | projects, keys, senders, channels, contacts, (credentials and connections through `@opensequence/auth`), sequences, versions, new enrollments, manual status changes, task completions, `signals` (insert), `webhook_deliveries` (insert, as an outbox for the events it raises), idempotency records | runs, enrollment progress, messages, `signal_effects`, tasks (create), linkedin connection state, `webhook_deliveries` (insert for engine events, attempts, status) |
+| Writes | projects, keys, senders, channels, contacts, (credentials and connections through `@opensequence/auth`), sequences, versions, new enrollments, manual status changes, task completions, `signals` (insert), `webhook_deliveries` (insert, as an outbox for the events it raises), idempotency records | runs, enrollment progress, messages, `signal_effects`, tasks (create), `webhook_deliveries` (insert for engine events, attempts, status) |
 | Never | runs the engine | serves clients |
 
 ### 2.2 Svix mapping
@@ -386,7 +386,6 @@ erDiagram
   signals ||--o{ signal_effects : causes
   enrollments ||--o{ signal_effects : affected
   contacts ||--o{ suppressions : opted_out
-  contacts ||--o{ linkedin_connections : state
   webhook_endpoints ||--o{ webhook_deliveries : receives
 ```
 
@@ -407,10 +406,7 @@ do $$ begin create type seq.run_status as enum
 exception when duplicate_object then null; end $$;
 do $$ begin create type seq.signal_kind as enum
   ('reply','bounce','complaint','opt_out','ooo','task_completed','call_connected','meeting_booked',
-   'connection_accepted','sender_channel_status','contact_suppressed','crm_changed');
-exception when duplicate_object then null; end $$;
-do $$ begin create type seq.linkedin_state as enum
-  ('none','pending','connected','declined_or_ignored','withdrawn');
+   'sender_channel_status','contact_suppressed','crm_changed');
 exception when duplicate_object then null; end $$;
 ```
 
@@ -518,21 +514,21 @@ create table if not exists seq.senders (
 );
 
 -- One row per outreach channel of a sender: email comes from the Google connection; sms is the sender's Allo number under the
--- project's Allo key (no connection, the Allo user id sits in config); linkedin is manual.
+-- project's Allo key (no connection, the Allo user id sits in config).
 -- connection_id refers to auth.connections by value, with no cross-schema foreign key, so the auth package stays separable.
 create table if not exists seq.sender_channels (
   id             text primary key,
   sender_id      text not null references seq.senders(id) on delete cascade,
   project_id     text not null,
-  connection_id  text,                                 -- auth.connections.id for OAuth channels (email); null for sms (API key) and linkedin (manual)
-  channel        varchar(16) not null check (channel in ('email','sms','linkedin')),
-  address        text not null,                       -- mailbox address | E.164 number | linkedin profile URL
+  connection_id  text,                                 -- auth.connections.id for OAuth channels (email); null for sms (API key)
+  channel        varchar(16) not null check (channel in ('email','sms')),
+  address        text not null,                       -- mailbox address | E.164 number
   status         varchar(24) not null default 'pending'
                  check (status in ('pending','active','paused','credentials_needed','restricted','disconnected')),
-  daily_limit    integer,                             -- email: sends per rolling 24h; sms: per day; linkedin: invites per day
+  daily_limit    integer,                             -- email: sends per rolling 24h; sms: per day
   weekly_limit   integer,
   min_gap_seconds integer not null default 0,
-  opted_in_at    timestamptz,                         -- LinkedIn automation (later) needs the sender's acknowledgement
+  opted_in_at    timestamptz,                         -- the sender's written acknowledgement for a channel; stored, not enforced
   config         jsonb not null default '{}',         -- sms: {allo_user_id, allo_number_id}; warm-up state, per-channel settings
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now(),
@@ -547,7 +543,6 @@ create table if not exists seq.contacts (
   last_name     varchar(120),
   email         varchar(320),
   phone         varchar(24),                          -- E.164 only; the client normalizes
-  linkedin_url  text,
   country       varchar(2),                           -- ISO 3166-1 alpha-2
   timezone      varchar(48),                          -- IANA zone; required for SMS (section 6.3)
   sms_consent   boolean not null default false,       -- set only with the admin scope
@@ -566,7 +561,7 @@ create table if not exists seq.suppressions (
   id          bigserial primary key,
   project_id  text not null,
   contact_id  text not null references seq.contacts(id) on delete cascade,
-  channel     varchar(16) not null check (channel in ('email','sms','linkedin','all')),
+  channel     varchar(16) not null check (channel in ('email','sms','all')),
   reason      varchar(24) not null,                   -- opt_out | hard_bounce | complaint | bad_number | client
   created_at  timestamptz not null default now(),
   unique (contact_id, channel)
@@ -708,7 +703,7 @@ create table if not exists seq.runs (
   version_id      text not null,
   node_id         varchar(64) not null,
   node_type       varchar(32) not null,
-  channel         varchar(16),                        -- email|sms|linkedin|null for logic and task nodes
+  channel         varchar(16),                        -- email|sms|null for logic and task nodes
   action          varchar(24),                        -- send|connect|message|null
   touch_number    smallint,                           -- nth outreach touch in this enrollment
   attempt         smallint not null default 1,
@@ -780,11 +775,11 @@ stateDiagram-v2
   running --> done: side effect succeeded, or logic step evaluated
   running --> waiting: wait_for or task node, waiting for an event or a timeout
   waiting --> done: event or timeout
-  running --> skipped: gate failed (no email, no consent, no time zone, country not allowed, no LinkedIn URL)
+  running --> skipped: gate failed (no email, no consent, no time zone, country not allowed)
   running --> deferred: throttle, send window, kill switch or circuit breaker
   deferred --> running: next slot
   running --> failed: error after retries
-  running --> needs_review: outcome unknown (SMS or LinkedIn)
+  running --> needs_review: outcome unknown (SMS)
   done --> [*]
   skipped --> [*]
   failed --> [*]
@@ -801,7 +796,7 @@ create table if not exists seq.tasks (
   run_id        text not null references seq.runs(id) on delete cascade,
   sender_id     text not null references seq.senders(id),
   contact_id    text not null references seq.contacts(id),
-  kind          varchar(32) not null,                 -- call | linkedin_connect | linkedin_message | anything the client defines
+  kind          varchar(32) not null,                 -- call | anything the client defines
   title         text not null,
   body          text,                                 -- rendered template, ready to copy
   link          text,                                 -- deep link (profile URL, tel:)
@@ -847,29 +842,17 @@ create table if not exists seq.signal_effects (
 );
 ```
 
-### 4.9 Flags, LinkedIn, webhook deliveries, scheduler, queue
+### 4.9 Flags, webhook deliveries, scheduler, queue
 
 ```sql
 -- Per-project kill switches. Platform-wide switches are environment variables (SEQ_DISABLED_CHANNELS, SEQ_PAUSED).
 create table if not exists seq.flags (
   project_id text not null references seq.projects(id) on delete cascade,
-  key        text not null,                           -- global | channel:email | channel:sms | channel:linkedin | channel:linkedin_auto
+  key        text not null,                           -- global | channel:email | channel:sms
   value      boolean not null,
   updated_by varchar(64),
   updated_at timestamptz not null default now(),
   primary key (project_id, key)
-);
-
-create table if not exists seq.linkedin_connections (
-  id               bigserial primary key,
-  project_id       text not null,
-  contact_id       text not null references seq.contacts(id) on delete cascade,
-  sender_id        text not null references seq.senders(id) on delete cascade,
-  state            seq.linkedin_state not null default 'none',
-  invited_at       timestamptz, connected_at timestamptz,
-  state_updated_at timestamptz not null default now(),
-  source           varchar(12) not null default 'task' check (source in ('task','webhook','poll')),   -- webhook and poll are for the later automation adapter
-  unique (contact_id, sender_id)
 );
 
 -- Outbound webhooks (section 9.2): one row per event per endpoint, with every attempt recorded.
@@ -898,7 +881,7 @@ insert into seq.job_locks (job) values ('plan'),('signals'),('poll'),('reap'),('
 -- The default queue backend (SEQ_QUEUE=postgres). Redis implements the same three calls.
 create table if not exists seq.queue_messages (
   id          bigserial primary key,
-  queue       varchar(32) not null,                   -- seq_email | seq_sms | seq_linkedin | seq_signals | seq_webhooks
+  queue       varchar(32) not null,                   -- seq_email | seq_sms | seq_signals | seq_webhooks
   payload     jsonb not null,                         -- {v, run_id} | {v, signal_id} | {v, delivery_id}
   visible_at  timestamptz not null default now(),
   read_ct     integer not null default 0,
@@ -966,18 +949,17 @@ Conventions that make it safe to edit by hand or by an agent: human-readable str
 | `start` | none | `then` | inline |
 | `outreach` email `send` | `subject`, `body`, `reply_in_thread` | `sent`, `skipped`, `failed` | queue `seq_email` |
 | `outreach` sms `send` | `body` | `sent`, `skipped`, `failed` | queue `seq_sms` |
-| `outreach` linkedin `connect`, `message` (automated, **later**) | `note` (max 200), `text` | `sent`, `not_connected`, `skipped`, `failed` | queue `seq_linkedin`, behind the automation flag; in v1 LinkedIn is a `task` |
 | `wait` | `duration` | `then` | inline timer |
-| `wait_for` | `events[]` (`reply`, `reply:sms`, `reply:email`, `reply:linkedin`, `connection_accepted`, `call_connected`, `meeting_booked`), `timeout` | one per event + `timeout` | timer + signal |
+| `wait_for` | `events[]` (`reply`, `reply:sms`, `reply:email`, `call_connected`, `meeting_booked`), `timeout` | one per event + `timeout` | timer + signal |
 | `condition` | `mode` (`all`/`any`), `rules[]` | `yes`, `no` | inline |
-| `task` | `kind` (free text: `call`, `linkedin_connect`, `linkedin_message`, or the client's own), `title`, `body?`, `link?`, `due`, `expire?` (default `due + 7d`), `connected_outcomes?` (outcomes that count as a reply, default `["connected"]`); for `kind: call` also `dialer?: true` (push the number into the sender's Allo dialer) and `auto_complete?: true` (complete from Allo's call outcome, default true) | `completed`, `no_answer` (expired); plus `branches_by_outcome` (optional map from an outcome string to a node) | inline: creates a **task** for the sender, then waits |
+| `task` | `kind` (free text: `call`, or the client's own), `title`, `body?`, `link?`, `due`, `expire?` (default `due + 7d`), `connected_outcomes?` (outcomes that count as a reply, default `["connected"]`); for `kind: call` also `dialer?: true` (push the number into the sender's Allo dialer) and `auto_complete?: true` (complete from Allo's call outcome, default true) | `completed`, `no_answer` (expired); plus `branches_by_outcome` (optional map from an outcome string to a node) | inline: creates a **task** for the sender, then waits |
 | `split` (later) | `cohorts[{key,pct}]` | one per cohort | inline |
 | `end` | `label` | none | inline |
 
 Three things are deliberate here:
 
-- **`task` is generic.** A call, a manual LinkedIn invitation, a WhatsApp message typed by hand, a visit: anything a human does is a `task` with a `kind` the client chooses to render. The engine only needs the outcome string the client sends back. `kind: linkedin_connect` and `linkedin_message` have one extra behaviour: completing them with `sent`, `accepted` or `replied` also updates `linkedin_connections` and emits the LinkedIn signals, so an automated LinkedIn step later in the same flow knows the state.
-- **One wait node.** `wait_for` is the only event wait; the channel is part of the event name (`reply:sms`). A canvas is free to present "Wait for reply" inside the SMS group and "Wait for acceptance" inside the LinkedIn group; the engine has one case.
+- **`task` is generic.** A call, a WhatsApp message typed by hand, a handwritten note, a visit: anything a human does is a `task` with a `kind` the client chooses to render. The engine only needs the outcome string the client sends back. `kind: call` has the one extra behaviour: the dialer push and completion from Allo's call outcome.
+- **One wait node.** `wait_for` is the only event wait; the channel is part of the event name (`reply:sms`). A canvas is free to present "Wait for reply" inside the SMS group and "Wait for a connected call" inside the call group; the engine has one case.
 - **Nothing writes to the client's world in v1.** Moving a deal or posting to Slack are the client's reactions to the events in section 9.2. The CRM port is **read-only** in v1 (facts for conditions); a `crm_action` node (create a note, update a deal attribute in Attio) is planned once the port has a second adapter (section 9.3). A `webhook` node (call a URL mid-flow and branch on the answer) is planned on top of the same delivery machinery (section 9.3).
 
 **Duration grammar**: `^\d+(m|h|d|bd)$`. `m` minutes, `h` hours, `d` calendar days, `bd` business days (Monday to Friday in the contact's time zone, holidays not modelled).
@@ -1020,10 +1002,9 @@ A condition is a list of `{ field, op, value }` combined with `all` or `any`. Th
 
 | Field key | Type | Source | Cost |
 |---|---|---|---|
-| `contact.country`, `contact.timezone`, `contact.has_email`, `contact.has_phone`, `contact.has_linkedin`, `contact.sms_consent` | enum / text / bool | `seq.contacts` | one row, memoized per step |
+| `contact.country`, `contact.timezone`, `contact.has_email`, `contact.has_phone`, `contact.sms_consent` | enum / text / bool | `seq.contacts` | one row, memoized per step |
 | `attrs.<path>` (any path under the contact's `attrs`; the project declares types and labels in `settings.attrs_schema` so pickers can show them) | text / number / bool / enum | `seq.contacts.attrs` | same row |
-| `sender.timezone`, `sender.has_sms`, `sender.has_linkedin` | text / bool | `seq.senders`, `seq.sender_channels` | one row |
-| `linkedin.connection_state` | enum | `seq.linkedin_connections` | one row |
+| `sender.timezone`, `sender.has_sms` | text / bool | `seq.senders`, `seq.sender_channels` | one row |
 | `history.last_task_outcome`, `history.last_task_kind`, `history.days_since_last_task`, `history.tasks_last_14d` | enum / number | `seq.tasks` | one indexed query |
 | `history.touches`, `history.days_since_last_touch`, `history.replied_since_enrollment`, `history.last_reply_channel`, `history.emails_sent` | number / bool / enum | `seq.runs`, `seq.messages`, `seq.signals` | one indexed query each |
 | `crm.person.exists`, `crm.person.<attribute>`, `crm.company.exists`, `crm.company.<attribute>`, `crm.deal.exists`, `crm.deal.stage`, `crm.deal.<attribute>`, `crm.deal.count_open` | per the CRM schema | the **CRM port** (Attio): person by email, company by the email's domain, the open deal(s) linked to either (`settings.crm.deal_selection`: `newest_open`, `highest_value`, `any_open`) | one Attio lookup per contact per step, cached 60 s; the attribute list and types come from `GET /v1/project/providers/attio/schema`, fetched from Attio's attribute definitions and cached |
@@ -1041,7 +1022,6 @@ Operators by type: enum `is`, `is not`; number `=`, `≠`, `>`, `≥`, `<`, `≤
 | Graph reachable from `entry`; no cycles except through a timed wait | `UNREACHABLE_NODE`, `CYCLE` |
 | Every path ends (an `end`, or a `task` with an unwired branch) | `NO_END` |
 | At most one SMS `send` step | `TOO_MANY_SMS` |
-| At most one LinkedIn `connect` | `TOO_MANY_CONNECTS` |
 | Condition fields and operators exist and values fit the type | `UNKNOWN_FIELD`, `BAD_VALUE` |
 | `wait_for` events allowed; each has a transition | `BAD_EVENT` |
 | `exit_on` contains only `reply` and `meeting_booked` | `BAD_EXIT` |
@@ -1122,7 +1102,7 @@ computeNextAt(now, duration, ctx):
   return at
 ```
 
-**The contact's time zone** is `contacts.timezone` when set; otherwise, for countries with a single zone, that zone; otherwise the sender's zone for email and LinkedIn. **SMS is stricter**: a text is sent only when the recipient's local time is known with certainty, because the 8:00 to 21:00 recipient-local window is a legal requirement in the US. Resolution order for SMS: `contacts.timezone`, then a zone derived from the phone number (NANP area codes and other national numbering plans map to a single zone in most cases), otherwise the step is **skipped** with `no_timezone` and the skip is visible in analytics. The SMS window cannot be configured away.
+**The contact's time zone** is `contacts.timezone` when set; otherwise, for countries with a single zone, that zone; otherwise the sender's zone for email. **SMS is stricter**: a text is sent only when the recipient's local time is known with certainty, because the 8:00 to 21:00 recipient-local window is a legal requirement in the US. Resolution order for SMS: `contacts.timezone`, then a zone derived from the phone number (NANP area codes and other national numbering plans map to a single zone in most cases), otherwise the step is **skipped** with `no_timezone` and the skip is visible in analytics. The SMS window cannot be configured away.
 
 Timing is computed **when a step is entered** (the stored `next_run_at`) and **re-checked when it runs** (the window, caps and kill switch can have changed). Tasks and logic nodes ignore the send window; only automatic outreach respects it.
 
@@ -1218,9 +1198,8 @@ If the executor crashes after the provider accepted the email but before it reco
 | **Email** (Gmail) | kill switch, contact has email, no email suppression, Google connection `active` | sender channel `daily_limit` (rolling 24h), min gap, send window; Gmail's own quota sits above it | Gmail API send from the sender's mailbox, access token from the auth module | safe to retry (`findSent` by `Message-ID`) |
 | **SMS** (Allo) | kill switch, `contact.sms_consent`, contact country in `settings.sms_countries` (default `["US"]`), known recipient time zone, E.164 phone, no SMS suppression, sender has an Allo number | 8:00 to 21:00 recipient-local, per-number rate | Allo send from the sender's number | **`needs_review`, never auto-retry** |
 | **Task** (inline in `advance`) | none | none | create a task; for `kind: call` with `dialer: true`, push the number into the sender's Allo dialing queue (deduped by E.164); the client shows the task | the dialer push is idempotent by task id |
-| **LinkedIn automated** (later) | flag `channel:linkedin_auto`, sender `opted_in_at`, URL, connection state fits the action | daily and weekly invite caps, warm-up, working hours | provider call | `needs_review` |
 
-**Skips are first-class.** A step whose gate fails is `skipped` with the first failing reason (`no_email`, `no_consent`, `no_timezone`, `country_not_allowed`, `no_phone`, `no_sms_number`, `no_linkedin_url`, `sender_channel_down`). The engine then follows the `skipped` transition if wired, otherwise continues like `sent`, so a missing channel never stalls a contact. Skips are not touches and are excluded from reply rates, but are counted and shown.
+**Skips are first-class.** A step whose gate fails is `skipped` with the first failing reason (`no_email`, `no_consent`, `no_timezone`, `country_not_allowed`, `no_phone`, `no_sms_number`, `sender_channel_down`). The engine then follows the `skipped` transition if wired, otherwise continues like `sent`, so a missing channel never stalls a contact. Skips are not touches and are excluded from reply rates, but are counted and shown.
 
 ### 7.5 A reply, bounce or booking exits a contact
 
@@ -1308,7 +1287,6 @@ sequenceDiagram
 | Gmail (Pub/Sub push or the `poll` job) | `reply` (email), `bounce`, `complaint`, `ooo` | only messages in threads the service started are considered (section 9.1); auto-replies become `ooo`, never `reply`; bounces are parsed from delivery-status messages matched by `Message-ID` |
 | Google Calendar (push or the `poll` job) | `meeting_booked` | a new event on the sender's calendar, created after the enrollment's first touch, with the contact's email among the attendees and not declined; `external_id` is the event id, so updates are no-ops; `settings.meeting_detection`: `calendar` (default), `client`, `both` |
 | Allo webhooks (`/hooks/allo/{project}`) | `reply` (sms), `opt_out`, `task_completed` and `call_connected` from `call.completed` | match the contact by E.164 and the sender's number; `STOP`, `QUIT`, `END`, `CANCEL`, `UNSUBSCRIBE`, `OPT OUT` become `opt_out`; a completed call completes the open call task for that sender and contact (section 7.7) |
-| LinkedIn automation adapter (later) | `reply` (linkedin), `connection_accepted`, `sender_channel_status` | behind the flag |
 | Hosted opt-out link (`GET /u/{token}`) | `opt_out` (email) | signed token names the contact, project and run |
 | Task completion endpoint | `task_completed`, plus `call_connected`, `connection_accepted` or `reply` depending on kind and outcome | section 7.7 |
 | Client events endpoint (`POST /v1/contacts/{id}/events`, `:events` batch) | `meeting_booked`, `opt_out`, `contact_suppressed`, `reply` (seen elsewhere) | the only way the service learns what happens outside its own channels: calendars, CRM do-not-contact lists, deletions |
@@ -1369,12 +1347,6 @@ interface CrmProvider {
   lookup(req: { credential: ProviderCredential; email: string; domain: string; dealSelection: DealSelection }):
     Promise<{ person?: Record<string, unknown>; company?: Record<string, unknown>; deal?: Record<string, unknown>; openDeals: number }>;
 }
-interface LinkedInProvider {                                                 // later, behind the automation flag
-  connect(req): Promise<{ authUrl: string }>;
-  invite(req): Promise<{ id: string }>;  message(req): Promise<{ id: string }>;
-  connectionState(req): Promise<LinkedInState>;
-  verifyWebhook?(req): InboundEvent[];  poll?(req): Promise<InboundEvent[]>;
-}
 ```
 
 ### 9.1 Adapters
@@ -1387,8 +1359,8 @@ Three real providers in v1, one mock for development and CI, and the ports stay 
 | **Allo** | `allo` | `SmsProvider`, `DialerProvider`, call outcomes | **API-key provider**: one workspace key per project (probed before storing). A sender's `sms` channel holds their Allo user id and number (`listNumbers` and `listUsers` for pickers); there is no per-sender connection. SMS send from the sender's number; inbound SMS and `call.completed` webhooks at `/hooks/allo/{project}`; `pushNumbers` appends to the sender's power-dialer queue. | Verified against Allo's OpenAPI spec and docs in section 9.1b. Allo is also the first client's phone system, so this adapter is exercised from day one. |
 | **Attio** | `attio` | `CrmProvider` | **API-key provider**: one workspace key per project (probed before storing). `schema` lists objects and attributes (cached, refreshed hourly, exposed at `GET /v1/project/providers/attio/schema`). `lookup` finds the person by email, the company by domain, and the deals linked to either, then applies the project's `deal_selection`. | Read-only in v1. Attio's attribute slugs are workspace-specific, so condition fields on `crm.*` are validated against the fetched schema, not a fixed list. |
 | **Mock** | `mock` | all ports | Records sends as `messages` rows, returns canned CRM and calendar data from `settings.mock`, and exposes `POST /hooks/mock/{project}` to simulate a reply, a bounce, a booking or a call. Enabled by `SEQ_DEV_MOCK_PROVIDERS=1` (the compose file sets it). | What the quickstart, the engine tests and the docs snippets run against, so nothing in CI needs a Google, Allo or Attio account. |
-| **Manual** | none | tasks | `task` nodes for LinkedIn, visits, anything. | |
-| Later, behind the same ports | `smtp_imap`, `twilio`, `hubspot`, `agentmail`, `unipile` | email, sms, crm, linkedin | community adapters once the ports are stable | not in v1 |
+| **Manual** | none | tasks | `task` nodes for visits, handwritten notes, anything. | |
+| Later, behind the same ports | `smtp_imap`, `twilio`, `hubspot`, `agentmail` | email, sms, crm | community adapters once the ports are stable | not in v1 |
 
 **Mailbox and calendar privacy (Google).** The service has read access to the sender's whole mailbox and calendar and must behave accordingly: it looks only for messages that belong to threads it started (`In-Reply-To`, `References` or Gmail's thread id matching a `runs.thread_ref`), it persists headers and the match for those, it stores inbound **bodies only when `settings.store_inbound_bodies` is on** (default off), and it never stores or logs anything else it sees. For the calendar it keeps only events whose attendees include an enrolled contact, and only the event id, start time and the matched attendee, never the title or description. An optional project setting (`match_replies_outside_thread`) also accepts a fresh email from an enrolled contact to the sender's address within the attribution window as a reply, storing metadata only. These rules are written into the adapter contract tests.
 
@@ -1504,19 +1476,18 @@ The operator is whoever runs the deployment. Bootstrapping an empty database nee
 | `GET /v1/senders`, `GET /v1/senders/{id}` | list and read, each with its channels and readiness | read |
 | `POST /v1/senders/{id}/connections/google` | start the Google consent flow: returns `{auth_url}`; on return the connection is `active` and the `email` channel exists (Gmail and Calendar under one consent) | admin |
 | `PUT /v1/senders/{id}/channels/sms` | `{allo_user_id, number}`: validated against the project's Allo key (the number must belong to that user), creates the `sms` channel; no OAuth, no connection | admin |
-| `PUT /v1/senders/{id}/channels/linkedin` | `{address: profile URL}`: a manual channel, no provider | admin |
 | `GET /v1/senders/{id}/connections`, `DELETE /v1/senders/{id}/connections/google` | list OAuth connections; disconnect (revokes the Google token, sets the email channel `disconnected`) | admin |
-| `DELETE /v1/senders/{id}/channels/{sms\|linkedin}` | remove a channel; its steps skip from now on | admin |
+| `DELETE /v1/senders/{id}/channels/sms` | remove a channel; its steps skip from now on | admin |
 | `GET /v1/oauth/google/callback` | OAuth return URL (not called by clients); the `state` parameter is a signed, 10-minute token naming the sender and connection, so a callback cannot be replayed or pointed at another sender | none |
 | `PATCH /v1/senders/{id}/channels/{channel}` | limits and settings `{daily_limit, weekly_limit, min_gap_seconds, opted_in, status: paused\|active}` | admin |
-| `GET /v1/senders/{id}/readiness` | which node types this sender can run, and why not (`google_not_connected`, `google_credentials_needed`, `allo_key_missing`, `allo_key_invalid`, `no_allo_number`, `no_linkedin_url`) | read |
+| `GET /v1/senders/{id}/readiness` | which node types this sender can run, and why not (`google_not_connected`, `google_credentials_needed`, `allo_key_missing`, `allo_key_invalid`, `no_allo_number`) | read |
 | `DELETE /v1/senders/{id}` | disable (their enrollments pause with `channel_status`; nothing is deleted) | admin |
 
 ### 10.4 Contacts
 
 | Method and path | Purpose | Scope |
 |---|---|---|
-| `PUT /v1/contacts/{external_id}` | create or update (upsert) `{first_name, last_name, email, phone, linkedin_url, country, timezone, attrs}`; `attrs` is deep-merged | enroll |
+| `PUT /v1/contacts/{external_id}` | create or update (upsert) `{first_name, last_name, email, phone, country, timezone, attrs}`; `attrs` is deep-merged | enroll |
 | `POST /v1/contacts:batch` | upsert up to 500 | enroll |
 | `PATCH /v1/contacts/{id}` | change fields; changing `attrs` is how a client keeps conditions fresh | enroll |
 | `PUT /v1/contacts/{id}/sms-consent` | `{consent: true\|false, source, at}`; consent is the only contact field that needs `admin` | admin |
@@ -1612,7 +1583,7 @@ All accept `version`, `from`, `to`, `sender`, `country`. The only two outcomes a
 
 ### 11.1 Definitions
 
-- **Reply**: an inbound email in a thread the service started, an inbound SMS, an inbound LinkedIn message, or a task completed with an outcome the node maps to `call_connected`, from an enrolled contact. Out-of-office, auto-replies, bounces and opt-outs are not replies.
+- **Reply**: an inbound email in a thread the service started, an inbound SMS, or a task completed with an outcome the node maps to `call_connected`, from an enrolled contact. Out-of-office, auto-replies, bounces and opt-outs are not replies.
 - **Meeting booked**: detected on the sender's Google Calendar (a new event with the contact as attendee after the first touch), or reported by the client (`POST /v1/contacts/{id}/events {type: meeting_booked}`), per `settings.meeting_detection`. Both are idempotent, so a client that also reports a booking the calendar already showed creates no second signal for the same enrollment (counted once).
 - **Attribution window**: 14 days from the contact's last touch (`settings.attribution_days`).
 - **Counted once per enrollment**: the **first** reply and the **first** meeting are attributed (`direct` or `assisted`); later ones are stored with `attribution='none'` and appear only in the timeline.
@@ -1672,7 +1643,7 @@ order by 1;
 |---|---|---|
 | Sequence overview | replies and meetings (rate vs enrolled and touches delivered), replies by channel, exit reasons | `summary`, `exits` |
 | Per step | reached, executed, skipped by reason, failed, delivered, bounced, replies, meetings, median time to reply | `nodes` |
-| Channel comparison | per channel and touch number: touches sent, skipped, replies, reply rate, meetings, LinkedIn acceptance rate | `channels` |
+| Channel comparison | per channel and touch number: touches sent, skipped, replies, reply rate, meetings | `channels` |
 | By version | any of the above filtered by version tag | `?version=` |
 | Cross-sequence | sequences ranked by replies and meetings per 100 enrolled, minimum-n filter | `/v1/analytics/sequences` |
 
@@ -1723,7 +1694,7 @@ Everything above is generic. This section is the only place the first client app
 | Pause, resume, exit | `POST /api/v1/enrollments/:id/...` | `POST /v1/enrollments/{id}/pause\|resume\|exit` |
 | Analytics tab and cross-sequence | `GET /api/v1/sequences/:id/analytics/...` | `GET /v1/sequences/{id}/analytics/...`, `GET /v1/analytics/channels` |
 | Person timeline (activity feed) | Harpoon merges its own activities with the service's | `GET /v1/contacts/{id}/timeline`, or the `run.done` and `signal.received` webhooks written into `prm_activities` |
-| Rep's tasks (calls, LinkedIn) | Harpoon's Tasks page | `task.created` webhook creates a `prm_task` with `dedupe_key = task id`; a call task with `dialer: true` is already in the rep's Allo queue and completes itself from Allo's call webhook; LinkedIn tasks are completed from Harpoon with `POST /v1/tasks/{id}/complete` |
+| Rep's tasks (calls, manual steps) | Harpoon's Tasks page | `task.created` webhook creates a `prm_task` with `dedupe_key = task id`; a call task with `dialer: true` is already in the rep's Allo queue and completes itself from Allo's call webhook; other tasks are completed from Harpoon with `POST /v1/tasks/{id}/complete` |
 | Engine health (admin) | `GET /api/v1/admin/sequences/engine/health` | `GET /v1/engine/health`, `PUT /v1/engine/flags/{key}`, `GET /v1/engine/needs-review` |
 
 Harpoon keeps its own **permissions**: it decides which reps may enroll whose people. The project key scopes are a second line: the agent route in Harpoon uses an `enroll`-scoped key, so agents cannot publish, change a sequence or set SMS consent even if Harpoon has a bug.
@@ -1732,7 +1703,7 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 
 | Harpoon event | Call to the service |
 |---|---|
-| A rep is created, changes time zone, connects Google, gets an Allo number, adds a LinkedIn URL | `PUT /v1/senders/{user_id}`, `POST .../connections/google` (Harpoon shows the returned URL to the rep once), `PUT .../channels/sms {allo_user_id, number}` (from `user_settings.allo_user_id`), `PUT .../channels/linkedin` |
+| A rep is created, changes time zone, connects Google, gets an Allo number | `PUT /v1/senders/{user_id}`, `POST .../connections/google` (Harpoon shows the returned URL to the rep once), `PUT .../channels/sms {allo_user_id, number}` (from `user_settings.allo_user_id`) |
 | A person is enrolled, or any enrolled person's data relevant to conditions or templates changes (title, company country, opportunity stage) | `PUT /v1/contacts/{person_id}` / `PATCH` with `attrs` |
 | SMS consent recorded (v1: never, consent is unwritable in Harpoon) | `PUT /v1/contacts/{id}/sms-consent` with an admin key |
 | A company or person is marked do-not-contact, a number is marked bad, a person left the company | `POST /v1/contacts/{id}/events {type: suppressed, reason}` |
@@ -1748,7 +1719,7 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 - **Two consumers of the Allo webhook.** Harpoon already receives Allo's `call.completed` and `sms.received` for its own timeline. Allo supports several endpoints per team (`GET /v2/api/webhooks` lists all), and the service registers its own when the Allo key is stored (section 9.1b), so nothing in Harpoon changes.
 - **Deals.** Harpoon's opportunity stage lives in Harpoon, not Attio; conditions on it use `attrs.opportunity.stage` (pushed by Harpoon), while `crm.deal.*` reads the Attio deal the revamp already links meetings to. Both are available in the same picker.
 - **Compliance notes for Harpoon's markets:** US SMS consent (unwritable in v1, so SMS steps always skip), UK cold email allowed to corporate subscribers with an opt-out line, DACH treated as opt-in only; to confirm with counsel. The hosted `{{ unsubscribe_url }}` covers the opt-out mechanics.
-- **Canvas.** Lives in Harpoon's web app (ds2 design system) as a view over the definition, reading and writing the JSON through Harpoon's API. The mockup artifact and `SEQUENCES.md` describe those screens; "Wait for reply" and "Wait for acceptance" are presented inside the SMS and LinkedIn groups and map to `wait_for`.
+- **Canvas.** Lives in Harpoon's web app (ds2 design system) as a view over the definition, reading and writing the JSON through Harpoon's API. The mockup artifact and `SEQUENCES.md` describe those screens; "Wait for reply" and "Wait for a connected call" are presented inside the SMS and call groups and map to `wait_for`.
 - **Naming.** The wire names are `senders` and `contacts`; Harpoon's UI keeps saying reps and people.
 
 ## 14. Security, privacy and compliance
@@ -1767,7 +1738,6 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 | Do not contact | Suppressions from the client (events endpoint), from opt-out clicks and STOP texts, and from bounces. Checked at **enrollment and again at execution**. |
 | SMS | `contacts.sms_consent` default false, settable only with `admin`, with `source` and `at`; an automated test proves no SMS can leave for a contact without it, without a known recipient time zone, or outside 8:00 to 21:00 recipient-local. Country allow-list (`sms_countries`, default `["US"]`). |
 | Opt-out | Always exits the sequence (not configurable) and suppresses the channel. Emails carry `List-Unsubscribe` headers. |
-| LinkedIn automation | Off by default (`channel:linkedin_auto`); per-sender written opt-in (`opted_in_at`); conservative caps; auto-pause on any restriction signal. Tasks have no automation risk. |
 | Data in runs | `result.facts` and rendered template values are stored at decision time; per-project retention (`retention_days`, default 365); erase-on-request (`DELETE /v1/contacts/{id}`). |
 | Audit | Every enrollment records `enrolled_by` and its kind; every exit its reason and signal; flag changes, consent changes, key and endpoint changes are audited with the key that made them. |
 | Input limits | Definition size and node count capped (256 KB, 200 nodes); Zod on every body; batch sizes capped (500); per-key rate limits (`429`). With `SEQ_QUEUE=postgres` and no Redis the limiter is per replica, which is documented and fine for a handful of replicas. |
@@ -1806,7 +1776,7 @@ For local development: `docker compose up` starts Postgres and one container wit
 | `SEQ_PORT` | no, default 8080 | HTTP port (API, or health only for `worker`). |
 | `SEQ_RUN_MIGRATIONS` | no | apply migrations on boot, behind the row lock. |
 | `SEQ_CONCURRENCY` | no, default 8 | parallelism per queue per replica. |
-| `SEQ_DISABLED_CHANNELS`, `SEQ_PAUSED` | no | platform-wide kill switches (`sms,linkedin`; `1`). |
+| `SEQ_DISABLED_CHANNELS`, `SEQ_PAUSED` | no | platform-wide kill switches (`sms`; `1`). |
 | `SEQ_DEV_MOCK_PROVIDERS` | no | `1` makes every project use the `mock` adapters (development, CI, the quickstart). Refused when `NODE_ENV=production`. |
 | `SEQ_LOG_LEVEL`, `SEQ_METRICS` | no | Pino level; Prometheus `/metrics` on the health port. |
 
@@ -1832,7 +1802,7 @@ The contract between clients and the service is the **public API**, which only g
 
 ### 15.5 Capacity
 
-Estimates, to validate with a load test: 30 sequences with about 500 active contacts and a step every one to three days is roughly 5,000 to 15,000 step executions a day, a few hundred an hour at peak: small for Postgres and a single worker. The binding limits are external: inbox `daily_limit` (30 per sender by default), SMS throughput and 10DLC, LinkedIn caps. At 100 times the load the same tables still work; the changes are replica count, `SEQ_QUEUE=redis`, and the analytics rollup from section 11.3.
+Estimates, to validate with a load test: 30 sequences with about 500 active contacts and a step every one to three days is roughly 5,000 to 15,000 step executions a day, a few hundred an hour at peak: small for Postgres and a single worker. The binding limits are external: inbox `daily_limit` (30 per sender by default), SMS throughput and 10DLC. At 100 times the load the same tables still work; the changes are replica count, `SEQ_QUEUE=redis`, and the analytics rollup from section 11.3.
 
 ## 16. Failure modes
 
@@ -1840,7 +1810,7 @@ Estimates, to validate with a load test: 30 sequences with about 500 active cont
 |---|---|---|
 | Executor dies mid-step | Message reappears after the visibility timeout; the same run (same key) is finished by another executor; the planner cannot touch the enrollment because `owner_run_id` is set | ownership, idempotency keys |
 | Crash after the provider accepted an email, before we recorded it | Retry calls `findSent` by `Message-ID` and only sends if nothing is found | our own `Message-ID` on every email |
-| Crash after an SMS or LinkedIn call, outcome unknown | Run goes `needs_review`; progress stops; a human resolves it through the API | a double text or invite is worse than a late one |
+| Crash after an SMS call, outcome unknown | Run goes `needs_review`; progress stops; a human resolves it through the API | a double text is worse than a late one |
 | Message exhausts retries | The reaper marks the run `failed`, clears the owner, the flow takes `failed` or pauses with `step_failed`, `run.failed` is delivered | no enrollment is stranded |
 | Two replicas claim the same enrollment | One wins `FOR UPDATE SKIP LOCKED`; the other gets nothing | row locks |
 | Scheduler leader dies | Its job lease expires within seconds and another replica takes over | lease rows, idempotent jobs |
@@ -1883,9 +1853,8 @@ Each phase ends with an acceptance test an agent can run; a phase is not done un
 2. **Public API and webhooks**: every endpoint in section 10 with the OpenAPI file and `sequences-sdk`; outbound webhooks with the full delivery contract (section 9.2); analytics endpoints; the **docs site** (section 19). *Done when:* the OpenAPI file matches the routes in CI, the SDK is generated from it, the webhook suite (signature, retry schedule, disable, recover, ordering) passes against a stub receiver, the cross-tenant suite passes, and a new reader reaches a first enrollment from the docs quickstart in under fifteen minutes. From here a client can integrate end to end.
 3. **Allo, Attio and Calendar**: the Allo adapter (SMS with consent and time-zone gates, STOP handling, dialer push, `call.completed` auto-completing call tasks), the Attio adapter (schema, lookup, `crm.*` conditions), Google Calendar `meeting_booked` detection. *Done when:* the SMS guard tests pass, a call placed through Allo to a test number completes the task with the mapped outcome, a condition on `crm.deal.stage` branches on a real Attio workspace, and a calendar event with the contact as attendee exits the enrollment with `meeting_booked`.
 4. **First client integration**: Harpoon's BFF on `@opensequence/sdk`, canvas, people table, enroll dialog and journey in Harpoon. *Done when:* a Harpoon rep enrolls a person from the UI, sees the sent email in the person's timeline, a call task shows up in their Allo queue and completes after the call, and the journey modal shows the path.
-5. **LinkedIn tasks**: task kinds `linkedin_connect` and `linkedin_message`, connection states. *Done when:* a manual connect task completed with `accepted` wakes a `wait_for connection_accepted`.
 6. **Redis queue backend**, load test, the analytics rollup if needed. *Done when:* the engine integration suite passes on `SEQ_QUEUE=redis`, and 10,000 active enrollments keep due lag under 2 minutes.
-7. Later, each as a module per section 20: LinkedIn automation (`unipile` behind the flag), more adapters behind the same ports (`smtp_imap`, `twilio`, `hubspot`, `agentmail`), the `crm_action` and `webhook` nodes, `split` and experiments, auto-enroll rules, a minimal built-in admin page, holidays in business-day math, AI drafting.
+7. Later, each as a module per section 20: more adapters behind the same ports (`smtp_imap`, `twilio`, `hubspot`, `agentmail`), the `crm_action` and `webhook` nodes, `split` and experiments, auto-enroll rules, a minimal built-in admin page, holidays in business-day math, AI drafting.
 
 **Open items.**
 - The name: **OpenSequence**, GitHub organization **`open-sequence`** with two repositories, `opensequence` and `auth` (decided). Checked on 2026-10-13: the npm scope `@opensequence` and the packages `opensequence` and `oseq` are free; Docker Hub `opensequence` is free; `opensequence.dev`, `opensequence.io` and `oseq.dev` are unregistered; `opensequence.com` and `.org` are taken; PyPI `opensequence` is free (`oseq` is taken, so the Python SDK is `opensequence`); the GitHub user `opensequence` is held by a dormant personal account (use `open-sequence`, or ask GitHub to release it). Register the npm scope, the Docker namespace and `opensequence.dev` before the first public commit.
@@ -1982,7 +1951,6 @@ Docs
     connect-google           Create your Google OAuth client, the three scopes, the consent flow, token renewal, Pub/Sub push (optional), what the service reads and never reads
     connect-allo             The Allo API key, mapping users and numbers to senders, the webhook, the dialer, call outcomes
     connect-attio            The Attio API key, the schema endpoint, deal selection, what crm.* conditions can read
-    connect-linkedin         Tasks by default; the automated adapter later, the opt-in, caps and the risk
   Contacts
     contacts                 Upsert, batch, external ids, attrs, time zone and country, deletion
     attrs                    Using attrs for conditions and templates; declaring attrs_schema for pickers
@@ -2029,7 +1997,6 @@ Docs
     data-retention           Retention settings, erase on request, what is kept in analytics
     email-compliance         Opt-out line and List-Unsubscribe, bulk-sender rules, UK and EU notes (not legal advice)
     sms-compliance           Consent, quiet hours, STOP, country allow-list, 10DLC
-    linkedin-automation      Why it is off by default and what you accept by turning it on
   Tutorials
     integrate-your-crm       End to end: senders, contacts, a sequence, enroll, a webhook receiver, a task inbox, analytics (the section 13 pattern, generic)
     build-a-sequence-editor  A canvas on the JSON in React, with the schema endpoints
@@ -2037,7 +2004,7 @@ Docs
     migrate-from-a-saas-tool Mapping an Outreach or Apollo sequence to a definition
   Community
     contributing             The two repositories, the import-lint rule, running tests with the mock provider
-    extending                Adding a provider, a channel, a node type, a fact source or an event (the registries of section 20, with the LinkedIn example)
+    extending                Adding a provider, a channel, a node type, a fact source or an event (the registries of section 20, with the WhatsApp example)
     changelog                Per release
     roadmap                  Phases from section 18; the webhook node, split, auto-enroll, admin page
     faq                      The twenty questions people ask
@@ -2084,7 +2051,7 @@ Reference
 - **One runnable snippet per concept**, in three languages, executed in CI. A snippet that cannot run is a bug.
 - **Generated where there is a source of truth.** Nobody edits `generated/`; the build fails if it is stale.
 - **Plain English error pages.** The `validation` and `errors` pages exist so a search for an error code lands on the fix.
-- **Honesty about limits.** The compliance pages say "not legal advice" and the LinkedIn page says what the reader is accepting; the comparison page says what the alternatives do better.
+- **Honesty about limits.** The compliance pages say "not legal advice"; the comparison page says what the alternatives do better.
 - **The architecture stays in this document.** The docs link to it (published as a page under Community) instead of restating it; readers of the docs are integrating, not building the engine.
 
 ### 19.6 Build, test and deploy
@@ -2093,14 +2060,14 @@ Reference
 
 ## 20. Extending: adding a channel, a node type or a provider
 
-LinkedIn automation is the first module that will be added after v1, so it is the worked example. The rule the architecture enforces: **a new module is a set of registrations, not a set of edits.** Every extension point below is a registry the engine reads at boot, and nothing in the planner, `advance`, the signal pipeline, the API, the SDK or the webhooks changes when a module is added.
+A WhatsApp channel is the kind of module that would be added after v1, so it is the worked example. The rule the architecture enforces: **a new module is a set of registrations, not a set of edits.** Every extension point below is a registry the engine reads at boot, and nothing in the planner, `advance`, the signal pipeline, the API, the SDK or the webhooks changes when a module is added.
 
 ### 20.1 Extension points
 
 | To add | Where it goes | What already handles the rest |
 |---|---|---|
 | **A provider for an existing port** (a second SMS vendor, a second CRM) | one package in `sequences-providers` implementing the port (`SmsProvider`, `CrmProvider`, …), registered with `registerProvider(name, factory)`; a credential method in `@opensequence/auth` (`api_key` or `oauth2` with scopes); contract tests with recorded fixtures; one docs page | credentials and tokens (auth), pickers (`/providers/{name}/…` is generic), the executor, readiness, health, the kill switch |
-| **A channel** (LinkedIn automation, WhatsApp) | `registerChannel({ name, actions, paramsSchema, validate, gates, throttle, port })` in one module: the Zod schema of its outreach actions and params (core), the validator rules (core), the executor's gates and throttle (engine), and the port it needs (providers). A migration extends the `sender_channels.channel` check constraint and, if needed, the `signal_kind` enum. | the interpreter (an `outreach` node is routed to queue `seq_<channel>` by convention), the queue table (any queue name), `SEQ_ROLES=worker` (consumes every registered queue), the flags (`channel:<name>` exists as soon as the channel does), readiness (asks the registry which channels a sender has), the schema endpoints (generated from the registry), the docs (generated) |
+| **A channel** (WhatsApp, a second SMS route) | `registerChannel({ name, actions, paramsSchema, validate, gates, throttle, port })` in one module: the Zod schema of its outreach actions and params (core), the validator rules (core), the executor's gates and throttle (engine), and the port it needs (providers). A migration extends the `sender_channels.channel` check constraint and, if needed, the `signal_kind` enum. | the interpreter (an `outreach` node is routed to queue `seq_<channel>` by convention), the queue table (any queue name), `SEQ_ROLES=worker` (consumes every registered queue), the flags (`channel:<name>` exists as soon as the channel does), readiness (asks the registry which channels a sender has), the schema endpoints (generated from the registry), the docs (generated) |
 | **A node type** (a logic step) | `registerNode({ type, paramsSchema, transitions, validate, interpret })` in core: `interpret` returns effects from the existing set (`record`, `goto`, `wait`, `enqueue`, `create_task`, `exit`, `complete`) | `advance` (applies effects and never looks at node types), the journey, analytics (per `node_id`), the canvas (reads `GET /v1/schema`) |
 | **A fact source** for conditions | `registerFacts({ prefix, fields, loader })` in core plus a loader in engine (SQL) or a port (like the CRM) | the evaluator, the picker, the validator, `result.facts`, the journey |
 | **A signal kind** | the enum (migration), a producer (a webhook route, a poll, or the client events endpoint), one row in the processor's rules table (exit, pause, wake, attribute) | the pipeline, idempotency, attribution, outbound webhooks (`signal.received` carries any kind) |
@@ -2108,18 +2075,18 @@ LinkedIn automation is the first module that will be added after v1, so it is th
 
 A new effect kind is the only change that touches `advance`, and it is a single `case`. A module that needs none of the above (a `task` with a new `kind`) needs no code at all: the client sends the kind and renders it.
 
-### 20.2 Worked example: LinkedIn automation (later)
+### 20.2 Worked example: WhatsApp (later)
 
 | Step | File or action | Touches the core? |
 |---|---|---|
-| 1 | `sequences-providers/unipile`: implement `LinkedInProvider` (connect through the vendor's hosted auth, `invite`, `message`, `connectionState`, webhook verification or a poll) | no |
-| 2 | `@opensequence/auth`: register `unipile` as an `oauth2`-style provider whose connection stores the vendor's account id and token | no (auth repo) |
-| 3 | `registerChannel('linkedin', …)`: actions `connect` (param `note`, 200 characters) and `message` (`text`); gates (flag `channel:linkedin_auto`, sender `opted_in_at`, contact `linkedin_url`, connection state fits the action); throttle (daily and weekly invite caps, warm-up, working hours); port `LinkedInProvider` | no |
-| 4 | migration: allow a `linkedin` channel with a connection (today it is manual with none); nothing new in `signal_kind` (`reply`, `connection_accepted`, `sender_channel_status` already exist) | a migration, no code |
+| 1 | `sequences-providers/<vendor>`: implement `WhatsAppProvider` (send a template or a free-form message through the vendor's API, webhook verification for inbound messages and delivery status) | no |
+| 2 | `@opensequence/auth`: register the vendor as an `api_key` provider whose credential stores the vendor's key and the business number | no (auth repo) |
+| 3 | `registerChannel('whatsapp', …)`: actions `send_template` (param `template` and its variables) and `send` (`text`); gates (flag `channel:whatsapp`, contact `phone` and consent, the 24-hour customer-service window for free-form text); throttle (the vendor's per-number rate, working hours); port `WhatsAppProvider` | no |
+| 4 | migration: extend the `sender_channels.channel` check constraint; nothing new in `signal_kind` (`reply`, `opt_out`, `sender_channel_status` already exist) | a migration, no code |
 | 5 | contract tests with recorded vendor fixtures; the guard test "cannot send with the flag off" | no |
-| 6 | docs: `connect-linkedin` gains the automated section; the node reference regenerates | no |
+| 6 | docs: a connect page under Senders; the node reference regenerates | no |
 
-Unchanged: the planner, `advance`, the signal processor, every API route, the SDK, outbound webhooks, the canvas (it reads the schema), and the task-based LinkedIn flow that already works. The manual `task` kinds `linkedin_connect` and `linkedin_message` keep working side by side, so a project can mix automated and manual LinkedIn per sender.
+Unchanged: the planner, `advance`, the signal processor, every API route, the SDK, outbound webhooks, the canvas (it reads the schema), and the `task` node a sender already uses for a WhatsApp message typed by hand. Both keep working side by side.
 
 ### 20.3 What makes this hold
 
