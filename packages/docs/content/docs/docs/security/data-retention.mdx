@@ -1,47 +1,67 @@
 ---
 title: "Data retention"
-description: "What is kept, what is pruned, erase on request, and what stays in analytics."
+description: "What OpenSequence stores about contacts and messages, what it prunes on its own, how to erase a person on request, and what leaves in webhooks."
 ---
+
+This page lists the personal data OpenSequence keeps and how long it keeps it. Read it before you answer a privacy request or set your own retention policy.
 
 <CodeGroup>
 
 ```bash title="curl"
-curl -X DELETE $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $ADMIN_KEY"     # erase a person
-curl -X PUT $SEQ/v1/project/settings -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
-  -d '{"store_inbound_bodies":false,"retention_days":365}'
+# Erase a person (admin key)
+curl -X DELETE $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $ADMIN_KEY"
+
+# Do not store reply bodies (merged into the project settings)
+curl -X PUT $SEQ/v1/project/settings -H "Authorization: Bearer $ADMIN_KEY" \
+  -H "Content-Type: application/json" -d '{"store_inbound_bodies":false}'
 ```
 
 ```ts title="TypeScript"
 await oseq.contacts.delete('p_7');
-await oseq.project.updateSettings({ store_inbound_bodies: false, retention_days: 365 });
+await oseq.project.updateSettings({ store_inbound_bodies: false });
 ```
 
 </CodeGroup>
 
 ## What is stored
 
-| Data | Stored | Notes |
+| Data | Stored | Why |
 |---|---|---|
-| Contacts, senders | what you send | `attrs` included |
-| Outbound messages | subject and body as rendered, addresses, provider ids, thread reference | needed to match replies and to show the timeline |
-| Inbound replies | addresses, subject, thread reference, provider id; the **body only** when `store_inbound_bodies` is true (default false) | the service never stores a mailbox beyond its own threads |
-| Calendar bookings | the event id, start time and the matched attendee's email | never the title, description or other attendees |
-| Runs | node, status, branch, the facts a condition read, the values a template rendered, provider references | the journey |
-| Signals | kind, channel, source, external id, attribution, a small payload | |
-| Tasks | title, body, link as rendered, outcome, note (an Allo call summary when auto-completed) | |
-| Webhook deliveries | the full event payload, attempts, errors | pruned 30 days after delivery |
-| Secrets | encrypted, write-only | |
+| Contacts, senders | what you send, `attrs` included | to address and personalize messages |
+| Outbound messages | subject and body as rendered, addresses, provider ids, thread reference | to match replies and show the timeline |
+| Inbound replies | addresses, subject, thread reference, provider id. The body only when `store_inbound_bodies` is on (default off) | to stop the sequence and attribute the reply |
+| Calendar bookings | event id, start time, the matched attendee's email. Never the title, description or other attendees | to detect meetings |
+| Runs | node, status, branch, the facts a condition read, the values a template rendered, provider references | the journey of each enrollment |
+| Signals | kind, channel, source, external id, attribution, a small payload | replies, bounces, opt-outs, calls, meetings |
+| Tasks | title, body and link as rendered, outcome, note (an Allo call summary when completed automatically) | the reps' task inbox |
+| Webhook deliveries | the full event payload, attempts, errors | delivery and replay |
+| Secrets | encrypted, write-only | provider access |
+
+The service reads only threads it started, from the last 30 days, and never stores anything else it sees in a mailbox.
 
 ## What is pruned automatically
 
-The daily `retention` job deletes idempotency keys after 1 day, dead-letter queue rows after 30 days and **delivered** webhook deliveries after 30 days.
+The `retention` job runs when a worker starts and then once a day. It deletes:
 
-<Warning>`retention_days` (7 to 3650, default 365) is accepted in the project settings but **not enforced yet**: runs, messages, signals and tasks are kept until the contact is erased. Plan your own pruning or wait for the engine to honour the setting.</Warning>
+| Rows | After |
+|---|---|
+| idempotency keys | 1 day |
+| dead-letter queue messages | 30 days |
+| delivered webhook deliveries | 30 days |
+
+<Warning>`retention_days` (7 to 3650, default 365) is accepted in the project settings but not enforced yet. Runs, messages, signals and tasks are kept until the contact is erased. Plan your own pruning until the engine honours the setting.</Warning>
 
 ## Erase on request
 
-`DELETE /v1/contacts/{id}` (scope `admin`) exits the contact's active enrollments with reason `deleted` (an `enrollment.exited` webhook is delivered so your systems follow), then deletes the contact and everything attached: messages, runs, signals and their effects, tasks, suppressions. The webhook deliveries already made still contain the payloads that named the contact until they are pruned. Analytics counts (enrolled, replies, meetings per sequence) are computed from what remains, so an erased contact leaves the totals.
+`DELETE /v1/contacts/{id}` (scope `admin`, accepts the id or your external id) erases a person in one transaction:
+
+1. Every active enrollment of the contact exits with reason `deleted`, and an `enrollment.exited` webhook is queued so your systems follow.
+2. The contact is deleted, and with it its enrollments, runs, messages, signals and their effects, tasks and suppressions.
+
+Analytics (enrolled, replies, meetings per sequence) are computed from what remains, so an erased contact leaves the totals.
+
+<Warning>Erasing a contact also erases its suppressions. If the same person is created again later, nothing remembers that they opted out. Keep your own do-not-contact list, and when you re-create a person who opted out, suppress them again: `POST /v1/contacts/{id}/events` with `{ "id": "dnc-1", "type": "suppressed", "channel": "all" }`.</Warning>
 
 ## What leaves the service
 
-Webhook payloads carry contact ids, external ids, emails, phones and names (`signal.received`), rendered task titles (`task.created`) and message subjects (`run.done`). Your endpoints hold what they received; delete it there under your own policy.
+Webhook payloads carry personal data in two places: `signal.received` includes the contact's id, external id, email, phone and name, and `task.created` includes the task's rendered title, body and link. The [webhook events reference](/reference/webhook-events) shows every payload. Copies of those payloads stay in `webhook_deliveries` until they are pruned 30 days after delivery, even when the contact has been erased. Your endpoints keep what they received: delete it there under your own policy.

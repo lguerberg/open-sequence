@@ -1,6 +1,309 @@
 ---
 title: "Deploy on Kubernetes"
-description: "Working manifests for the api and worker deployments."
+description: "Kubernetes manifests for OpenSequence: a Secret and ConfigMap, a migration Job, an api Deployment with probes, Service, Ingress and PDB, and a worker Deployment."
 ---
 
-<Note>This page is not written yet. Two Deployments from one image, a Service and an Ingress for `api`, readiness probes on `/readyz` and liveness on `/healthz`, a Secret with the `SEQ_*` variables, a 35-second `terminationGracePeriodSeconds` for the worker.</Note>
+This guide runs OpenSequence on any Kubernetes cluster with plain manifests. You apply four files: configuration, a migration Job, the `api` and the `worker`.
+
+```mermaid
+flowchart LR
+  ING["Ingress, TLS"] --> SVC["Service opensequence-api"] --> API["Deployment api, 2 pods"]
+  API --> PG[("Postgres")]
+  WRK["Deployment worker, no Service"] --> PG
+  JOB["Job migrate"] --> PG
+```
+
+The manifests assume an image you built and pushed (`registry.example.com/opensequence/server:0.1.0`), a Postgres 14 or newer reachable from the cluster, the ingress-nginx controller and a TLS secret named `opensequence-tls`. Adjust those names to your cluster.
+
+## 1. Configuration
+
+```yaml title="config.yaml"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: opensequence
+type: Opaque
+stringData:
+  SEQ_DB_DSN: postgres://oseq:CHANGE_ME@postgres.internal:5432/opensequence
+  SEQ_ENCRYPTION_KEYS: kmvb1mvo3:CHANGE_ME_BASE64_32_BYTES
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: opensequence-admin   # the operator token, mounted on the api only
+type: Opaque
+stringData:
+  SEQ_ADMIN_TOKEN: CHANGE_ME
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opensequence
+data:
+  SEQ_PUBLIC_URL: https://sequences.example.com
+  SEQ_PORT: "8080"
+  SEQ_QUEUE: postgres
+  SEQ_LOG_LEVEL: info
+  SEQ_CONCURRENCY: "8"
+  SEQ_DB_POOL: "10"
+```
+
+Generate the values with `node dist/cli.js secrets new-key` (for `SEQ_ENCRYPTION_KEYS`) and `openssl rand -base64 32` (for `SEQ_ADMIN_TOKEN`). The operator token sits in its own Secret so that only the api pods receive it. Every other variable has a working default; see [Configuration](/docs/self-hosting/configuration).
+
+<Warning>Keep a copy of `SEQ_ENCRYPTION_KEYS` outside the cluster, next to your database backups. A database restored without it has unreadable credentials.</Warning>
+
+## 2. The migration Job
+
+```yaml title="migrate.yaml"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: opensequence-migrate-v0-1-0   # one Job per release: rename it for each image tag
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opensequence
+        app.kubernetes.io/component: migrate
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: registry.example.com/opensequence/server:0.1.0
+          command: ["node", "dist/cli.js", "migrate"]
+          envFrom:
+            - configMapRef:
+                name: opensequence
+            - secretRef:
+                name: opensequence
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { memory: 256Mi }
+```
+
+The Job applies the `seq` and `auth` migrations and exits. Jobs are immutable, so give each release its own name. Running it against an up-to-date database is a no-op. If you prefer, drop the Job and add `SEQ_RUN_MIGRATIONS: "1"` to the ConfigMap: every pod then migrates before it opens its port, serialized by a row lock.
+
+## 3. The api
+
+```yaml title="api.yaml"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensequence-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opensequence
+      app.kubernetes.io/component: api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opensequence
+        app.kubernetes.io/component: api
+    spec:
+      terminationGracePeriodSeconds: 40
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: registry.example.com/opensequence/server:0.1.0
+          env:
+            - name: SEQ_ROLES
+              value: api
+          envFrom:
+            - configMapRef:
+                name: opensequence
+            - secretRef:
+                name: opensequence
+            - secretRef:
+                name: opensequence-admin
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 4
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensequence-api
+spec:
+  selector:
+    app.kubernetes.io/name: opensequence
+    app.kubernetes.io/component: api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opensequence-api
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 2m
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [sequences.example.com]
+      secretName: opensequence-tls
+  rules:
+    - host: sequences.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: opensequence-api
+                port:
+                  name: http
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: opensequence-api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opensequence
+      app.kubernetes.io/component: api
+```
+
+## 4. The worker
+
+```yaml title="worker.yaml"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensequence-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opensequence
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opensequence
+        app.kubernetes.io/component: worker
+    spec:
+      terminationGracePeriodSeconds: 40
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: registry.example.com/opensequence/server:0.1.0
+          env:
+            - name: SEQ_ROLES
+              value: worker
+          envFrom:
+            - configMapRef:
+                name: opensequence
+            - secretRef:
+                name: opensequence
+          ports:
+            - name: health
+              containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /readyz, port: health }
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /healthz, port: health }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 4
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+```
+
+The worker has no Service. Its port answers `/healthz` and `/readyz`, but also the API routes, so nothing should route to it. No CronJob is needed: the scheduler runs inside the worker and replicas share it through lease rows in Postgres.
+
+## Apply
+
+```bash
+kubectl apply -f config.yaml
+kubectl apply -f migrate.yaml
+kubectl wait --for=condition=complete job/opensequence-migrate-v0-1-0 --timeout=5m
+kubectl apply -f api.yaml -f worker.yaml
+kubectl rollout status deployment/opensequence-api
+kubectl rollout status deployment/opensequence-worker
+```
+
+Then create the first project over HTTP:
+
+```bash
+curl -X POST https://sequences.example.com/v1/admin/projects \
+  -H "Authorization: Bearer $SEQ_ADMIN_TOKEN" -H "Content-Type: application/json" \
+  -d '{"slug":"acme","name":"Acme CRM"}'
+```
+
+Continue with [Install](/docs/self-hosting/install), from "Register the providers".
+
+## Why these settings
+
+| Setting | Reason |
+|---|---|
+| `runAsUser: 100`, `runAsGroup: 101` | the image runs as the `oseq` user (uid 100, gid 101). The image names the user, not a number, so `runAsNonRoot` needs the uid spelled out |
+| readiness on `/readyz`, liveness on `/healthz` | `/readyz` fails while the database is unreachable and, on the worker, when the scheduler has not run a job in 2 minutes. Liveness only checks that the process is up, so a database outage does not restart every pod |
+| `terminationGracePeriodSeconds: 40` | on `SIGTERM` the api finishes in-flight requests and the worker finishes in-flight messages for up to 30 seconds; the process exits within 35 |
+| `maxUnavailable: 0` and the PodDisruptionBudget | the api keeps answering provider webhooks and unsubscribe clicks during rollouts and node drains |
+| `proxy-body-size: 2m` | the API accepts bodies up to 2 MB; ingress-nginx refuses more than 1 MB by default |
+| `500m` CPU, `512Mi` memory | a starting point for both roles. See [Scaling](/docs/self-hosting/scaling) |
+
+## Notes
+
+- **Upgrades.** Push the new image, apply a new migration Job, wait for it, then update the image in both Deployments. See [Upgrades](/docs/self-hosting/upgrades).
+- **Webhook receivers** must be public HTTPS. A `*.svc.cluster.local` address or a private IP is refused as a webhook endpoint.
+- **Client addresses.** The api trusts `X-Forwarded-For` for its per-IP rate limit; ingress-nginx sets it. Do not expose the pods another way.
+- **Validated** with `kubeconform -strict` against Kubernetes 1.30 schemas.

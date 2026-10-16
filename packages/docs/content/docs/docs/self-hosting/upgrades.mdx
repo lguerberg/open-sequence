@@ -1,6 +1,74 @@
 ---
 title: "Upgrades"
-description: "Additive contracts, expand-then-contract migrations, rolling deploys, rollback."
+description: "Move a running install to a new image: back up, migrate once, roll the api and worker, and roll back or stop sending safely when something goes wrong."
 ---
 
-<Note>This page is not written yet. The rules it will state: the public API only grows and the definition `schema_version` is read forever; `api` and `worker` share the schema, migrations are expand-then-contract, so deploy the role that adds capability first; old and new replicas coexist during a rolling deploy because consumers ignore unknown fields and the tables arbitrate; roll back by redeploying the previous image of the role at fault, and in an emergency set `SEQ_PAUSED=1` or scale the worker to zero.</Note>
+An upgrade is a new image plus the migrations it carries. This page gives the order that keeps sends flowing, how to roll back, and how to go live the first time.
+
+```bash
+# 1. Back up the database (keep SEQ_ENCRYPTION_KEYS with it)
+pg_dump --format=custom --schema=seq --schema=auth "$SEQ_DB_DSN" > before-upgrade.dump
+
+# 2. Apply the new image's migrations, once
+docker run --rm -e SEQ_DB_DSN -e SEQ_ENCRYPTION_KEYS \
+  registry.example.com/opensequence/server:NEW node dist/cli.js migrate
+# applied 1 migration(s)   or   already up to date
+
+# 3. Roll the api, then the worker, to the new image
+```
+
+## How migrations run
+
+Every image ships the SQL migrations for the `seq` and `auth` schemas. There are two ways to apply them, and both are safe to repeat:
+
+| Way | When to use it |
+|---|---|
+| `node dist/cli.js migrate` (`oseq migrate`) as its own step | production with several replicas: a pipeline step, a Fly `release_command`, a Kubernetes Job. A failed migration stops the release before any replica changes |
+| `SEQ_RUN_MIGRATIONS=1` on the processes | a single container, or when you have no release step. Every process applies the migrations before it opens its port; replicas starting together wait on a row lock |
+
+Each migration runs in one transaction and is recorded by tag and hash. A failed one rolls back and leaves the database as it was. There are no down migrations: going back means restoring the backup.
+
+## Rolling the roles
+
+Old and new replicas run side by side during a rolling deploy. That is safe because the database arbitrates: runs are owned, claims use `SKIP LOCKED`, and every write re-checks state under a row lock.
+
+1. Migrate (step 2 above).
+2. Roll the `api`. Its readiness probe (`/readyz`) holds traffic until the new replica reaches the database.
+3. Roll the `worker`. Each old worker finishes its in-flight messages for up to 30 seconds on `SIGTERM`; whatever it leaves reappears for the new workers when its visibility timeout ends.
+
+The design rule is expand then contract: a migration adds columns and tables first, and a later release removes what is no longer used, so the old code keeps working against the new schema. When one release adds a capability that both roles share, deploy the role that adds it first.
+
+<Warning>Not every migration so far has been additive. The engine's migration `0002` dropped tables, a column and an enum value in the same release that stopped using them, so older replicas fail against it. For a release whose notes say it removes something, scale the worker to zero, migrate, then start the new image for both roles.</Warning>
+
+The public API only grows: new fields and endpoints are added, and nothing is removed or repurposed without a new version path. Every sequence definition so far is `schema_version: 1`.
+
+## Rolling back
+
+Redeploy the previous image of the role at fault. The older image ignores migrations it does not know, so it boots against the newer schema, and an additive migration leaves it working.
+
+If a migration damaged data, restore the backup into a new database and point both roles at it:
+
+```bash
+createdb -h db.internal opensequence_restore
+pg_restore --dbname=postgres://oseq:…@db.internal:5432/opensequence_restore before-upgrade.dump
+```
+
+## Stopping sends in an emergency
+
+| Lever | Speed | Effect |
+|---|---|---|
+| project flag `global` off | immediate, no deploy | `PUT /v1/engine/flags/global` with `{ "value": false }`: that project's sends are deferred |
+| `SEQ_PAUSED=1` on the workers | one restart | the planner stops and every send is deferred, for all projects |
+| scale the worker to zero | one deploy | hard stop; nothing is lost, everything resumes when a worker returns |
+
+See [Scaling](/docs/self-hosting/scaling) for what each one leaves running.
+
+## The first go-live
+
+1. Provision Postgres and run `migrate`.
+2. Deploy the `api`. Create the project and its key, register the provider credentials and your webhook endpoint.
+3. Turn the project's `global` flag off, then deploy the `worker`.
+4. Point your application at the service, behind your own feature flag.
+5. Enroll one contact with `"mode": "dry_run"` and check the journey. Then turn `global` on and enroll a small batch.
+
+See [Enrolling](/docs/contacts/enrolling) for dry runs.

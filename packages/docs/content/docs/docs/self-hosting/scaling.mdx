@@ -1,37 +1,62 @@
 ---
 title: "Scaling"
-description: "Replicas, roles, capacity numbers, when to switch to Redis, and what actually limits throughput."
+description: "How many api and worker replicas to run, the knobs that raise throughput, what really limits sending, and how to stop the engine safely."
 ---
+
+The `api` and `worker` roles scale on their own, and several replicas of each are safe. Read this page when you size a deployment or when a queue falls behind.
 
 | Setting | `api` | `worker` |
 |---|---|---|
-| Instances | 1 to N, scale on CPU or request rate | 1 to N, scale on queue depth or oldest-due lag |
+| Replicas | 1 to N; scale on CPU or request rate | 1 to N; scale on queue depth or oldest-due lag |
 | Resources to start | 500 mCPU, 512 MB | 500 mCPU, 512 MB |
-| Ports | 8080, public | 8080 for `/healthz` and `/readyz` only, private |
-| Shutdown | `SIGTERM`: stop accepting, finish in-flight requests | stop reading queues, finish in-flight work for up to 30 s, exit; leftovers reappear when their visibility timeout expires |
+| Port 8080 | public, behind TLS | private: health only |
+| On `SIGTERM` | stops accepting, finishes in-flight requests, exits | stops reading queues, waits up to 30 s for in-flight messages, exits |
+
+The whole shutdown is capped at 35 seconds, after which the process exits with code 1. Give the platform a grace period of at least 40 seconds. Work left unfinished reappears when its visibility timeout ends.
 
 ## Replicas are safe
 
-Several workers can run at once: the planner claims enrollments under one token per tick with `FOR UPDATE SKIP LOCKED`, an executor owns a run while it works (the enrollment's `owner_run_id`), scheduler jobs run on whichever replica takes the lease, and every write re-checks state under a row lock. Two replicas never double-send. The API is stateless except the per-replica rate-limit counter and the per-replica access-token cache.
+Two workers never send the same step twice:
 
-## What limits throughput
+- The planner claims due enrollments with `FOR UPDATE SKIP LOCKED`, so two planners never take the same one.
+- An executor owns a run while it works on it (the enrollment's `owner_run_id`), and every write re-checks state under a row lock.
+- Each scheduler job takes a lease row in `seq.job_locks` before it runs, so one replica at a time runs a given job.
 
-Not the engine: 30 sequences with about 500 active contacts and a step every one to three days is 5,000 to 15,000 step executions a day, a few hundred an hour at peak, small for Postgres and a single worker. The binding limits are external: each sender's email `daily_limit` (30 by default, 60-second gap), SMS throughput and 10DLC. Raising capacity means more senders or higher caps, not more replicas.
+The API is stateless apart from two per-replica caches: the rate-limit counter and the Google access-token cache.
 
-## Knobs
+## The knobs
 
-| Knob | Default | Raise when |
+| Knob | Default | Raise it when |
 |---|---|---|
-| `SEQ_CONCURRENCY` | 8 per queue per replica | queues have depth and the database has headroom |
+| `SEQ_CONCURRENCY` | 8 messages in flight per queue per replica (max 64) | queues have depth and the database has headroom |
 | worker replicas | 1 | the same, or for availability |
-| `SEQ_DB_POOL` | 10 | `SEQ_CONCURRENCY` is high (the pool must cover in-flight messages plus the scheduler) |
-| planner claim | 50 per sender, 500 per tick, every 5 s | thousands of enrollments come due at the same second (constants in the engine config, not env yet) |
-| `SEQ_QUEUE=redis` | `postgres` | the queue table itself becomes hot: many thousands of messages a minute. For most installs, never |
+| `SEQ_DB_POOL` | 10 connections per process (max 100) | you raise `SEQ_CONCURRENCY`: the pool serves the in-flight messages and the scheduler |
+| planner claim | 50 per sender, 500 per tick, every 5 seconds | thousands of enrollments come due in the same second. These are engine constants, not variables |
+| `SEQ_QUEUE=redis` | `postgres` | the queue table itself is hot, with many thousands of messages a minute. Most installs never need it |
 
-## When the numbers get big
+## What really limits throughput
 
-At a hundred times the target load the same tables still work; the planned changes are `SEQ_QUEUE=redis`, more worker replicas, and a daily analytics rollup behind the same endpoints once an analytics query crosses a second (expected past a few million runs). Watch `oldest-due lag` (how long enrollments wait past their `next_run_at`; target under 2 minutes) and queue depth.
+Usually not the engine. Thirty sequences with about 500 active contacts and a step every one to three days is 5,000 to 15,000 steps a day, a few hundred an hour at peak. One worker and one Postgres handle that easily.
 
-## Zero is a valid number
+The binding limits are outside: each sender's email `daily_limit` (30 by default, with a 60-second gap between sends), the SMS `daily_limit` (100 by default), and your SMS carrier registration. More capacity means more senders or higher caps, not more replicas.
 
-Scaling the worker to zero is a hard stop that loses nothing: steps, signals and deliveries wait in the tables and queues, and resume when a worker comes back. `SEQ_PAUSED=1` does the same without a deploy.
+## Measure the lag
+
+Queue depth comes from the health endpoints (see [Queues](/docs/self-hosting/queues)). Oldest-due lag, how long enrollments wait past their `next_run_at`, has no endpoint yet; read it from the database:
+
+```sql
+select now() - min(next_run_at) as oldest_due_lag
+from seq.enrollments
+where status = 'active' and owner_run_id is null and next_run_at <= now();
+```
+
+Keep it under 2 minutes. If it grows while queues are empty, the planner is not running: check the `plan` job in the health output.
+
+## Stopping the engine
+
+| Action | Effect |
+|---|---|
+| Scale the worker to zero | hard stop. Steps, signals and deliveries wait in the tables and resume when a worker returns. Nothing is lost |
+| `SEQ_PAUSED=1` on the workers | the planner claims nothing and executors defer every send by 5 minutes. Signals are still recorded and webhooks still delivered. Needs a restart to change |
+| `SEQ_DISABLED_CHANNELS=sms` on the workers | executors defer every send on that channel by 5 minutes; the planner keeps going. Needs a restart |
+| project flag `global` off | executors defer that project's sends by 5 minutes, with no restart: `PUT /v1/engine/flags/global` with `{ "value": false }`. `channel:sms` does the same for one channel |

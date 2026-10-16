@@ -1,6 +1,150 @@
 ---
 title: "Deploy on Fly.io"
-description: "A working fly.toml for the api and worker roles."
+description: "Run OpenSequence on Fly.io with one fly.toml: api and worker process groups from the same image, migrations as the release command, secrets set once."
 ---
 
-<Note>This page is not written yet. One app with two process groups (`api` and `worker`) from the same image, Fly Postgres, secrets set with `fly secrets set`, and `SEQ_PUBLIC_URL` pointing at the app's hostname.</Note>
+This guide runs OpenSequence as one Fly app with two process groups, `api` and `worker`, built from `apps/server/Dockerfile`. Migrations run as the release command, before any machine is replaced.
+
+## fly.toml
+
+Put this at the root of your fork. The Dockerfile copies the whole workspace, so the build context must be the root.
+
+```toml title="fly.toml"
+app = "acme-opensequence"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+kill_timeout = 40
+
+[build]
+  dockerfile = "apps/server/Dockerfile"
+
+[deploy]
+  release_command = "node /app/dist/cli.js migrate"
+  strategy = "rolling"
+
+[env]
+  SEQ_PUBLIC_URL = "https://acme-opensequence.fly.dev"
+  SEQ_PORT = "8080"
+  SEQ_LOG_LEVEL = "info"
+
+# One image, two process groups. `env` sets the role, then runs node in its place.
+[processes]
+  api = "env SEQ_ROLES=api node /app/dist/main.js"
+  worker = "env SEQ_ROLES=worker node /app/dist/main.js"
+
+[http_service]
+  processes = ["api"]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/readyz"
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "20s"
+
+# The worker has no public service; this check still watches it.
+[checks]
+  [checks.worker_ready]
+    processes = ["worker"]
+    type = "http"
+    port = 8080
+    method = "GET"
+    path = "/readyz"
+    interval = "30s"
+    timeout = "3s"
+    grace_period = "30s"
+
+[[vm]]
+  processes = ["api", "worker"]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+```
+
+| Line | Why |
+|---|---|
+| `kill_signal`, `kill_timeout = 40` | the worker finishes in-flight messages for up to 30 seconds after `SIGTERM`, and the process exits within 35 |
+| `release_command` | applies the `seq` and `auth` migrations once per deploy. If it fails, the deploy stops and no machine changes |
+| `[processes]` | the server reads its role from `SEQ_ROLES`; Fly has no per-process `[env]`, so the command sets it |
+| `http_service.processes = ["api"]` | only the api gets a public address. The worker answers the API routes on its port too, so it must not have one |
+| `auto_stop_machines = "off"` | an api stopped by Fly would miss provider webhooks and unsubscribe clicks |
+| `/readyz` checks | on the api, the database answers; on the worker, the scheduler also ran a job in the last 2 minutes |
+
+## Steps
+
+<Steps>
+<Step title="Create the app and a database">
+
+```bash
+fly apps create acme-opensequence
+```
+
+Create a Fly Managed Postgres cluster, version 14 or newer, in the same region, or use any Postgres the app can reach. Copy its connection string.
+
+</Step>
+<Step title="Set the secrets">
+
+```bash
+KEY=$(docker run --rm opensequence/server node dist/cli.js secrets new-key)   # or any built image
+
+fly secrets set --stage \
+  SEQ_DB_DSN='postgres://oseq:…@…:5432/opensequence' \
+  SEQ_ENCRYPTION_KEYS="$KEY" \
+  SEQ_ADMIN_TOKEN="$(openssl rand -base64 32)"
+```
+
+Secrets reach every process group and the release command. The worker ignores `SEQ_ADMIN_TOKEN`. `--stage` stores them without deploying.
+
+<Warning>Keep a copy of `SEQ_ENCRYPTION_KEYS` outside Fly. Fly will not show a secret's value again, and a database restored without it has unreadable credentials.</Warning>
+
+</Step>
+<Step title="Deploy and scale">
+
+```bash
+fly deploy
+fly scale count api=2 worker=1
+```
+
+Fly builds the image, runs the release command, then rolls the machines.
+
+</Step>
+<Step title="Create the first project">
+
+```bash
+curl -X POST https://acme-opensequence.fly.dev/v1/admin/projects \
+  -H "Authorization: Bearer $SEQ_ADMIN_TOKEN" -H "Content-Type: application/json" \
+  -d '{"slug":"acme","name":"Acme CRM"}'
+```
+
+The response holds the first `admin` key, shown once. Continue with [Install](/docs/self-hosting/install), from "Register the providers".
+
+</Step>
+</Steps>
+
+## Custom domain
+
+```bash
+fly certs add sequences.example.com
+# then in fly.toml: SEQ_PUBLIC_URL = "https://sequences.example.com"
+fly deploy
+```
+
+Set `SEQ_PUBLIC_URL` before you save the Google client or the Allo key: it builds the Google redirect URI, the Allo webhook address and every unsubscribe link.
+
+## Check it
+
+```bash
+fly status                                   # machines per process group and their checks
+fly logs                                     # Pino JSON from both groups
+curl https://acme-opensequence.fly.dev/v1/admin/engine/health -H "Authorization: Bearer $SEQ_ADMIN_TOKEN"
+```
+
+## Notes
+
+- **No cron.** The scheduler runs inside the worker; replicas coordinate through lease rows in Postgres.
+- **Webhook receivers** must be public HTTPS. A `.internal` hostname or a private Fly address is refused as a webhook endpoint.
+- **More workers** are safe: `fly scale count worker=2`. See [Scaling](/docs/self-hosting/scaling).
