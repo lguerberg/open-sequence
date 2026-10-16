@@ -1,7 +1,65 @@
 @import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/lib/default-colors.css';
 @import 'fumadocs-ui/css/preset.css';
 @import 'fumadocs-openapi/css/preset.css';
+
+/*
+  The OpenSequence docs theme: the landing's celeste and white (apps/site/app/globals.css).
+  Light: a white page, celeste-tinted cards and sidebar, navy ink, deep celeste links.
+  Dark: the same hues on a deep navy ground. Every Fumadocs colour token is set in both modes.
+*/
+
+@theme {
+  --color-fd-background: #ffffff;
+  --color-fd-foreground: #0f1b2a;
+  --color-fd-muted: #f3f8fd;
+  --color-fd-muted-foreground: #56657a;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #0f1b2a;
+  --color-fd-card: #f8fbfe;
+  --color-fd-card-foreground: #0f1b2a;
+  --color-fd-border: #dbe6f1;
+  --color-fd-primary: #2b7bc0;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f3f8fd;
+  --color-fd-secondary-foreground: #0f1b2a;
+  --color-fd-accent: #e3f0fb;
+  --color-fd-accent-foreground: #0f1b2a;
+  --color-fd-ring: #2b7bc0;
+
+  --color-brand: #2b7bc0;
+  --color-band: #74acdf;
+  --color-surface: #f3f8fd;
+  --color-ink: #0f1b2a;
+
+  --font-sans: var(--font-sans-face), ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: var(--font-display-face), 'Iowan Old Style', Georgia, serif;
+}
+
+.dark {
+  --color-fd-background: #0a1320;
+  --color-fd-foreground: #e6eef7;
+  --color-fd-muted: #122134;
+  --color-fd-muted-foreground: #9fb1c6;
+  --color-fd-popover: #0e1a2a;
+  --color-fd-popover-foreground: #e6eef7;
+  --color-fd-card: #0e1a2a;
+  --color-fd-card-foreground: #e6eef7;
+  --color-fd-border: #1f344d;
+  --color-fd-primary: #8cc0ec;
+  --color-fd-primary-foreground: #0a1320;
+  --color-fd-secondary: #142640;
+  --color-fd-secondary-foreground: #e6eef7;
+  --color-fd-accent: #17304d;
+  --color-fd-accent-foreground: #e6eef7;
+  --color-fd-ring: #74acdf;
+  --color-fd-overlay: rgba(2, 8, 16, 0.55);
+
+  --color-brand: #8cc0ec;
+  --color-surface: #0e1a2a;
+  --color-ink: #e6eef7;
+}
 
 html {
   scrollbar-gutter: stable;
@@ -10,4 +68,84 @@ html {
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: #74acdf;
+  color: #0f1b2a;
+}
+
+/* Reading comfort: a slightly larger body, looser lines, a wider column than the default 900px. */
+#nd-page {
+  --fd-content-width: 980px;
+}
+#nd-page > * {
+  max-width: var(--fd-content-width) !important;
+}
+#nd-page .prose {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.prose :where(h2) {
+  margin-top: 2.4em;
+  padding-top: 0.2em;
+  letter-spacing: -0.015em;
+}
+.prose :where(h3) {
+  letter-spacing: -0.01em;
+}
+.prose :where(a):not(:where(.not-prose, .not-prose *, h1 *, h2 *, h3 *, h4 *, h5 *, h6 *)) {
+  color: var(--color-fd-primary);
+  text-decoration-color: color-mix(in oklab, var(--color-fd-primary) 35%, transparent);
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+.prose :where(a):not(:where(.not-prose, .not-prose *, h1 *, h2 *, h3 *, h4 *, h5 *, h6 *)):hover {
+  text-decoration-color: var(--color-fd-primary);
+}
+.prose :where(code):not(:where(pre code, .not-prose *)) {
+  font-size: 0.875em;
+  padding: 0.12em 0.36em;
+  border-radius: 0.375rem;
+  background: var(--color-fd-muted);
+  border: 1px solid var(--color-fd-border);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.prose :where(td code, th code) {
+  overflow-wrap: anywhere;
+}
+.prose :where(table) {
+  font-size: 0.9375rem;
+}
+.prose :where(thead th) {
+  background: var(--color-fd-muted);
+}
+
+/* The sidebar's section headers: small caps labels, like the reference site. */
+#nd-sidebar p,
+#nd-sidebar [data-section-header] {
+  letter-spacing: 0.02em;
+}
+
+/* Cards: a celeste edge on hover. */
+.prose a[data-card] {
+  transition: border-color 150ms, background-color 150ms;
+}
+.prose a[data-card]:hover {
+  border-color: var(--color-band);
+}
+
+/* The home page's flow diagram. */
+.flow-node {
+  border: 1px solid var(--color-fd-border);
+  background: var(--color-fd-background);
+}
+.dark .flow-node {
+  background: var(--color-fd-card);
 }

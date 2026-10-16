@@ -1,6 +1,7 @@
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { MDXComponents } from 'mdx/types';
+import { Mermaid } from './mermaid';
 import { Accordion, AccordionGroup, CardGroup, Check, CodeGroup, Frame, Info, Note, Step, Steps, Tab, Tabs, Tip, Warning } from './mintlify';
 
 export function getMDXComponents(components?: MDXComponents) {
@@ -21,6 +22,7 @@ export function getMDXComponents(components?: MDXComponents) {
     AccordionGroup,
     Frame,
     TypeTable,
+    Mermaid,
     ...components,
   } satisfies MDXComponents;
 }

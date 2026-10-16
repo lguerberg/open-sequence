@@ -1,12 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Geist, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { Provider } from '@/components/provider';
 import { socialMetadata } from '@/lib/seo';
 import { getPageImage, projectUrl, siteDescription, siteName, siteTitle, siteUrl } from '@/lib/shared';
 import './global.css';
 
-const inter = Inter({ subsets: ['latin'] });
+/** The landing's type: Geist for reading, JetBrains Mono for code, Instrument Serif for the home title. */
+const sans = Geist({ subsets: ['latin'], variable: '--font-sans-face', display: 'swap' });
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono-face', display: 'swap' });
+const display = Instrument_Serif({ subsets: ['latin'], weight: '400', variable: '--font-display-face', display: 'swap' });
 
 /**
  * The defaults every page inherits. Each docs page sets its own title, description, canonical URL
@@ -46,13 +49,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a1320' },
   ],
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${display.variable} font-sans`} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
         <Provider>{children}</Provider>
       </body>
