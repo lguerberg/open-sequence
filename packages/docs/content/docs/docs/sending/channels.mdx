@@ -43,7 +43,7 @@ The executor checks these just before it sends. A failed check either skips the 
 | Allowed country | | `country` is in `settings.sms_countries`, default `["US"]` | skip: `country_not_allowed` |
 | Not suppressed | no `email` or `all` suppression | no `sms` or `all` suppression | skip: `suppressed` |
 | Kill switch | `SEQ_DISABLED_CHANNELS`, flags `global` and `channel:email` | the same with `channel:sms` | defer five minutes |
-| The sender's channel | exists and is `active` | the same | skip: `google_not_connected`, `no_sms_channel`, `sender_channel_<status>` |
+| The sender's channel | exists and is `active` | the same | skip: `no_email_channel`, `no_sms_channel`, `sender_channel_<status>` |
 | Daily limit | `daily_limit` in a rolling 24 hours | the same | defer one hour, enrollment `waiting_limit` |
 | Minimum gap | `min_gap_seconds` since the last send | the same | defer to the end of the gap |
 | Send window | the definition's `send_window` | the same | defer to the next opening |

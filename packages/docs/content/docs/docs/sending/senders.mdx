@@ -72,7 +72,7 @@ A sender sends through channels. Each one is created by its own call and has its
 
 A sender has at most one `email` channel, whichever way it was made. An `outreach` step with `channel: "email"` sends through it and never asks which provider is behind it. Calls are not a channel: a `call` [task](/docs/sending/call-tasks) uses the sender's `sms` channel as their Allo identity. [Channels](/docs/sending/channels) compares them.
 
-A channel's `status` is `pending`, `active`, `paused`, `credentials_needed`, `restricted` or `disconnected`. Only an `active` channel sends. A step that reaches a channel in any other status is skipped with the reason `sender_channel_<status>` and the flow moves on. A missing channel skips with `google_not_connected` (email) or `no_sms_channel` (sms).
+A channel's `status` is `pending`, `active`, `paused`, `credentials_needed`, `restricted` or `disconnected`. Only an `active` channel sends. A step that reaches a channel in any other status is skipped with the reason `sender_channel_<status>` and the flow moves on. A missing channel skips with `no_email_channel` or `no_sms_channel`.
 
 ### Limits
 
@@ -112,14 +112,14 @@ curl $SEQ/v1/senders/u_42/readiness -H "Authorization: Bearer $KEY"
 
 ```ts title="TypeScript"
 const readiness = await oseq.senders.readiness('u_42');
-if (!readiness.email.ok) console.log(readiness.email.reason); // google_not_connected, email_credentials_needed, …
+if (!readiness.email.ok) console.log(readiness.email.reason); // no_email_channel, email_credentials_needed, …
 ```
 
 </CodeGroup>
 
 | Reason | Meaning |
 |---|---|
-| `google_not_connected` | The sender has no email channel. The name predates SMTP: it also applies to a sender meant to use SMTP and IMAP. |
+| `no_email_channel` | The sender has no mailbox connected yet, through Google or SMTP. |
 | `no_allo_number` | The sender has no sms channel. |
 | `<channel>_<status>` | The channel exists but is not active, for example `email_credentials_needed` or `sms_paused`. |
 
