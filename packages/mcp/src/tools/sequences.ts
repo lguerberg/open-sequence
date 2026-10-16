@@ -100,6 +100,16 @@ export const definitionInput = z
     ].join(' ')
   );
 
+/**
+ * The same definition, without the format guide: the guide lives once, on
+ * validate_sequence_definition, so tools/list stays small for every client.
+ */
+export const definitionRefInput = z
+  .record(z.string(), z.unknown())
+  .describe(
+    'The sequence definition JSON. Its format (nodes, transitions, durations, settings, templates) is described on the definition argument of validate_sequence_definition; validate there first.'
+  );
+
 export const listSequences = defineTool({
   name: 'list_sequences',
   title: 'List sequences',
@@ -210,7 +220,7 @@ export const createSequence = defineTool({
       .record(z.string(), z.unknown())
       .optional()
       .describe('Free JSON your app keeps on the sequence.'),
-    definition: definitionInput.optional(),
+    definition: definitionRefInput.optional(),
     created_by: z
       .string()
       .max(64)

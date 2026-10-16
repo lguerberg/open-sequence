@@ -45,6 +45,12 @@ afterEach(async () => {
 });
 
 describe('tool list', () => {
+  test('stays small enough to load into every session', async () => {
+    // Every connected client loads the whole list into its context: about 34k characters today.
+    const tools = await h.client.listTools();
+    expect(JSON.stringify(tools).length).toBeLessThan(36_000);
+  });
+
   test('exposes exactly the contract names, each with a description and an object input schema', async () => {
     const tools = await h.client.listTools();
     expect(tools.map((t) => t.name)).toEqual(CONTRACT);
@@ -80,7 +86,16 @@ describe('tool list', () => {
       'definition',
       'lock_version',
     ]);
-    expect(props('create_sequence')['definition']!.description).toContain('{{ sender.signature }}');
+    // The format guide lives once, on validate_sequence_definition; the others point to it.
+    expect(props('validate_sequence_definition')['definition']!.description).toContain(
+      '{{ sender.signature }}'
+    );
+    expect(props('create_sequence')['definition']!.description).toContain(
+      'validate_sequence_definition'
+    );
+    expect(props('save_sequence_draft')['definition']!.description).toContain(
+      'validate_sequence_definition'
+    );
     expect(props('upsert_sender')).toHaveProperty('signature_html');
   });
 

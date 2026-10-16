@@ -14,7 +14,7 @@ import {
   ref,
   versionId,
 } from '../tool.js';
-import { definitionInput, describeNodes, problemsBlock } from './sequences.js';
+import { definitionRefInput, describeNodes, problemsBlock } from './sequences.js';
 
 const versionRef = (what: string) =>
   z.string().min(1).describe(`${what}: a version id (ver_…) or its tag (v2).`);
@@ -77,7 +77,7 @@ export const saveSequenceDraft = defineTool({
   input: {
     sequence: ref('sequence', 'seq_01J9…', 'uk-intro'),
     version: versionRef('The draft version'),
-    definition: definitionInput,
+    definition: definitionRefInput,
     lock_version: z
       .number()
       .int()
