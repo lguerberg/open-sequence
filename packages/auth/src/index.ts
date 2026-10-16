@@ -6,6 +6,7 @@
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { TokenCache, type AuthDeps } from './application/deps.js';
 import { completeGoogleCallback, type CompleteGoogleCallbackInput } from './application/complete-google-callback.js';
+import { connectionSecrets } from './application/connection-secrets.js';
 import { connectionStatus } from './application/connection-status.js';
 import { healthCheckCredential } from './application/credential-health.js';
 import { credentialStatus, listCredentials } from './application/credential-status.js';
@@ -16,6 +17,7 @@ import { listConnections } from './application/list-connections.js';
 import { registerCredential, type RegisterCredentialInput } from './application/register-credential.js';
 import { revokeConnection } from './application/revoke-connection.js';
 import { rotateKeys } from './application/rotate-keys.js';
+import { savePasswordConnection, type SavePasswordConnectionInput } from './application/save-password-connection.js';
 import { startGoogleConnect, type StartGoogleConnectInput } from './application/start-google-connect.js';
 import { systemClock, type Clock, type OAuthClient, type Probe } from './domain/ports.js';
 import { AesGcmCipher } from './infrastructure/crypto/aes-gcm-cipher.js';
@@ -83,6 +85,12 @@ export function createAuth(opts: CreateAuthOptions) {
     health: (connectionId: string) => healthCheckConnection(deps, connectionId),
     revoke: (connectionId: string) => revokeConnection(deps, connectionId),
 
+    // ---- connections (owner level, password: SMTP and IMAP)
+    /** Stores the settings encrypted and marks the connection active; the host verifies them first. */
+    savePasswordConnection: (input: SavePasswordConnectionInput) => savePasswordConnection(deps, input),
+    /** For adapters only: the decrypted settings. ConnectionSecretSource-compatible. */
+    connectionSecrets: (connectionId: string) => connectionSecrets(deps, connectionId),
+
     // ---- operations
     rotateKeys: () => rotateKeys(deps),
   };
@@ -98,7 +106,7 @@ export { parseEncryptionKeys } from './infrastructure/crypto/keys.js';
 export { AuthError } from './domain/errors.js';
 export { GOOGLE_SCOPES, GOOGLE_REQUESTED_SCOPES, GOOGLE_REQUIRED_SCOPES } from './application/deps.js';
 export type { Credential, CredentialMethod, CredentialStatus, Connection, ConnectionStatus } from './domain/entities.js';
-export type { Cipher, Clock, CredentialSource, OAuthClient, OAuthClientCredentials, OAuthGrant, Probe, ProbeResult, Signer, TokenSource } from './domain/ports.js';
+export type { Cipher, Clock, ConnectionSecretSource, CredentialSource, OAuthClient, OAuthClientCredentials, OAuthGrant, Probe, ProbeResult, Signer, TokenSource } from './domain/ports.js';
 export type { CredentialRepository, ConnectionRepository } from './domain/repositories.js';
 export type { CredentialView } from './application/credential-status.js';
 export type { ConnectionView } from './application/connection-status.js';
@@ -106,3 +114,5 @@ export type { RegisterCredentialInput } from './application/register-credential.
 export type { StartGoogleConnectInput, StartGoogleConnectResult } from './application/start-google-connect.js';
 export type { CompleteGoogleCallbackInput, CompleteGoogleCallbackResult } from './application/complete-google-callback.js';
 export type { RotateKeysResult } from './application/rotate-keys.js';
+export type { SavePasswordConnectionInput } from './application/save-password-connection.js';
+export type { ConnectionSecrets } from './application/connection-secrets.js';

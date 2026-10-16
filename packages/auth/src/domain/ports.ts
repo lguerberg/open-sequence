@@ -65,3 +65,8 @@ export interface TokenSource {
 export interface CredentialSource {
   credentialsFor(tenantId: string, provider: string): Promise<Record<string, string>>;
 }
+
+/** What the providers package needs from auth for password connections (SMTP and IMAP), without importing it. */
+export interface ConnectionSecretSource {
+  connectionSecrets(connectionId: string): Promise<{ account: string | null; config: Record<string, unknown>; secrets: Record<string, string> }>;
+}
