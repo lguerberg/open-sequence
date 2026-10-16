@@ -37,7 +37,7 @@ List the features your team used in the last 90 days. A sequence with no enrollm
 | Template library | Text inside the node | No shared library |
 | Snippets | Constants in your code | No snippet object |
 | Call step | `task` with `kind: "call"` | Dialer push works with Allo only |
-| LinkedIn step | `linkedin_connect` task | The rep does it by hand |
+| Manual step | `task` with your own `kind` | The rep does it by hand |
 | Task queue | Tasks API | You build the inbox |
 | Connected mailboxes | Senders with Google | Gmail only |
 | Open and click tracking | None | Not in v1 |
@@ -67,7 +67,7 @@ Every vendor makes contacts easy to export and sequence content harder.
 
 ## Map sequences to definitions
 
-The mapping is mechanical. Each email becomes an `outreach` node, each delay a `wait`, each call or LinkedIn step a `task`, and "stop on reply" becomes `exit_on`. The sending schedule becomes `settings.send_window`. Merge fields become template paths such as `{{ contact.first_name | "there" }}`, and custom fields move into the contact's `attrs`.
+The mapping is mechanical. Each email becomes an `outreach` node, each delay a `wait`, each call or manual step a `task`, and "stop on reply" becomes `exit_on`. The sending schedule becomes `settings.send_window`. Merge fields become template paths such as `{{ contact.first_name | "there" }}`, and custom fields move into the contact's `attrs`.
 
 Watch for three rules on your first publish. `contact.first_name`, `contact.last_name` and `contact.email` must carry a fallback or publishing fails with `BAD_TEMPLATE`. An email body without `{{ unsubscribe_url }}` publishes with the warning `NO_UNSUBSCRIBE`. Templates support only paths and fallbacks, with no conditionals or loops. Put any branching in a `condition` node.
 
@@ -108,16 +108,16 @@ const definition = {
     call_1: {
       type: 'task',
       params: { kind: 'call', title: 'Call {{ contact.first_name | "them" }}', due: '2bd', expire: '4bd' },
-      next: { completed: 'has_li', no_answer: 'has_li' },
+      next: { completed: 'has_phone', no_answer: 'has_phone' },
     },
-    has_li: {
+    has_phone: {
       type: 'condition',
-      params: { mode: 'all', rules: [{ field: 'contact.has_linkedin', op: 'is_true' }] },
-      next: { yes: 'li_1', no: 'wait_2' },
+      params: { mode: 'all', rules: [{ field: 'contact.has_phone', op: 'is_true' }] },
+      next: { yes: 'call_2', no: 'wait_2' },
     },
-    li_1: {
+    call_2: {
       type: 'task',
-      params: { kind: 'linkedin_connect', title: 'Connect with {{ contact.first_name | "them" }}', link: '{{ contact.linkedin_url }}', due: '1bd' },
+      params: { kind: 'call', title: 'Second call to {{ contact.first_name | "them" }}', due: '1bd', dialer: true },
       next: { completed: 'wait_2', no_answer: 'wait_2' },
     },
     wait_2: { type: 'wait', params: { duration: '3bd' }, next: { then: 'email_3' } },
@@ -198,7 +198,7 @@ Each vendor defines "reply rate" its own way, so do not compare dashboards. Befo
 4. Deploy OpenSequence, register the Google OAuth client, and connect each sender.
 5. Translate the live sequences, validate them, and run one dry-run enrollment each.
 6. Build the webhook handler that writes activity to the CRM.
-7. Build the task inbox for call and LinkedIn steps.
+7. Build the task inbox for call and manual steps.
 8. Add the old-tool check to your enroll code.
 9. Split each mailbox's daily volume between the two systems.
 10. Pilot with two reps on new contacts only.

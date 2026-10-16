@@ -21,7 +21,7 @@ If you have no engineer, stop here. Buy a hosted tool. Our [Apollo alternatives 
 
 ## What lives where
 
-Your CRM owns the records reps care about: people, companies, deals, owners, and the activity timeline. OpenSequence owns five things. A contact is a copy of your person, keyed by your id. A sender is a rep, with their connected Gmail and phone. A sequence is a versioned JSON definition. An enrollment is one contact going through one sequence as one sender. A task is a call or LinkedIn step waiting for a human.
+Your CRM owns the records reps care about: people, companies, deals, owners, and the activity timeline. OpenSequence owns five things. A contact is a copy of your person, keyed by your id. A sender is a rep, with their connected Gmail and phone. A sequence is a versioned JSON definition. An enrollment is one contact going through one sequence as one sender. A task is a call or any other manual step waiting for a human.
 
 The link between the two systems is your id. You call the contact `p_7` in OpenSequence because it is `p_7` in your database, and every API route accepts your id wherever it accepts ours ([ids and external ids](https://docs.opensequence.dev/api/conventions)). You never have to store an OpenSequence contact id.
 
@@ -213,7 +213,7 @@ Create the endpoint once with `oseq.webhooks.create({ url, event_types: ['signal
 
 ## Step 6. Give each rep a task inbox
 
-Call and LinkedIn steps become tasks for the rep. OpenSequence does not send LinkedIn messages itself, because automating LinkedIn breaks its user agreement, so a person does those steps. Your CRM shows the open tasks and posts the outcome back:
+Call steps, and any step you define with a `kind` of your own, become tasks for the rep. OpenSequence sends email and SMS itself; everything else a person does by hand, and the sequence waits for the outcome. Your CRM shows the open tasks and posts the outcome back:
 
 ```ts
 const { items } = await oseq.tasks.list({ sender: rep.id, status: 'open' });

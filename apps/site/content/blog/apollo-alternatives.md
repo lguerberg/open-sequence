@@ -44,7 +44,7 @@ curl -X POST $SEQ/v1/sequences/$SEQ_ID/enrollments -H "Authorization: Bearer $KE
 
 ### OpenSequence (ours)
 
-OpenSequence is an open source sequencing engine, licensed Apache-2.0, that you run yourself. It ships as one Docker image and runs on a Postgres database you own. You define sequences as versioned JSON through a REST API, a TypeScript SDK or an MCP server, and you enroll contacts as a given rep. OpenSequence sends you a signed webhook when someone replies, books a meeting, bounces or opts out. Email goes out from each rep's own Gmail account, and follow-ups can reply in the same thread. Texts and calls go through Allo. LinkedIn steps become tasks for a person. The [how it works page](https://docs.opensequence.dev/docs/get-started/how-it-works) follows one contact from enrollment to exit.
+OpenSequence is an open source sequencing engine, licensed Apache-2.0, that you run yourself. It ships as one Docker image and runs on a Postgres database you own. You define sequences as versioned JSON through a REST API, a TypeScript SDK or an MCP server, and you enroll contacts as a given rep. OpenSequence sends you a signed webhook when someone replies, books a meeting, bounces or opts out. Email goes out from each rep's own Gmail account, and follow-ups can reply in the same thread. Texts and calls go through Allo. Any step a person has to do by hand becomes a task for the rep. The [how it works page](https://docs.opensequence.dev/docs/get-started/how-it-works) follows one contact from enrollment to exit.
 
 It fits a team with an engineer and a CRM or internal tool where reps already work. There is no per-seat price. You pay for the container and the database.
 
@@ -64,11 +64,11 @@ Sequences are a feature of HubSpot Sales Hub, available from the Professional pl
 
 Sales Hub Professional is $90 per seat per month billed annually, plus a required one-time onboarding fee of $1,500 ([HubSpot pricing](https://www.hubspot.com/pricing/sales)). It allows 500 sequence emails per user per day. Enterprise is $150 per seat, with a $3,500 onboarding fee and 1,000 emails per user per day.
 
-Compared with Apollo, there is no sync to set up, because the sequences run inside the CRM. HubSpot does not sell a contact database comparable to Apollo's, and LinkedIn steps need a Sales Navigator subscription.
+Compared with Apollo, there is no sync to set up, because the sequences run inside the CRM. HubSpot does not sell a contact database comparable to Apollo's, so you still buy data elsewhere.
 
 ### lemlist
 
-lemlist is a cold outreach tool that sends email. Its Multichannel plan adds LinkedIn, SMS, calls and a WhatsApp add-on. It fits small teams and founders who run cold campaigns from a few mailboxes.
+lemlist is a cold outreach tool that sends email. Its Multichannel plan adds social network steps, SMS, calls and a WhatsApp add-on. It fits small teams and founders who run cold campaigns from a few mailboxes.
 
 The Email plan is $55 a month billed yearly for unlimited users and up to 50,000 emails a month. Multichannel starts at $87 a month billed yearly and includes 5 senders per user ([lemlist pricing](https://www.lemlist.com/pricing)). Contact data is an add-on. On yearly billing, $16 a month buys 2,000 credits, which is 400 emails or 100 phone numbers.
 
@@ -84,11 +84,11 @@ Compared with Apollo, Instantly focuses on sending volume across many inboxes, a
 
 ### Reply.io
 
-Reply.io is a multichannel sequencer with email, LinkedIn, calls, SMS and semi-automated WhatsApp. It fits teams that want one tool for everything, as with Apollo, but with more channels and no credit pool tied to sending.
+Reply.io is a multichannel sequencer with email, social network steps, calls, SMS and semi-automated WhatsApp. It fits teams that want one tool for everything, as with Apollo, but with more channels and no credit pool tied to sending.
 
 Email Volume starts at $49 per user per month billed annually, with 1,000 active contacts a month and unlimited mailboxes under a fair use policy. Multichannel starts at $89 per user per month billed annually with 10 mailboxes and unlimited active contacts ([Reply.io pricing](https://reply.io/pricing/)). Both include 50 data credits a month.
 
-Compared with Apollo, Reply.io charges for active contacts and channels instead of data credits. LinkedIn automation on the Email Volume plan costs $69 per account per month extra.
+Compared with Apollo, Reply.io charges for active contacts and channels instead of data credits. Social network automation on the Email Volume plan costs $69 per account per month extra.
 
 ## Comparison matrix
 
@@ -97,7 +97,7 @@ Prices are for the lowest plan that includes sequences, billed annually, as of O
 | Tool | Entry price | Pricing model | Contact data | Channels | Hosting |
 |---|---|---|---|---|---|
 | Apollo | $49 per seat per month | Per seat plus credits | Yes, on credits | Email, dialer, tasks | Vendor cloud |
-| OpenSequence | $0 license fee | Your infrastructure | No | Email (Gmail), SMS, calls, LinkedIn tasks | Self-hosted |
+| OpenSequence | $0 license fee | Your infrastructure | No | Email (Gmail), SMS, calls, manual tasks | Self-hosted |
 | Outreach | Not published | Per seat, annual | No | Email, dialer, tasks | Vendor cloud |
 | Salesloft | Not published | Per seat, annual | No | Email, dialer, tasks | Vendor cloud |
 | HubSpot | $90 per seat per month plus $1,500 onboarding | Per seat | Limited | Email, calls, tasks | Vendor cloud |
@@ -138,7 +138,7 @@ HubSpot's free tier does not include sequences, and lemlist, Instantly and Reply
 
 ### Is there an open source Apollo alternative?
 
-For the sequencing half, yes. OpenSequence is an Apache-2.0 engine that runs email, SMS, call and LinkedIn task sequences on your own infrastructure. We do not know of an open source tool that replaces Apollo's contact database, since that data is the product.
+For the sequencing half, yes. OpenSequence is an Apache-2.0 engine that runs email, SMS and call task sequences on your own infrastructure. We do not know of an open source tool that replaces Apollo's contact database, since that data is the product.
 
 ### Can I keep Apollo for data and use another tool for sequences?
 

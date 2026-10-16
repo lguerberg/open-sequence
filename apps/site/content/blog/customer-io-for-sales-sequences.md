@@ -9,7 +9,7 @@ tags: [customer-io, sales-engagement, product-led-growth]
 keyword: "Customer.io for sales outreach"
 ---
 
-Customer.io works for sales outreach only when the recipient signed up for your product and the email can come from your brand. It breaks when a rep needs to send from their own Gmail, when the sequence has to stop on a reply, or when the rep needs a call or LinkedIn task. Cold outreach is not a judgment call. Customer.io's acceptable use policy forbids purchased, scraped and third-party lists.
+Customer.io works for sales outreach only when the recipient signed up for your product and the email can come from your brand. It breaks when a rep needs to send from their own Gmail, when the sequence has to stop on a reply, or when the rep needs a call task or another manual step. Cold outreach is not a judgment call. Customer.io's acceptable use policy forbids purchased, scraped and third-party lists.
 
 We build OpenSequence, an open source sales sequencing engine, so read this with that in mind. We also think most product-led teams should keep Customer.io and split the work between two tools. The rest of this post shows which jobs go where and how to connect the two.
 
@@ -22,7 +22,7 @@ We build OpenSequence, an open source sales sequencing engine, so read this with
 | Push, in-app, newsletters | Yes | No |
 | 1:1 email from a rep's Gmail | No | Yes |
 | Stop when the person replies | No native email replies | Yes |
-| Call and LinkedIn tasks for a rep | No task object | Yes |
+| Call and manual tasks for a rep | No task object | Yes |
 | Per-rep ownership and send caps | No sender object | Yes |
 | Cold outreach to non-users | Forbidden by its acceptable use policy | Yes, with care |
 
@@ -50,9 +50,9 @@ Customer.io handles inbound messages for SMS and WhatsApp. As of October 2026 it
 
 You can build that. But "stop following up when they answer" is the most important rule in sales email, and here it depends on four parts you maintain. When the Zapier step fails without an error, the prospect who said "yes, Thursday works" gets your day 5 bump anyway.
 
-### Calls and LinkedIn are tasks for a person
+### Calls and manual steps are tasks for a person
 
-A real sales sequence has steps a machine does not perform: call this person tomorrow, send a LinkedIn invitation, call again if they did not pick up. Customer.io has no task object for a rep. Its [webhook action](https://docs.customer.io/messaging/send/workflows/webhooks/action/) can push a task into your CRM. Your CRM then has to send the outcome, such as "voicemail", "connected" or "wrong number", back to Customer.io as an event before the automation can branch on it. You end up building a task queue next to Customer.io and keeping two state machines in sync.
+A real sales sequence has steps a machine does not perform: call this person tomorrow, drop a handwritten note in the mail, call again if they did not pick up. Customer.io has no task object for a rep. Its [webhook action](https://docs.customer.io/messaging/send/workflows/webhooks/action/) can push a task into your CRM. Your CRM then has to send the outcome, such as "voicemail", "connected" or "wrong number", back to Customer.io as an event before the automation can branch on it. You end up building a task queue next to Customer.io and keeping two state machines in sync.
 
 ### There is no rep in the model
 
@@ -79,7 +79,7 @@ Pricing is the weakest argument here, but it is real. Customer.io bills by profi
 
 In the setup we recommend, Customer.io keeps sending every message to users, and a separate sales sequencer handles the cases where a rep should get involved. Both tools get the product events your app already emits.
 
-This is how it works with OpenSequence. Each rep is a sender who connects their Google account once ([Connect Google](https://docs.opensequence.dev/docs/senders/connect-google)). Emails leave from their Gmail, and follow-ups can reply in the same thread. The engine polls that mailbox for replies in the threads it started. A sequence can mix email, a wait, a call task and a LinkedIn task. An opt-out or a hard bounce always exits the enrollment. A reply or a booking on the rep's calendar exits it when the sequence lists that event in `exit_on`.
+This is how it works with OpenSequence. Each rep is a sender who connects their Google account once ([Connect Google](https://docs.opensequence.dev/docs/senders/connect-google)). Emails leave from their Gmail, and follow-ups can reply in the same thread. The engine polls that mailbox for replies in the threads it started. A sequence can mix email, a text, a wait, a call task and a manual task of your own kind. An opt-out or a hard bounce always exits the enrollment. A reply or a booking on the rep's calendar exits it when the sequence lists that event in `exit_on`.
 
 ### 1. Decide in your code who gets a human
 
@@ -160,7 +160,7 @@ Stay on Customer.io alone if all of these are true:
 - Every person you email signed up for your product, and none of the outreach is cold.
 - A brand address, or an account manager's name on a verified domain, is acceptable to the reader.
 - You do not need the email to stop the instant someone replies, because a reply goes to a human who handles it.
-- There are no call or LinkedIn steps, or reps handle those outside any sequence.
+- There are no call or manual steps, or reps handle those outside any sequence.
 - One person, usually a founder, does all the selling, so per-rep ownership and caps do not matter yet.
 
 Plenty of early product-led companies fit that description. A "talk to the founder" email from Customer.io with the founder's name in From and a working Reply-To is fine. Add a sales sequencer when you hire the first rep whose job is to follow up with specific accounts, or the first time you want to email someone who has not signed up. That second case is also when deliverability becomes your problem rather than Customer.io's, so read up on [cold email deliverability on your own infrastructure](/blog/cold-email-deliverability-self-hosted) first.
@@ -181,7 +181,7 @@ Not for email, as of October 2026. It handles inbound SMS and WhatsApp. The comm
 
 ### What is the difference between marketing automation and sales engagement?
 
-Marketing automation sends one brand's messages to many opted-in people, triggered by their behavior. Sales engagement runs a rep's personal outreach to specific people from the rep's mailbox. It adds tasks for calls and LinkedIn, and it stops when a human answers. The data model differs too. Marketing tools model the recipient. Sales tools model the rep and the recipient together.
+Marketing automation sends one brand's messages to many opted-in people, triggered by their behavior. Sales engagement runs a rep's personal outreach to specific people from the rep's mailbox. It adds tasks for calls and other manual steps, and it stops when a human answers. The data model differs too. Marketing tools model the recipient. Sales tools model the rep and the recipient together.
 
 ### What is a good Customer.io alternative for sales sequences?
 

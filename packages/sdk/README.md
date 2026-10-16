@@ -78,7 +78,7 @@ method for.
 
 | Property | Methods |
 |---|---|
-| `oseq.senders` | `upsert`, `get`, `list`, `listAll`, `readiness`, `connectGoogle`, `connections`, `disconnectGoogle`, `setSms`, `setLinkedin`, `patchChannel`, `deleteChannel`, `disable`, `tasks` |
+| `oseq.senders` | `upsert`, `get`, `list`, `listAll`, `readiness`, `connectGoogle`, `connections`, `disconnectGoogle`, `setSms`, `patchChannel`, `deleteChannel`, `disable`, `tasks` |
 | `oseq.contacts` | `upsert`, `batch`, `list`, `listAll`, `get`, `timeline`, `patch`, `statuses`, `reportEvent`, `reportEvents`, `setSmsConsent`, `delete` |
 | `oseq.sequences` | `list`, `listAll`, `create`, `get`, `update`, `validate`, `enroll`, `previewEnrollment`; `versions.list`, `.create`, `.get`, `.saveDraft`, `.publish`, `.archive`, `.delete` |
 | `oseq.enrollments` | `list`, `listAll`, `get` (the journey), `pause`, `resume`, `exit`, `exitMany` |

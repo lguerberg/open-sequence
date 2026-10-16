@@ -9,7 +9,7 @@ tags: [lemlist, cold-email, self-hosting, pricing]
 keyword: "lemlist alternative"
 ---
 
-A self-hosted lemlist alternative runs the sequencing engine on your own servers. Emails go out from each rep's own Google Workspace mailbox, LinkedIn steps become tasks a rep does by hand, and every send, reply and bounce becomes a row in a Postgres database you own. We make one, OpenSequence, which is open source under Apache-2.0, so read this page with that in mind.
+A self-hosted lemlist alternative runs the sequencing engine on your own servers. Emails go out from each rep's own Google Workspace mailbox, texts and calls go through Allo, anything else becomes a task a rep does by hand, and every send, reply and bounce becomes a row in a Postgres database you own. We make one, OpenSequence, which is open source under Apache-2.0, so read this page with that in mind.
 
 As of October 2026, lemlist's Email plan costs $55 a month, billed yearly, for unlimited users and 50,000 emails. That is about what hosting your own engine costs. Self-hosting saves money only against lemlist's Multichannel plan, which costs $87 per user per month billed yearly. So the reason to leave lemlist is rarely the email bill. It is where the data lives, who sets the limits, and whether sequencing should run inside your own CRM or product.
 
@@ -19,7 +19,7 @@ lemlist's strongest feature is personalization. Its editor makes a custom image 
 
 Deliverability tooling is the second strength. lemlist includes lemwarm, its warm-up network, in every plan, according to the FAQ on the [pricing page](https://www.lemlist.com/pricing). The plans also list a deliverability hub, inbox rotation, a custom tracking domain, DNS setup tests and deliverability alerts. lemlist connects Google, Microsoft and SMTP mailboxes.
 
-The Multichannel plan adds SMS, an in-app dialer with a power dialer, and LinkedIn automation that covers profile visits, follows, invites, text and voice messages, and InMail. Every plan includes a database of more than 650 million leads and an email and phone finder. The comparison table also lists a unified inbox and AI detection of reply intent and out-of-office replies. A team that wants to find leads, email them and handle the replies in one tab gets all of that in one subscription.
+The Multichannel plan adds SMS, an in-app dialer with a power dialer, and social network automation that covers profile visits, follows, invites, text and voice messages, and InMail. Every plan includes a database of more than 650 million leads and an email and phone finder. The comparison table also lists a unified inbox and AI detection of reply intent and out-of-office replies. A team that wants to find leads, email them and handle the replies in one tab gets all of that in one subscription.
 
 ## lemlist pricing as of October 2026
 
@@ -65,11 +65,11 @@ OpenSequence is not a warm-up service and runs no warm-up network. A new mailbox
 
 Google sets the rules you must meet. Every sender to Gmail needs SPF or DKIM and a spam rate below 0.3% in Postmaster Tools. Senders of more than 5,000 messages a day to Gmail also need SPF, DKIM and DMARC, and one-click unsubscribe ([Google's email sender guidelines](https://support.google.com/a/answer/81126)). Every OpenSequence email includes `List-Unsubscribe` and `List-Unsubscribe-Post` headers at any volume. An opt-out, a hard bounce or a complaint suppresses the contact and exits the enrollment ([Consent and suppressions](https://docs.opensequence.dev/docs/contacts/consent-and-suppressions)).
 
-### LinkedIn becomes a task again
+### Social steps become tasks again
 
-This is the largest functional gap against lemlist Multichannel. OpenSequence does not automate LinkedIn. A LinkedIn step is a task. The rep gets "Connect with Dana on LinkedIn" with the profile link and a due date, does it by hand, and completes the task with an outcome. A `linkedin_connect` task completed as `accepted` resumes any step waiting on the connection. A `linkedin_message` task completed as `replied` counts as a reply in exits and analytics ([LinkedIn steps](https://docs.opensequence.dev/docs/senders/connect-linkedin)).
+This is the largest functional gap against lemlist Multichannel. OpenSequence automates email, SMS and the dialer push, and nothing else. Any other step is a task. The rep gets "Connect with Dana" with a link and a due date, does it by hand, and completes the task with an outcome. A task completed with an outcome the node lists in `connected_outcomes` counts as a reply in exits and analytics, and `branches_by_outcome` routes the flow on any other outcome ([Task node](https://docs.opensequence.dev/docs/sequences/task-node)).
 
-We chose tasks because section 8.2 of LinkedIn's [User Agreement](https://www.linkedin.com/legal/user-agreement) forbids using "bots or other unauthorized automated methods to access the Services, add or download contacts, send or redirect messages". The account at risk is the rep's own profile. If we ship an automated adapter, it will be off by default behind a `channel:linkedin_auto` flag. It will need a written opt-in per sender, cap invitations per day and per week, and pause on any restriction signal. Anyone who turns it on still accepts that LinkedIn can restrict the rep's account. None of it ships today.
+We chose tasks because the social networks forbid bots and other unauthorized automated methods in their user agreements, and the account at risk is the rep's own profile. A sequencer that sends invitations and messages on a rep's behalf puts that profile on the line every day. We would rather a person spend thirty seconds on the step than lose the account that holds their network. Nothing in OpenSequence drives a social account, and nothing of the kind is on the roadmap.
 
 ### The data is in your Postgres
 
@@ -117,7 +117,7 @@ The table leaves out engineering time. Someone has to deploy the container, regi
 - A/B tests on content. A `split` node is on the roadmap, not in the code.
 - Warm-up, inbox rotation and the deliverability hub.
 - Microsoft 365 and SMTP mailboxes.
-- LinkedIn automation, LinkedIn voice notes and WhatsApp.
+- Social network automation, voice notes and WhatsApp.
 - The lead database, the email finder and enrichment credits.
 - A unified inbox. Replies stay in each rep's Gmail, and OpenSequence only detects them and exits the sequence.
 
@@ -129,18 +129,18 @@ lemlist is the better choice in any of these cases:
 
 - Your reps send from Outlook or an SMTP server. OpenSequence cannot send through those mailboxes today.
 - Email is your only channel. $55 a month for unlimited users is hard to beat with any server bill.
-- LinkedIn automation brings in a large share of your pipeline, and your reps accept the account risk.
+- Social network automation brings in a large share of your pipeline, and your reps accept the account risk.
 - Nobody on the team will own a container, a database and an OAuth client.
 - You have no CRM or internal tool to act as the UI.
 - Image personalization or the lead database is the reason you bought lemlist.
 
-Self-hosting fits a narrower team. That team has engineers on staff and Google Workspace mailboxes, triggers sequences from its own CRM or product, and pays for several reps on Multichannel whose LinkedIn steps could be manual. If that is you, the [migration guide for replacing your sequencing software](/blog/replace-your-sales-sequencing-software) covers the move. If you are weighing writing the engine yourself, read [what it takes to build your own sales sequencer](/blog/build-your-own-sales-sequencer) first. If you also pay Apollo for data, our [Apollo alternatives](/blog/apollo-alternatives) post covers that part.
+Self-hosting fits a narrower team. That team has engineers on staff and Google Workspace mailboxes, triggers sequences from its own CRM or product, and pays for several reps on Multichannel whose social steps could be manual. If that is you, the [migration guide for replacing your sequencing software](/blog/replace-your-sales-sequencing-software) covers the move. If you are weighing writing the engine yourself, read [what it takes to build your own sales sequencer](/blog/build-your-own-sales-sequencer) first. If you also pay Apollo for data, our [Apollo alternatives](/blog/apollo-alternatives) post covers that part.
 
 ## FAQ
 
 ### Is there an open source lemlist alternative?
 
-Yes. OpenSequence is open source under Apache-2.0, and you host it yourself. It covers the sequencing part: multi-step email from each rep's Gmail, SMS and call tasks through Allo, LinkedIn steps as manual tasks, and reply, bounce and opt-out detection. It does not include lead data, warm-up, image personalization or a user interface.
+Yes. OpenSequence is open source under Apache-2.0, and you host it yourself. It covers the sequencing part: multi-step email from each rep's Gmail, SMS and call tasks through Allo, any other step as a manual task, and reply, bounce and opt-out detection. It does not include lead data, warm-up, image personalization or a user interface.
 
 ### How much does lemlist cost in 2026?
 
@@ -150,9 +150,9 @@ As of October 2026, the Email plan starts at $69 a month, or $55 billed yearly, 
 
 Yes. lemwarm sells standalone on [lemwarm.com/pricing](https://www.lemwarm.com/pricing). As of October 2026, Essential is $29 per mailbox per month, or $24 billed yearly, and Smart is $49, or $40 billed yearly. lemlist also includes lemwarm in every lemlist plan.
 
-### Is LinkedIn automation against LinkedIn's terms?
+### Does OpenSequence automate social network steps?
 
-LinkedIn's User Agreement, section 8.2, forbids bots and other unauthorized automated methods that add contacts or send messages. LinkedIn can restrict the account that does it, which is the rep's own profile. That is why OpenSequence turns LinkedIn steps into tasks a person performs.
+No. The social networks' user agreements forbid bots and other unauthorized automated methods that add contacts or send messages, and the account they restrict is the rep's own profile. That is why OpenSequence automates email, SMS and the dialer only, and turns every other step into a task a person performs.
 
 ### Does self-hosted cold email software improve deliverability?
 

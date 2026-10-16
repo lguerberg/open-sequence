@@ -25,7 +25,7 @@
 
 ## What is OpenSequence?
 
-OpenSequence runs multi-step outreach (emails, threaded follow-ups, texts, call tasks, LinkedIn
+OpenSequence runs multi-step outreach (emails, threaded follow-ups, texts, call tasks, manual
 steps) for any CRM, with the shape of a self-hosted [Svix](https://github.com/svix/svix-webhooks):
 one Docker image, a Postgres you own, per-project API keys, and signed webhooks back to your app.
 
@@ -145,7 +145,7 @@ cannot touch senders or settings, and the engine refuses double enrollment for a
 
 |                |                                                                                                                                                             |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Channels**   | Email (sent from the rep's own Gmail, threaded follow-ups), SMS and calls via [Allo](https://withallo.com), LinkedIn and anything else as tasks for a human |
+| **Channels**   | Email (sent from the rep's own Gmail, threaded follow-ups), SMS and calls via [Allo](https://withallo.com), anything else as tasks for a human |
 | **Steps**      | `outreach`, `wait`, `wait_for` (a reply, a meeting, a call outcome), `condition`, `task`, `end`                                                             |
 | **Signals**    | Replies, bounces, opt-outs, meetings booked (Google Calendar), call outcomes, and your own events                                                           |
 | **CRM facts**  | Conditions can read the person, company and open deal live from [Attio](https://attio.com) at decision time                                                 |

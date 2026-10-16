@@ -219,7 +219,7 @@ export function HeroCanvas() {
               <span className="grid grid-cols-3 rounded-full bg-surface p-0.5 text-center text-[11.5px]">
                 <span className="rounded-full bg-white py-1 font-medium shadow-sm">Email</span>
                 <span className="py-1 text-muted-foreground">SMS</span>
-                <span className="py-1 text-muted-foreground">LinkedIn</span>
+                <span className="py-1 text-muted-foreground">Call</span>
               </span>
             </Field>
             <Field label="From">

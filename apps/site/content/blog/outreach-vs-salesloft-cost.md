@@ -139,7 +139,7 @@ OpenSequence does none of the following:
 - It has no coaching, forecasting or deal management.
 - It has no contact database and no mailbox warm-up.
 - It sends email through Gmail only. SMTP and IMAP are on the roadmap, so Microsoft 365 teams cannot use it today.
-- LinkedIn steps are tasks a rep performs by hand.
+- Steps outside email, SMS and calls are tasks a rep performs by hand.
 
 OpenSequence does the sequencing. It sends from each rep's Gmail and threads follow-ups. It applies daily caps per sender, send windows in the contact's time zone, and an 08:00 to 21:00 window for texts. It detects replies, bounces, opt-outs and meetings booked in Google Calendar, then exits the enrollment and sends a signed webhook to your app. [How it works](https://docs.opensequence.dev/docs/get-started/how-it-works) follows one contact through every step. The project is pre-1.0, and the SDK and MCP packages are not on npm yet.
 

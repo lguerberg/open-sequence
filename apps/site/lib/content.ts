@@ -104,28 +104,27 @@ await oseq.sequences.versions.saveDraft(ukIntro.id, draft.id, {
 await oseq.sequences.versions.publish(ukIntro.id, draft.id);`,
   },
   {
-    id: 'linkedin',
-    label: 'Link LinkedIn',
-    icon: 'link',
-    file: 'link-linkedin.ts',
+    id: 'call',
+    label: 'Add a call task',
+    icon: 'phone-call',
+    file: 'add-call-task.ts',
     meta: '@opensequence/sdk',
     lang: 'typescript',
-    href: '/docs/senders/connect-linkedin',
-    claim: "Link a rep's LinkedIn. Each LinkedIn step becomes a task for that rep.",
+    href: '/docs/sequences/task-node',
+    claim: 'A call step is a task for the rep. Allo dials it, and the outcome moves the sequence on.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
 const { SEQ_URL, SEQ_KEY } = process.env;
 const oseq = new OpenSequence({ baseUrl: SEQ_URL!, apiKey: SEQ_KEY! });
 
 await oseq.senders.upsert('max', { name: 'Max Rivera', email: 'max@acme.com' });
-await oseq.senders.setLinkedin('max', {
-  address: 'https://linkedin.com/in/max',
-});
+await oseq.senders.setSms('max', { allo_user_id: 'usr-1', number: '+14155550123' });
 
-// Use it in any sequence: Max gets a task with the contact's profile to open
-const linkedinStep = {
+// Use it in any sequence: Max gets a task, pushed into his Allo dialer
+const callStep = {
   type: 'task',
-  params: { kind: 'linkedin_connect', title: 'Connect on LinkedIn', due: '1d' },
+  params: { kind: 'call', title: 'Call {{ contact.first_name }}', due: '1bd', dialer: true },
+  next: { completed: 'wait_reply', no_answer: 'bump' },
 };`,
   },
   {
@@ -276,10 +275,10 @@ export const hardParts = [
     icon: 'layers',
     label: 'Omnichannel complexity',
     problem:
-      'Email, SMS, calls and LinkedIn each have their own APIs, limits and failure modes, and one sequence has to coordinate all of them.',
+      'Email, SMS and calls each have their own APIs, limits and failure modes, and one sequence has to coordinate all of them.',
     handled:
-      'One engine and one ledger run every channel. Email, SMS, call tasks and LinkedIn steps are modules, each with its own executor and queue.',
-    evidence: 'channels: email · sms · call · linkedin',
+      'One engine and one ledger run every channel. Email, SMS and call tasks are modules, each with its own executor and queue.',
+    evidence: 'channels: email · sms · call',
   },
   {
     icon: 'gauge',
