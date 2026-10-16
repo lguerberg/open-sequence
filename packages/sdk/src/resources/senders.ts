@@ -1,9 +1,10 @@
-/** Senders: the acting users, their Google connection and their channels (docs section 10.3). */
+/** Senders: the acting users, their Google or SMTP connection and their channels (docs section 10.3). */
 import type { HttpClient, ListQuery, Page } from '../client.js';
 import type { Body, Channel, ConnectionView, GoogleConnectResult, Readiness, Sender, SenderChannel, SenderDetail, Task } from '../types.js';
 
 export type SenderInput = Body<'/v1/senders/{id}', 'put'>;
 export type SmsChannelInput = Body<'/v1/senders/{id}/channels/sms', 'put'>;
+export type SmtpChannelInput = Body<'/v1/senders/{id}/channels/email', 'put'>;
 export type ChannelPatch = Body<'/v1/senders/{id}/channels/{channel}', 'patch'>;
 export type GoogleConnectInput = { return_url?: string };
 export type SenderTasksQuery = ListQuery & { status?: string; kind?: string };
@@ -46,9 +47,18 @@ export class Senders {
     return this.http.request({ method: 'GET', path: `/v1/senders/${enc(id)}/connections` });
   }
 
-  /** Revokes the Google token; the email channel goes `disconnected`. */
+  /** Revokes the Google token; a Gmail email channel goes `disconnected` (an SMTP one is left alone). */
   disconnectGoogle(id: string): Promise<{ disconnected: true }> {
     return this.http.request({ method: 'DELETE', path: `/v1/senders/${enc(id)}/connections/google` });
+  }
+
+  /**
+   * Sends from any mailbox over SMTP and reads replies over IMAP (Fastmail, Zoho, iCloud, a Google
+   * app password, self-hosted mail). Both logins are checked first; a refusal is a 422 such as
+   * `SMTP_AUTH_FAILED`. Replaces the email channel; the passwords are stored encrypted and never returned.
+   */
+  setSmtp(id: string, body: SmtpChannelInput): Promise<SenderChannel> {
+    return this.http.request({ method: 'PUT', path: `/v1/senders/${enc(id)}/channels/email`, body });
   }
 
   /** The sender's Allo user and number; validated against the project's Allo key. */
@@ -61,8 +71,8 @@ export class Senders {
     return this.http.request({ method: 'PATCH', path: `/v1/senders/${enc(id)}/channels/${channel}`, body });
   }
 
-  /** Removes the sms channel; its steps skip from now on. Email is removed by `disconnectGoogle`. */
-  deleteChannel(id: string, channel: 'sms'): Promise<{ deleted: true }> {
+  /** Removes a channel; its steps skip from now on. Removing email deletes stored SMTP passwords; a Google grant stays until `disconnectGoogle`. */
+  deleteChannel(id: string, channel: Channel): Promise<{ deleted: true }> {
     return this.http.request({ method: 'DELETE', path: `/v1/senders/${enc(id)}/channels/${channel}` });
   }
 

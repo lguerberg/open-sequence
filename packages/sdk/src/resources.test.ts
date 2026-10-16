@@ -36,7 +36,13 @@ describe('senders', () => {
   test('disconnectGoogle', () => hits((o) => o.senders.disconnectGoogle('u_42'), { method: 'DELETE', url: '/v1/senders/u_42/connections/google' }));
   test('setSms', () => hits((o) => o.senders.setSms('u_42', { allo_user_id: 'usr-1', number: '+14155551234' }), { method: 'PUT', url: '/v1/senders/u_42/channels/sms', body: { allo_user_id: 'usr-1', number: '+14155551234' } }));
   test('patchChannel', () => hits((o) => o.senders.patchChannel('u_42', 'email', { daily_limit: 20, status: 'paused' }), { method: 'PATCH', url: '/v1/senders/u_42/channels/email', body: { daily_limit: 20, status: 'paused' } }));
+  test('setSmtp', () => {
+    const server = (host: string, port: number) => ({ host, port, secure: true, user: 'max@fastmail.com', password: 'app-password' });
+    const body = { provider: 'smtp' as const, smtp: server('smtp.fastmail.com', 465), imap: server('imap.fastmail.com', 993) };
+    return hits((o) => o.senders.setSmtp('u_42', body), { method: 'PUT', url: '/v1/senders/u_42/channels/email', body });
+  });
   test('deleteChannel', () => hits((o) => o.senders.deleteChannel('u_42', 'sms'), { method: 'DELETE', url: '/v1/senders/u_42/channels/sms' }));
+  test('deleteChannel email', () => hits((o) => o.senders.deleteChannel('u_42', 'email'), { method: 'DELETE', url: '/v1/senders/u_42/channels/email' }));
   test('disable', () => hits((o) => o.senders.disable('u_42'), { method: 'DELETE', url: '/v1/senders/u_42' }));
   test('tasks', () => hits((o) => o.senders.tasks('u_42', { status: 'open', kind: 'call' }), { method: 'GET', url: '/v1/senders/u_42/tasks?status=open&kind=call' }, []));
 });

@@ -4694,7 +4694,7 @@ export interface paths {
                 };
             };
         };
-        /** Disconnect Google: revokes the token, the email channel goes disconnected */
+        /** Disconnect Google: revokes the token; a Gmail email channel goes disconnected (an SMTP one is left alone) */
         delete: {
             parameters: {
                 query?: never;
@@ -4907,6 +4907,268 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/senders/{id}/channels/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Send from any mailbox over SMTP, read replies over IMAP; both logins are checked before anything is stored
+         * @description Replaces the sender email channel, whatever it was before. Passwords are encrypted at rest and never returned. 422 with SMTP_AUTH_FAILED, IMAP_AUTH_FAILED, SMTP_UNREACHABLE, IMAP_UNREACHABLE, SMTP_REFUSED or IMAP_REFUSED when a login fails.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        provider: "smtp";
+                        /**
+                         * Format: email
+                         * @description The address mail goes out from. Defaults to the SMTP user when that is an address, else the sender email.
+                         */
+                        from?: string;
+                        smtp: {
+                            /** @description The server name, like smtp.fastmail.com or imap.fastmail.com. */
+                            host: string;
+                            /** @description SMTP: 465 (secure) or 587 (STARTTLS). IMAP: 993 (secure) or 143 (STARTTLS). */
+                            port: number;
+                            /** @description true: TLS from the first byte (465, 993). false: STARTTLS, which is required unless the host is localhost. */
+                            secure: boolean;
+                            /** @description The login, usually the full mailbox address. */
+                            user: string;
+                            /** @description Write-only: an app password where the provider has them. Stored encrypted, never returned or logged. */
+                            password: string;
+                        };
+                        imap: {
+                            /** @description The server name, like smtp.fastmail.com or imap.fastmail.com. */
+                            host: string;
+                            /** @description SMTP: 465 (secure) or 587 (STARTTLS). IMAP: 993 (secure) or 143 (STARTTLS). */
+                            port: number;
+                            /** @description true: TLS from the first byte (465, 993). false: STARTTLS, which is required unless the host is localhost. */
+                            secure: boolean;
+                            /** @description The login, usually the full mailbox address. */
+                            user: string;
+                            /** @description Write-only: an app password where the provider has them. Stored encrypted, never returned or logged. */
+                            password: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: unknown;
+                            meta: {
+                                request_id: string;
+                                next_cursor?: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: unknown;
+                            meta: {
+                                request_id: string;
+                                next_cursor?: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/senders/{id}/connections": {
         parameters: {
             query?: never;
@@ -4914,7 +5176,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** OAuth connections of a sender (no secrets) */
+        /** Google and SMTP connections of a sender (no secrets) */
         get: {
             parameters: {
                 query?: never;
@@ -5370,14 +5632,14 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Remove a channel; its steps skip from now on */
+        /** Remove a channel; its steps skip from now on. Removing email deletes stored SMTP passwords; a Google grant stays until Google is disconnected */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
                     id: string;
-                    channel: "sms";
+                    channel: "sms" | "email";
                 };
                 cookie?: never;
             };
