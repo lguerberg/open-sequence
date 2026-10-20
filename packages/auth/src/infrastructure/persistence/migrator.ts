@@ -27,7 +27,6 @@ export async function runAuthMigrations(db: AuthDb, opts: { folder?: string; sch
   const schema = opts.schema ?? 'seq_auth';
   const log = opts.log ?? { info: () => {} };
   const journal = JSON.parse(await readFile(path.join(folder, 'meta', '_journal.json'), 'utf8')) as Journal;
-  if (schema === 'seq_auth') await adoptLegacySchema(db, folder, log);
 
   await db.execute(sql.raw(`create schema if not exists "${schema}"`));
   await db.execute(
@@ -63,32 +62,4 @@ export async function runAuthMigrations(db: AuthDb, opts: { folder?: string; sch
     });
   }
   return applied;
-}
-
-const LEGACY_TABLES = ['connections', 'credentials', 'migrations', 'migration_lock'];
-
-/**
- * Before 0.1.0 the tables lived in a schema named `auth`, which clashes with Supabase's own. An
- * install from then has `auth.migration_lock` (a table only OpenSequence creates) and no `seq_auth`:
- * move its four tables across, keep 0000_init recorded under the renamed file's hash, and drop
- * `auth` only if nothing else is left in it.
- */
-async function adoptLegacySchema(db: AuthDb, folder: string, log: MigrationLog): Promise<void> {
-  const rows = await db.execute<{ legacy: string | null; current: string | null }>(
-    sql.raw(`select to_regclass('auth.migration_lock')::text as legacy, to_regnamespace('seq_auth')::text as current`)
-  );
-  if (!rows[0]?.legacy || rows[0].current) return;
-  const init = await readFile(path.join(folder, '0000_init.sql'), 'utf8');
-  const hash = createHash('sha256').update(init).digest('hex');
-  await db.transaction(async (tx) => {
-    await tx.execute(sql.raw('create schema "seq_auth"'));
-    for (const table of LEGACY_TABLES) await tx.execute(sql.raw(`alter table if exists "auth"."${table}" set schema "seq_auth"`));
-    await tx.execute(sql.raw(`update "seq_auth".migrations set hash = '${hash}' where tag = '0000_init'`));
-  });
-  try {
-    await db.execute(sql.raw('drop schema "auth" restrict'));
-  } catch {
-    // Something else lives in `auth`; leave it.
-  }
-  log.info('moved the auth tables to the seq_auth schema');
 }
