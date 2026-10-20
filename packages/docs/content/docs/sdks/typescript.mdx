@@ -1,10 +1,18 @@
 ---
 title: "TypeScript SDK"
-description: "@opensequence/sdk: install, configure, every resource with an example, and webhook verification."
+description: "@opensequence/sdk, not yet on npm: build it from the repository or use fetch, then every resource with an example, and webhook verification."
 ---
 
+<Warning>`@opensequence/sdk` is **not published on npm yet**: `npm install @opensequence/sdk` fails with a 404 today. Until the first release, either build the package from the repository (below) or call the API with `fetch`; every example on this site shows the raw request next to the SDK call.</Warning>
+
+## Install
+
+Build the SDK from the repository and depend on the built package by path. The build is plain `tsc`; the package has no runtime dependencies.
+
 ```bash
-npm install @opensequence/sdk
+git clone https://github.com/lguerberg/open-sequence && cd open-sequence
+pnpm install && pnpm --filter @opensequence/sdk run build
+cd /path/to/your/app && npm install /path/to/open-sequence/packages/sdk
 ```
 
 ```ts
@@ -17,9 +25,33 @@ await oseq.contacts.upsert('p_7', { first_name: 'Dana', email: 'dana@example.com
 const { enrollments } = await oseq.sequences.enroll('seq_01J9…', { contacts: ['p_7'], sender: 'u_42' });
 ```
 
-<Note>The package is not on npm yet. Until it is, build it from the repository (`pnpm --filter @opensequence/sdk build`) and depend on `packages/sdk` by path or workspace.</Note>
+<Note>Once the package is on npm the install will be `npm install @opensequence/sdk`, with the same import. A pnpm git dependency (`pnpm add github:lguerberg/open-sequence#path:packages/sdk`) resolves but installs the sources without the compiled `dist`, so it does not work yet.</Note>
 
-A typed, fetch-based client with zero runtime dependencies (global `fetch` and `node:crypto`), Node 20 or newer, ESM. The types come from the server's OpenAPI file, so a route that does not exist cannot be called.
+### Without the SDK
+
+Every SDK method is one HTTP call: a `Bearer` key, JSON in, the `{ success, data, meta }` envelope out ([Conventions](/api/conventions)). The same three calls as above, with `fetch`:
+
+```ts
+const SEQ = 'https://sequences.example.com';
+const headers = { authorization: `Bearer ${process.env.OSEQ_KEY}`, 'content-type': 'application/json' };
+
+async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${SEQ}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  const envelope = (await res.json()) as { success: boolean; data: T; error?: { code: string; message: string; details?: unknown } };
+  if (!envelope.success) throw Object.assign(new Error(envelope.error!.message), { code: envelope.error!.code, status: res.status, details: envelope.error!.details });
+  return envelope.data;
+}
+
+await call('PUT', '/v1/senders/u_42', { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' });
+await call('PUT', '/v1/contacts/p_7', { first_name: 'Dana', email: 'dana@example.com' });
+const { enrollments } = await call<{ enrollments: Array<{ id: string }> }>('POST', '/v1/sequences/seq_01J9…/enrollments', { contacts: ['p_7'], sender: 'u_42' });
+```
+
+For the response types, generate them from [`openapi.json`](/openapi.json) with `openapi-typescript` (every `data` is typed, under `components.schemas`), and for webhooks follow [Verifying signatures](/docs/webhooks/verifying), which has the check in Python and in shell.
+
+## What it is
+
+A typed, fetch-based client with zero runtime dependencies (global `fetch` and `node:crypto`), Node 20 or newer, ESM. The types come from the server's OpenAPI file, so a route that does not exist cannot be called and every response is typed as the server serializes it.
 
 ## Configuration
 
@@ -205,4 +237,4 @@ switch (event.type) {
 
 ## Types
 
-Every request and response type is exported (`Contact`, `Enrollment`, `Journey`, `Task`, `WebhookEvent<T>`, …), plus `paths` from the generated OpenAPI types for anything else.
+Every request and response type is exported (`Contact`, `Enrollment`, `Journey`, `Task`, `WebhookEvent<T>`, …), plus `paths` and `components` from the generated OpenAPI types for anything else. Response types are aliases of `components['schemas']`, so they are exactly what the server serializes. Stored records are camelCase (`contact.externalId`, `version.lockVersion`, `enrollment.currentNodeId`); request bodies and computed results are snake_case (`first_name`, `lock_version`, `next_run_at`): see [Field names](/api/conventions#field-names).

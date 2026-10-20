@@ -41,7 +41,7 @@ Every event is `{ id, type, project, occurred_at, data }`. The `webhook-id` head
 
 ## Move a deal when someone replies
 
-`signal.received` fires for every processed signal. `data.signal.kind` is `reply` for an inbound email or text and `call_connected` for a connected call; `data.contact.external_id` is the id you gave the contact, so it is also your CRM's person id.
+`signal.received` fires for every processed signal. `data.signal.kind` is `reply` for an inbound email or text and `call_connected` for a connected call (the other kinds are `bounce`, `complaint`, `opt_out`, `ooo`, `task_completed`, `meeting_booked` and `contact_suppressed`); `data.contact.external_id` is the id you gave the contact, so it is also your CRM's person id. This is the one event that carries the contact; the others carry contact ids.
 
 ```ts
 on('signal.received', async ({ data }) => {
@@ -56,7 +56,7 @@ on('signal.received', async ({ data }) => {
 
 ## Log the sent email in your timeline
 
-`run.done` fires when an outreach step was sent. `data.run` has the node, the channel and the provider reference but not the subject; the [journey](/docs/contacts/journey) has the message.
+`run.done` fires when an outreach step was sent. `data.run` is `{ id, node_id, node_type, channel, action, status, touch_number, provider, provider_ref, branch, enrollment }`: the node, the channel and the provider reference, but not the subject. The [journey](/docs/contacts/journey) has the message, and each sent message carries the `runId` of its step.
 
 ```ts
 on('run.done', async (event) => {

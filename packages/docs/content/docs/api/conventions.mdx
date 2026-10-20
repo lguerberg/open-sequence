@@ -46,18 +46,43 @@ A key has one or more of three scopes, ranked `read` < `enroll` < `admin`; a rou
 | `enroll` | `read`, plus contacts (upsert, batch, patch, events), enroll, pause, resume, complete and cancel tasks |
 | `admin` | everything: senders and channels, sequences, versions, publish, exit, SMS consent, project settings, provider credentials, API keys, flags, engine health, webhooks |
 
-An `enroll` key can never publish, edit a sequence or grant SMS consent: give it to the part of your system that reacts to user actions, and keep `admin` for configuration.
+An `enroll` key can never publish, edit a sequence or grant SMS consent: give it to the part of your system that reacts to user actions, and keep `admin` for configuration. An app that also manages senders, sequences or webhook endpoints needs an `admin` key for that part; exiting an enrollment needs `admin` too.
 
 ## Response envelope
 
 Every response, success or failure:
 
 ```json
-{ "success": true,  "data": { … }, "meta": { "request_id": "req_…", "next_cursor": "…" } }
+{ "success": true,  "data": { … }, "meta": { "request_id": "req_…" } }
 { "success": false, "error": { "code": "ALREADY_IN_SEQUENCE", "message": "…", "details": { … } }, "meta": { "request_id": "req_…" } }
 ```
 
-`meta.request_id` is in every log line the request produced; quote it when you ask for help. Creation endpoints answer `201`; everything else `200`. See [Errors](/api/errors) for every code.
+`meta.request_id` is in every log line the request produced; quote it when you ask for help. The TypeScript SDK exposes it as `OpenSequenceError.requestId`. Creation endpoints answer `201`; everything else `200`. See [Errors](/api/errors) for every code.
+
+Every endpoint declares the exact shape of its `data`: the reference page of each endpoint shows it, [`openapi.json`](/openapi.json) carries it under `components.schemas` (`Contact`, `Enrollment`, `Journey`, …), and the SDK's types are generated from it.
+
+## Field names
+
+Two spellings appear in the API, and one rule says which you will see:
+
+- **snake_case** in everything you send (bodies, query strings) and in everything built for the call: `meta`, errors, enroll previews and results (`first_touch_at`, `next_run_at`), analytics rows, API key summaries, webhook endpoints and deliveries (`event_types`, `created_at`), the enrollment list's `contact` summary (`external_id`), and every webhook payload (`data.enrollment.current_node_id`).
+- **camelCase** for stored records, returned as the service holds them: contacts, senders, channels, connections, credentials, sequences, versions, enrollments, runs, messages, signals, tasks and projects (`externalId`, `lockVersion`, `currentNodeId`, `repliedAt`, `createdAt`).
+
+So the body you send has `first_name` and the contact that comes back has `firstName`; the version you read has `lockVersion` and the draft you save sends `lock_version`. When in doubt, the endpoint's reference page is exact.
+
+```json
+// PUT /v1/contacts/p_7 with { "first_name": "Dana", "email": "dana@example.com" }
+{
+  "success": true,
+  "data": {
+    "id": "ctc_01J9…", "projectId": "prj_01J9…", "externalId": "p_7",
+    "firstName": "Dana", "lastName": null, "email": "dana@example.com", "phone": null, "country": null, "timezone": null,
+    "smsConsent": false, "smsConsentAt": null, "smsConsentSource": null, "attrs": {},
+    "createdAt": "2026-10-13T09:00:00.000Z", "updatedAt": "2026-10-13T09:00:00.000Z"
+  },
+  "meta": { "request_id": "req_k3…" }
+}
+```
 
 ## Ids and external ids
 
@@ -65,11 +90,24 @@ Service ids are prefixed ULIDs: `prj_`, `key_`, `snd_`, `chn_`, `ctc_`, `seq_`, 
 
 ## Pagination
 
-List endpoints take `limit` (1 to 200, default 50) and `cursor`, and return `meta.next_cursor` (null on the last page). Most also take `updated_since` (an ISO timestamp) so a client without a webhook endpoint can poll for changes. The SDK's `list()` returns `{ items, nextCursor }` and `listAll()` walks every page.
+List endpoints take `limit` (1 to 200, default 50) and `cursor`, and return `meta.next_cursor` (null on the last page). Most also take `updated_since` (an ISO timestamp) so a client without a webhook endpoint can poll for changes. `data` is the array itself, not an object around it:
 
 ```bash
 curl "$SEQ/v1/enrollments?status=active&limit=100&updated_since=2026-10-13T00:00:00Z" -H "Authorization: Bearer $KEY"
 ```
+
+```json
+{
+  "success": true,
+  "data": [
+    { "id": "enr_01J9…", "status": "active", "currentNodeId": "wait_reply", "contact": { "id": "ctc_01J9…", "external_id": "p_7", "name": "Dana Whitfield", "email": "dana@example.com" }, "...": "..." },
+    { "id": "enr_01J8…", "status": "active", "currentNodeId": "email_intro", "contact": null, "...": "..." }
+  ],
+  "meta": { "request_id": "req_k3…", "next_cursor": "MDFKOV8…" }
+}
+```
+
+Pass `next_cursor` back as `cursor` until it is `null`. The SDK's `list()` returns the same page as `{ items, nextCursor }` and `listAll()` walks every page.
 
 ## Bodies
 
@@ -90,3 +128,7 @@ Timestamps are ISO 8601 in UTC. Time zones are IANA names (`Europe/London`); dur
 ## Request ids and logs
 
 The service generates `req_…` for every request and returns it in `meta.request_id`. An incoming `X-Request-Id` header is not propagated yet.
+
+## Health
+
+Three endpoints, outside the envelope. `GET /healthz` (no auth, outside `/v1`) answers `{ "ok": true }` while the process is up; `GET /readyz` (no auth) answers `200 { "ok": true }` once the database is migrated and reachable, else `503` with a `reason`; `GET /v1/engine/health` (an `admin` key) returns the project's kill switches, queue depths and when each scheduler job last ran. Use the first for liveness probes and the last to show "the engine is running" in your UI. See [Observability](/docs/self-hosting/observability).

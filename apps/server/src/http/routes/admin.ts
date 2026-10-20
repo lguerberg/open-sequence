@@ -6,7 +6,8 @@ import { createApiKey, createProject, projectSettingsSchema } from '@opensequenc
 import { requireOperator } from '../auth.js';
 import type { AppContext } from '../context.js';
 import { ok } from '../envelope.js';
-import { idParam, responses } from '../schemas.js';
+import { createdApiKey, createdProject, createdResponse, okResponse, platformHealth, project } from '../responses.js';
+import { idParam } from '../schemas.js';
 
 export async function adminRoutes(fastify: FastifyInstance, ctx: AppContext) {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -18,7 +19,7 @@ export async function adminRoutes(fastify: FastifyInstance, ctx: AppContext) {
       tags: ['Operator'],
       summary: 'Create a project and its first admin key (shown once)',
       body: z.object({ slug: z.string().min(3).max(48), name: z.string().min(1).max(120), settings: projectSettingsSchema.optional() }),
-      response: responses,
+      response: createdResponse(createdProject),
     },
     handler: async (req, reply) => {
       const { project, apiKey } = await createProject(ctx.deps, req.body);
@@ -28,7 +29,7 @@ export async function adminRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/admin/projects', {
     preHandler: operator,
-    schema: { tags: ['Operator'], summary: 'List projects', response: responses },
+    schema: { tags: ['Operator'], summary: 'List projects', response: okResponse(z.array(project)) },
     handler: async (_req, reply) => ok(reply, await ctx.deps.uow.repos.projects.list()),
   });
 
@@ -39,7 +40,7 @@ export async function adminRoutes(fastify: FastifyInstance, ctx: AppContext) {
       summary: 'Create an API key for a project (shown once)',
       params: idParam,
       body: z.object({ name: z.string().min(1).max(80), scopes: z.array(z.enum(['read', 'enroll', 'admin'])).min(1) }),
-      response: responses,
+      response: createdResponse(createdApiKey),
     },
     handler: async (req, reply) => {
       const { key, secret } = await createApiKey(ctx.deps, { projectId: req.params.id, ...req.body });
@@ -49,7 +50,7 @@ export async function adminRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/admin/engine/health', {
     preHandler: operator,
-    schema: { tags: ['Operator'], summary: 'Platform-wide queue depths and job state', response: responses },
+    schema: { tags: ['Operator'], summary: 'Platform-wide queue depths and job state', response: okResponse(platformHealth) },
     handler: async (_req, reply) => {
       const [queues, jobs] = await Promise.all([ctx.deps.queue.stats(), ctx.deps.uow.repos.scheduler.lastRuns()]);
       return ok(reply, { paused: ctx.deps.config.paused, disabled_channels: [...ctx.deps.config.disabledChannels], queues, jobs });

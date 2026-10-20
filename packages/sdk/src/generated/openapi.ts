@@ -30,27 +30,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Project"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -61,18 +43,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -81,18 +52,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -101,18 +61,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -121,18 +70,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -141,18 +79,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -161,18 +88,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -181,18 +97,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -201,18 +106,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -270,23 +164,6 @@ export interface paths {
             };
             responses: {
                 /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -295,10 +172,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["CreatedProject"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -309,18 +185,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -329,18 +194,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -349,18 +203,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -369,18 +212,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -389,18 +221,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -409,18 +230,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -429,18 +239,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -449,18 +248,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -500,23 +288,6 @@ export interface paths {
             };
             responses: {
                 /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -525,10 +296,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["CreatedApiKey"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -539,18 +309,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -559,18 +318,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -579,18 +327,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -599,18 +336,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -619,18 +345,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -639,18 +354,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -659,18 +363,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -679,18 +372,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -727,27 +409,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["PlatformHealth"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -758,18 +422,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -778,18 +431,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -798,18 +440,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -818,18 +449,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -838,18 +458,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -858,18 +467,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -878,18 +476,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -898,18 +485,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -948,27 +524,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["ProjectView"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -979,18 +537,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -999,18 +546,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1019,18 +555,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1039,18 +564,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1059,18 +573,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1079,18 +582,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1099,18 +591,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1119,18 +600,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -1176,27 +646,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Project"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -1207,18 +659,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1227,18 +668,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1247,18 +677,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1267,18 +686,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1287,18 +695,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1307,18 +704,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1327,18 +713,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1347,18 +722,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -1405,27 +769,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Credential"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -1436,18 +782,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1456,18 +791,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1476,18 +800,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1496,18 +809,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1516,18 +818,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1536,18 +827,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1556,18 +836,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1576,18 +845,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -1625,27 +883,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["AlloNumber"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -1656,18 +896,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1676,18 +905,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1696,18 +914,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1716,18 +923,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1736,18 +932,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1756,18 +941,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1776,18 +950,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1796,18 +959,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -1846,27 +998,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["AlloUser"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -1877,18 +1011,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1897,18 +1020,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1917,18 +1029,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1937,18 +1038,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1957,18 +1047,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1977,18 +1056,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -1997,18 +1065,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2017,18 +1074,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -2067,27 +1113,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["CrmSchema"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -2098,18 +1126,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2118,18 +1135,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2138,18 +1144,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2158,18 +1153,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2178,18 +1162,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2198,18 +1171,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2218,18 +1180,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2238,18 +1189,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -2288,27 +1228,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["ApiKeySummary"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -2319,18 +1241,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2339,18 +1250,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2359,18 +1259,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2379,18 +1268,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2399,18 +1277,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2419,18 +1286,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2439,18 +1295,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2459,18 +1304,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -2494,23 +1328,6 @@ export interface paths {
             };
             responses: {
                 /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -2519,10 +1336,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["CreatedApiKey"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -2533,18 +1349,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2553,18 +1358,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2573,18 +1367,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2593,18 +1376,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2613,18 +1385,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2633,18 +1394,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2653,18 +1403,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2673,18 +1412,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -2726,27 +1454,12 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                /** @enum {boolean} */
+                                revoked: true;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -2757,18 +1470,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2777,18 +1479,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2797,18 +1488,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2817,18 +1497,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2837,18 +1506,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2857,18 +1515,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2877,18 +1524,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2897,18 +1533,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -2944,27 +1569,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["EngineHealth"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -2975,18 +1582,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -2995,18 +1591,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3015,18 +1600,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3035,18 +1609,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3055,18 +1618,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3075,18 +1627,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3095,18 +1636,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3115,18 +1645,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -3174,27 +1693,12 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                key: string;
+                                value: boolean;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -3205,18 +1709,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3225,18 +1718,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3245,18 +1727,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3265,18 +1736,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3285,18 +1745,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3305,18 +1754,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3325,18 +1763,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3345,18 +1772,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -3396,27 +1812,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SenderDetail"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -3427,18 +1825,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3447,18 +1834,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3467,18 +1843,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3487,18 +1852,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3507,18 +1861,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3527,18 +1870,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3547,18 +1879,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3567,18 +1888,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -3619,27 +1929,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Sender"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -3650,18 +1942,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3670,18 +1951,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3690,18 +1960,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3710,18 +1969,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3730,18 +1978,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3750,18 +1987,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3770,18 +1996,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3790,18 +2005,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -3828,27 +2032,12 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                /** @enum {boolean} */
+                                disabled: true;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -3859,18 +2048,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3879,18 +2057,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3899,18 +2066,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3919,18 +2075,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3939,18 +2084,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3959,18 +2093,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3979,18 +2102,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -3999,18 +2111,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -4050,27 +2151,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Sender"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                                /** @description Pass as `cursor` for the next page; null on the last one. */
+                                next_cursor: string | null;
                             };
                         };
                     };
@@ -4081,18 +2166,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4101,18 +2175,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4121,18 +2184,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4141,18 +2193,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4161,18 +2202,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4181,18 +2211,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4201,18 +2220,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4221,18 +2229,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -4273,27 +2270,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Readiness"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -4304,18 +2283,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4324,18 +2292,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4344,18 +2301,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4364,18 +2310,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4384,18 +2319,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4404,18 +2328,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4424,18 +2337,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4444,18 +2346,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -4536,27 +2427,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SenderChannel"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -4567,18 +2440,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4587,18 +2449,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4607,18 +2458,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4627,18 +2467,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4647,18 +2476,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4667,18 +2485,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4687,18 +2494,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4707,18 +2503,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -4758,27 +2543,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Connection"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -4789,18 +2556,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4809,18 +2565,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4829,18 +2574,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4849,18 +2583,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4869,18 +2592,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4889,18 +2601,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4909,18 +2610,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -4929,18 +2619,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -4974,7 +2653,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        /** @description The Allo user id (`usr-…`), not the email; from GET /v1/project/providers/allo/users. */
                         allo_user_id: string;
+                        /** @description E.164; one the Allo key can see and that can send SMS. */
                         number: string;
                     };
                 };
@@ -4989,27 +2670,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SenderChannel"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -5020,18 +2683,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5040,18 +2692,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5060,18 +2701,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5080,18 +2710,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5100,18 +2719,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5120,18 +2728,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5140,18 +2737,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5160,18 +2746,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -5215,27 +2790,12 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                /** @enum {boolean} */
+                                deleted: true;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -5246,18 +2806,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5266,18 +2815,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5286,18 +2824,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5306,18 +2833,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5326,18 +2842,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5346,18 +2851,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5366,18 +2860,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5386,18 +2869,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -5437,27 +2909,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SenderChannel"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -5468,18 +2922,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5488,18 +2931,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5508,18 +2940,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5528,18 +2949,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5548,18 +2958,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5568,18 +2967,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5588,18 +2976,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5608,18 +2985,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -5660,27 +3026,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Task"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                                /** @description Pass as `cursor` for the next page; null on the last one. */
+                                next_cursor: string | null;
                             };
                         };
                     };
@@ -5691,18 +3041,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5711,18 +3050,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5731,18 +3059,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5751,18 +3068,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5771,18 +3077,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5791,18 +3086,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5811,18 +3095,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5831,18 +3104,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -5883,27 +3145,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["ContactDetail"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -5914,18 +3158,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5934,18 +3167,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5954,18 +3176,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5974,18 +3185,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -5994,18 +3194,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6014,18 +3203,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6034,18 +3212,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6054,18 +3221,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -6105,27 +3261,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Contact"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -6136,18 +3274,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6156,18 +3283,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6176,18 +3292,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6196,18 +3301,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6216,18 +3310,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6236,18 +3319,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6256,18 +3328,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6276,18 +3337,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -6314,27 +3364,12 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                /** @enum {boolean} */
+                                deleted: true;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -6345,18 +3380,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6365,18 +3389,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6385,18 +3398,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6405,18 +3407,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6425,18 +3416,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6445,18 +3425,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6465,18 +3434,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6485,18 +3443,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -6538,27 +3485,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Contact"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -6569,18 +3498,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6589,18 +3507,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6609,18 +3516,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6629,18 +3525,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6649,18 +3534,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6669,18 +3543,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6689,18 +3552,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6709,18 +3561,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -6772,27 +3613,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Contact"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -6803,18 +3626,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6823,18 +3635,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6843,18 +3644,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6863,18 +3653,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6883,18 +3662,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6903,18 +3671,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6923,18 +3680,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -6943,18 +3689,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -6999,27 +3734,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["ContactStatus"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -7030,18 +3747,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7050,18 +3756,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7070,18 +3765,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7090,18 +3774,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7110,18 +3783,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7130,18 +3792,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7150,18 +3801,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7170,18 +3810,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -7238,27 +3867,14 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: {
+                                /** @description Your event id. */
+                                id: string;
+                                signal: string;
+                                created: boolean;
+                            }[];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -7269,18 +3885,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7289,18 +3894,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7309,18 +3903,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7329,18 +3912,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7349,18 +3921,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7369,18 +3930,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7389,18 +3939,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7409,18 +3948,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -7463,27 +3991,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Contact"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                                /** @description Pass as `cursor` for the next page; null on the last one. */
+                                next_cursor: string | null;
                             };
                         };
                     };
@@ -7494,18 +4006,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7514,18 +4015,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7534,18 +4024,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7554,18 +4033,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7574,18 +4042,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7594,18 +4051,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7614,18 +4060,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7634,18 +4069,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -7686,27 +4110,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["TimelineItem"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -7717,18 +4123,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7737,18 +4132,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7757,18 +4141,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7777,18 +4150,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7797,18 +4159,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7817,18 +4168,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7837,18 +4177,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7857,18 +4186,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -7918,27 +4236,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Contact"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -7949,18 +4249,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7969,18 +4258,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -7989,18 +4267,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8009,18 +4276,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8029,18 +4285,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8049,18 +4294,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8069,18 +4303,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8089,18 +4312,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -8121,7 +4333,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Report an event the service cannot see: meeting_booked, opt_out, suppressed, reply */
+        /**
+         * Report an event the service cannot see: meeting_booked, opt_out, suppressed, reply
+         * @description 201 when the event is new, 200 with `created: false` when its id was seen before.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -8157,10 +4372,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["ReportedEvent"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -8174,10 +4388,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["ReportedEvent"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -8188,18 +4401,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8208,18 +4410,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8228,18 +4419,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8248,18 +4428,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8268,18 +4437,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8288,18 +4446,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8308,18 +4455,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8328,18 +4464,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -8357,7 +4482,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List sequences with headline counts */
+        /** List sequences with their versions and enrollment counts by status */
         get: {
             parameters: {
                 query?: {
@@ -8380,27 +4505,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SequenceListItem"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                                /** @description Pass as `cursor` for the next page; null on the last one. */
+                                next_cursor: string | null;
                             };
                         };
                     };
@@ -8411,18 +4520,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8431,18 +4529,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8451,18 +4538,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8471,18 +4547,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8491,18 +4556,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8511,18 +4565,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8531,18 +4574,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8551,18 +4583,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -8592,23 +4613,6 @@ export interface paths {
             };
             responses: {
                 /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -8617,10 +4621,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["CreatedSequence"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -8631,18 +4634,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8651,18 +4643,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8671,18 +4652,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8691,18 +4661,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8711,18 +4670,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8731,18 +4679,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8751,18 +4688,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8771,18 +4697,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -8821,27 +4736,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SequenceDetail"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -8852,18 +4749,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8872,18 +4758,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8892,18 +4767,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8912,18 +4776,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8932,18 +4785,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8952,18 +4794,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8972,18 +4803,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -8992,18 +4812,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -9047,27 +4856,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Sequence"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -9078,18 +4869,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9098,18 +4878,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9118,18 +4887,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9138,18 +4896,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9158,18 +4905,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9178,18 +4914,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9198,18 +4923,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9218,18 +4932,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -9264,27 +4967,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Version"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -9295,18 +4980,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9315,18 +4989,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9335,18 +4998,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9355,18 +5007,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9375,18 +5016,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9395,18 +5025,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9415,18 +5034,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9435,18 +5043,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -9473,23 +5070,6 @@ export interface paths {
             };
             responses: {
                 /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -9498,10 +5078,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Version"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -9512,18 +5091,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9532,18 +5100,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9552,18 +5109,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9572,18 +5118,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9592,18 +5127,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9612,18 +5136,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9632,18 +5145,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9652,18 +5154,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -9703,27 +5194,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["VersionWithProblems"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -9734,18 +5207,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9754,18 +5216,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9774,18 +5225,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9794,18 +5234,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9814,18 +5243,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9834,18 +5252,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9854,18 +5261,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9874,18 +5270,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -9914,27 +5299,12 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                /** @enum {boolean} */
+                                deleted: true;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -9945,18 +5315,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9965,18 +5324,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -9985,18 +5333,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10005,18 +5342,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10025,18 +5351,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10045,18 +5360,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10065,18 +5369,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10085,18 +5378,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -10145,27 +5427,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["VersionWithProblems"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -10176,18 +5440,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10196,18 +5449,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10216,18 +5458,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10236,18 +5467,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10256,18 +5476,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10276,18 +5485,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10296,18 +5494,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10316,18 +5503,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -10376,27 +5552,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["VersionWithProblems"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -10407,18 +5565,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10427,18 +5574,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10447,18 +5583,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10467,18 +5592,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10487,18 +5601,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10507,18 +5610,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10527,18 +5619,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10547,18 +5628,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -10600,27 +5670,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Version"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -10631,18 +5683,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10651,18 +5692,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10671,18 +5701,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10691,18 +5710,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10711,18 +5719,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10731,18 +5728,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10751,18 +5737,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10771,18 +5746,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -10829,27 +5793,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["ValidationResult"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -10860,18 +5806,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10880,18 +5815,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10900,18 +5824,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10920,18 +5833,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10940,18 +5842,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10960,18 +5851,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -10980,18 +5860,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11000,18 +5869,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -11048,27 +5906,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SchemaCatalogue"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -11079,18 +5919,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11099,18 +5928,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11119,18 +5937,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11139,18 +5946,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11159,18 +5955,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11179,18 +5964,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11199,18 +5973,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11219,18 +5982,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -11269,27 +6021,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SchemaFields"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -11300,18 +6034,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11320,18 +6043,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11340,18 +6052,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11360,18 +6061,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11380,18 +6070,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11400,18 +6079,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11420,18 +6088,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11440,18 +6097,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -11490,27 +6136,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: ("enrollment.created" | "enrollment.exited" | "enrollment.completed" | "enrollment.paused" | "enrollment.resumed" | "run.done" | "run.skipped" | "run.failed" | "run.needs_review" | "task.created" | "task.expired" | "signal.received" | "sender.channel_status" | "endpoint.disabled")[];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -11521,18 +6149,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11541,18 +6158,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11561,18 +6167,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11581,18 +6176,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11601,18 +6185,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11621,18 +6194,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11641,18 +6203,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11661,18 +6212,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -11739,27 +6279,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["EnrollPreview"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -11770,18 +6292,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11790,18 +6301,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11810,18 +6310,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11830,18 +6319,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11850,18 +6328,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11870,18 +6337,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11890,18 +6346,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -11910,18 +6355,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -11978,23 +6412,6 @@ export interface paths {
             };
             responses: {
                 /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -12003,10 +6420,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["EnrollResult"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -12017,18 +6433,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12037,18 +6442,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12057,18 +6451,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12077,18 +6460,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12097,18 +6469,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12117,18 +6478,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12137,18 +6487,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12157,18 +6496,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -12215,27 +6543,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["EnrollmentListItem"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                                /** @description Pass as `cursor` for the next page; null on the last one. */
+                                next_cursor: string | null;
                             };
                         };
                     };
@@ -12246,18 +6558,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12266,18 +6567,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12286,18 +6576,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12306,18 +6585,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12326,18 +6594,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12346,18 +6603,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12366,18 +6612,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12386,18 +6621,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -12438,27 +6662,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Journey"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -12469,18 +6675,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12489,18 +6684,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12509,18 +6693,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12529,18 +6702,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12549,18 +6711,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12569,18 +6720,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12589,18 +6729,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12609,18 +6738,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -12670,27 +6788,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Enrollment"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -12701,18 +6801,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12721,18 +6810,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12741,18 +6819,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12761,18 +6828,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12781,18 +6837,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12801,18 +6846,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12821,18 +6855,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12841,18 +6864,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -12893,27 +6905,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Enrollment"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -12924,18 +6918,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12944,18 +6927,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12964,18 +6936,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -12984,18 +6945,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13004,18 +6954,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13024,18 +6963,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13044,18 +6972,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13064,18 +6981,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -13123,27 +7029,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Enrollment"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -13154,18 +7042,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13174,18 +7051,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13194,18 +7060,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13214,18 +7069,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13234,18 +7078,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13254,18 +7087,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13274,18 +7096,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13294,18 +7105,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -13353,27 +7153,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                exited: number;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -13384,18 +7168,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13404,18 +7177,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13424,18 +7186,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13444,18 +7195,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13464,18 +7204,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13484,18 +7213,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13504,18 +7222,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13524,18 +7231,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -13580,27 +7276,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Task"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                                /** @description Pass as `cursor` for the next page; null on the last one. */
+                                next_cursor: string | null;
                             };
                         };
                     };
@@ -13611,18 +7291,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13631,18 +7300,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13651,18 +7309,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13671,18 +7318,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13691,18 +7327,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13711,18 +7336,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13731,18 +7345,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13751,18 +7354,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -13803,27 +7395,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Task"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -13834,18 +7408,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13854,18 +7417,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13874,18 +7426,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13894,18 +7435,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13914,18 +7444,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13934,18 +7453,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13954,18 +7462,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -13974,18 +7471,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -14035,27 +7521,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Task"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -14066,18 +7534,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14086,18 +7543,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14106,18 +7552,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14126,18 +7561,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14146,18 +7570,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14166,18 +7579,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14186,18 +7588,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14206,18 +7597,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -14258,27 +7638,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["Task"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -14289,18 +7651,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14309,18 +7660,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14329,18 +7669,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14349,18 +7678,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14369,18 +7687,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14389,18 +7696,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14409,18 +7705,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14429,18 +7714,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -14477,27 +7751,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["WebhookEndpoint"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -14508,18 +7764,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14528,18 +7773,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14548,18 +7782,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14568,18 +7791,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14588,18 +7800,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14608,18 +7809,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14628,18 +7818,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14648,18 +7827,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -14689,23 +7857,6 @@ export interface paths {
             };
             responses: {
                 /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -14714,10 +7865,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["WebhookEndpointWithSecret"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -14728,18 +7878,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14748,18 +7887,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14768,18 +7896,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14788,18 +7905,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14808,18 +7914,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14828,18 +7923,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14848,18 +7932,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14868,18 +7941,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -14918,27 +7980,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["WebhookEndpoint"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -14949,18 +7993,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14969,18 +8002,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -14989,18 +8011,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15009,18 +8020,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15029,18 +8029,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15049,18 +8038,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15069,18 +8047,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15089,18 +8056,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -15128,27 +8084,12 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                /** @enum {boolean} */
+                                deleted: true;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -15159,18 +8100,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15179,18 +8109,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15199,18 +8118,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15219,18 +8127,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15239,18 +8136,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15259,18 +8145,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15279,18 +8154,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15299,18 +8163,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -15351,27 +8204,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["WebhookEndpoint"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -15382,18 +8217,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15402,18 +8226,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15422,18 +8235,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15442,18 +8244,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15462,18 +8253,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15482,18 +8262,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15502,18 +8271,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15522,18 +8280,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -15570,27 +8317,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["WebhookEndpointWithSecret"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -15601,18 +8330,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15621,18 +8339,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15641,18 +8348,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15661,18 +8357,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15681,18 +8366,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15701,18 +8375,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15721,18 +8384,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15741,18 +8393,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -15793,27 +8434,13 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                endpoint: components["schemas"]["WebhookEndpoint"];
+                                /** @description Held deliveries sent again. */
+                                replayed: number;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -15824,18 +8451,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15844,18 +8460,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15864,18 +8469,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15884,18 +8478,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15904,18 +8487,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15924,18 +8496,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15944,18 +8505,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -15964,18 +8514,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -16022,27 +8561,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                            data: {
+                                replayed: number;
                             };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -16053,18 +8576,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16073,18 +8585,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16093,18 +8594,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16113,18 +8603,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16133,18 +8612,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16153,18 +8621,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16173,18 +8630,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16193,18 +8639,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -16247,27 +8682,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["WebhookDelivery"][];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
+                                /** @description Pass as `cursor` for the next page; null on the last one. */
+                                next_cursor: string | null;
                             };
                         };
                     };
@@ -16278,18 +8697,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16298,18 +8706,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16318,18 +8715,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16338,18 +8724,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16358,18 +8733,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16378,18 +8742,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16398,18 +8751,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16418,18 +8760,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -16472,27 +8803,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["WebhookDelivery"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -16503,18 +8816,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16523,18 +8825,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16543,18 +8834,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16563,18 +8843,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16583,18 +8852,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16603,18 +8861,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16623,18 +8870,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16643,18 +8879,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -16698,27 +8923,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["AllSequences"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -16729,18 +8936,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16749,18 +8945,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16769,18 +8954,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16789,18 +8963,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16809,18 +8972,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16829,18 +8981,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16849,18 +8990,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16869,18 +8999,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -16900,7 +9019,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Sequence summary */
+        /** Enrolled, active, exited, completed, delivered touches, replies and meetings, with rates */
         get: {
             parameters: {
                 query?: {
@@ -16927,27 +9046,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SequenceSummary"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -16958,18 +9059,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16978,18 +9068,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -16998,18 +9077,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17018,18 +9086,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17038,18 +9095,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17058,18 +9104,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17078,18 +9113,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17098,18 +9122,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -17129,7 +9142,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Sequence exits */
+        /** Exits by reason, largest first */
         get: {
             parameters: {
                 query?: {
@@ -17156,27 +9169,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SequenceExits"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -17187,18 +9182,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17207,18 +9191,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17227,18 +9200,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17247,18 +9209,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17267,18 +9218,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17287,18 +9227,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17307,18 +9236,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17327,18 +9245,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -17358,7 +9265,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Sequence nodes */
+        /** Per step: reached, executed, skipped by reason, failed, delivered, bounced, replies, meetings */
         get: {
             parameters: {
                 query?: {
@@ -17385,27 +9292,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SequenceNodes"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -17416,18 +9305,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17436,18 +9314,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17456,18 +9323,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17476,18 +9332,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17496,18 +9341,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17516,18 +9350,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17536,18 +9359,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17556,18 +9368,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -17587,7 +9388,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Sequence channels */
+        /** Per channel and touch number: sent, delivered, bounced, replies, meetings */
         get: {
             parameters: {
                 query?: {
@@ -17614,27 +9415,9 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             success: true;
-                            data: unknown;
+                            data: components["schemas"]["SequenceChannels"];
                             meta: {
                                 request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
                             };
                         };
                     };
@@ -17645,18 +9428,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17665,18 +9437,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17685,18 +9446,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17705,18 +9455,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17725,18 +9464,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17745,18 +9473,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17765,18 +9482,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
                 /** @description Default Response */
@@ -17785,18 +9491,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -17812,7 +9507,1007 @@ export interface paths {
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        /** @description Every failure, with the HTTP status that matches the code. */
+        ErrorEnvelope: {
+            /** @constant */
+            success: false;
+            error: {
+                /** @description Stable; branch on it. */
+                code: string;
+                /** @description Plain English; may change. */
+                message: string;
+                /** @description Structured when there is something to act on. */
+                details?: unknown;
+            };
+            meta: {
+                request_id: string;
+            };
+        };
+        ValidationProblem: {
+            /** @description A JSON path into the definition; empty for the document itself. */
+            path: string;
+            code: string;
+            message: string;
+            /** @enum {string} */
+            severity: "error" | "warning";
+        };
+        ProjectSettings: {
+            attribution_days?: number;
+            sms_countries?: string[];
+            send_window?: {
+                days: string[];
+                from: string;
+                to: string;
+                /** @enum {string} */
+                tz: "contact" | "sender";
+            };
+            attrs_schema?: {
+                [key: string]: {
+                    type: string;
+                    label?: string;
+                    values?: string[];
+                };
+            };
+            retention_days?: number;
+            store_inbound_bodies?: boolean;
+            match_replies_outside_thread?: boolean;
+            crm?: {
+                /** @enum {string} */
+                deal_selection?: "newest_open" | "highest_value" | "any_open";
+            };
+            allo?: {
+                outcome_map?: {
+                    [key: string]: string;
+                };
+            };
+            max_steps_per_tick?: number;
+            mock?: {
+                [key: string]: unknown;
+            };
+        };
+        Project: {
+            id: string;
+            slug: string;
+            name: string;
+            settings: components["schemas"]["ProjectSettings"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @description A key as the API shows it: never the secret. */
+        ApiKeySummary: {
+            id: string;
+            name: string;
+            /** @description The first 12 characters of the key. */
+            prefix: string;
+            scopes: ("read" | "enroll" | "admin")[];
+            last_used_at: string | null;
+            revoked_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        CreatedApiKey: {
+            key: {
+                id: string;
+                name: string;
+                prefix: string;
+                scopes: ("read" | "enroll" | "admin")[];
+                /** Format: date-time */
+                created_at: string;
+            };
+            /** @description The full secret, shown once. */
+            api_key: string;
+        };
+        CreatedProject: {
+            project: components["schemas"]["Project"];
+            /** @description The first admin key, shown once. */
+            api_key: string;
+        };
+        /** @description A provider credential as the API shows it: status and key id, never the secret. */
+        Credential: {
+            id: string;
+            /** @description The project id. */
+            tenantId: string;
+            provider: string;
+            /** @constant */
+            method: "api_key";
+            /** @enum {string} */
+            status: "active" | "invalid";
+            /** @description The encryption key the secret is stored under. */
+            keyId: string;
+            /** @description The last four characters of the API key. */
+            last4: string;
+            /** @description Non-secret settings, such as the scopes a probe reported. */
+            config: {
+                [key: string]: unknown;
+            };
+            hasWebhookSecret: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ProjectView: {
+            project: components["schemas"]["Project"] | null;
+            credentials: components["schemas"]["Credential"][];
+            webhook_urls: {
+                allo: string;
+                /** @description Only with SEQ_DEV_MOCK_PROVIDERS. */
+                mock?: string;
+            };
+        };
+        QueueStat: {
+            queue: string;
+            depth: number;
+            /** @description Age of the oldest message, in milliseconds. */
+            oldestMs: number | null;
+        };
+        EngineHealth: {
+            /** @description `global` and `channel:<name>` switches; absent means on. */
+            flags: {
+                [key: string]: boolean;
+            };
+            queues: components["schemas"]["QueueStat"][];
+            /** @description When each scheduler job last ran. */
+            jobs: {
+                [key: string]: string | null;
+            };
+            /** @description SEQ_PAUSED. */
+            paused: boolean;
+        };
+        PlatformHealth: {
+            paused: boolean;
+            disabled_channels: string[];
+            queues: components["schemas"]["QueueStat"][];
+            jobs: {
+                [key: string]: string | null;
+            };
+        };
+        AlloUser: {
+            /** @description Allo user id (`usr-…`). */
+            id: string;
+            email: string;
+            name: string;
+        };
+        AlloNumber: {
+            /** @description E.164. */
+            address: string;
+            ref: string;
+            country: string;
+            /** @description `SMS`, `VOICE`, … */
+            capabilities: string[];
+            /** @description The users who can use this number. */
+            users: components["schemas"]["AlloUser"][];
+        };
+        CrmSchema: {
+            objects: {
+                /** @enum {string} */
+                name: "person" | "company" | "deal";
+                attributes: {
+                    slug: string;
+                    label: string;
+                    type: string;
+                    values?: string[];
+                }[];
+            }[];
+        };
+        Sender: {
+            id: string;
+            projectId: string;
+            /** @description Your id for this person, as given in `PUT /v1/senders/{id}`. */
+            externalId: string;
+            name: string;
+            email: string | null;
+            /** @description IANA zone. */
+            timezone: string;
+            /** @description `active` or `disabled`. */
+            status: string;
+            attrs: {
+                [key: string]: unknown;
+            };
+            /** @description Sanitized HTML, inserted raw by `{{ sender.signature }}` in html emails. */
+            signatureHtml: string | null;
+            /** @description The plain-text twin, used by text emails. */
+            signatureText: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SenderChannel: {
+            id: string;
+            senderId: string;
+            projectId: string;
+            /** @description The mailbox connection behind an email channel. */
+            connectionId: string | null;
+            /** @description `email` or `sms`. */
+            channel: string;
+            /** @description The from address or the E.164 number. */
+            address: string;
+            /** @description `pending`, `active`, `paused`, `credentials_needed`, `restricted` or `disconnected`; only `active` sends. */
+            status: string;
+            dailyLimit: number | null;
+            /** @description Stored, not enforced yet. */
+            weeklyLimit: number | null;
+            minGapSeconds: number;
+            optedInAt: string | null;
+            /** @description Non-secret settings: `provider`, `allo_user_id`, the IMAP cursor. */
+            config: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @description Which steps a sender can run, and why not. */
+        Readiness: {
+            email: {
+                ok: boolean;
+                /** @description `no_email_channel`, `no_allo_number`, or `<channel>_<status>` when the channel is not active. */
+                reason?: string;
+            };
+            sms: {
+                ok: boolean;
+                /** @description `no_email_channel`, `no_allo_number`, or `<channel>_<status>` when the channel is not active. */
+                reason?: string;
+            };
+            task: {
+                /** @constant */
+                ok: true;
+            };
+        };
+        /** @description A mailbox connection as the API shows it: never the passwords. */
+        Connection: {
+            id: string;
+            /** @description The project id. */
+            tenantId: string;
+            /** @description The sender id. */
+            ownerId: string;
+            /** @description `smtp`. */
+            provider: string;
+            /** @description The mailbox address. */
+            account: string | null;
+            scopes: string[];
+            /** @enum {string} */
+            status: "pending" | "active" | "credentials_needed" | "reauth_needed" | "restricted" | "disconnected";
+            keyId: string | null;
+            /** @description Hosts and ports; never a password. */
+            config: {
+                [key: string]: unknown;
+            };
+            lastOkAt: string | null;
+            lastError: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SenderDetail: {
+            id: string;
+            projectId: string;
+            /** @description Your id for this person, as given in `PUT /v1/senders/{id}`. */
+            externalId: string;
+            name: string;
+            email: string | null;
+            /** @description IANA zone. */
+            timezone: string;
+            /** @description `active` or `disabled`. */
+            status: string;
+            attrs: {
+                [key: string]: unknown;
+            };
+            /** @description Sanitized HTML, inserted raw by `{{ sender.signature }}` in html emails. */
+            signatureHtml: string | null;
+            /** @description The plain-text twin, used by text emails. */
+            signatureText: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            channels: components["schemas"]["SenderChannel"][];
+            readiness: components["schemas"]["Readiness"];
+            connections: components["schemas"]["Connection"][];
+        };
+        Contact: {
+            id: string;
+            projectId: string;
+            /** @description Your id for this person, as given in `PUT /v1/contacts/{id}`. */
+            externalId: string;
+            firstName: string | null;
+            lastName: string | null;
+            email: string | null;
+            /** @description E.164. */
+            phone: string | null;
+            /** @description ISO 3166-1 alpha-2, upper case. */
+            country: string | null;
+            /** @description IANA zone. */
+            timezone: string | null;
+            smsConsent: boolean;
+            smsConsentAt: string | null;
+            smsConsentSource: string | null;
+            attrs: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Suppression: {
+            contactId: string;
+            /** @enum {string} */
+            channel: "email" | "sms" | "all";
+            /** @description `opt_out`, `hard_bounce`, `complaint`, or the reason you reported. */
+            reason: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @description The enrollment a contact is in, for badges. */
+        ActiveEnrollment: {
+            id: string;
+            sequenceId: string;
+            versionId: string;
+            senderId: string;
+            /** @enum {string} */
+            status: "active" | "paused" | "waiting_limit" | "completed" | "exited" | "failed";
+            currentNodeId: string;
+        };
+        ContactStatus: {
+            contact: {
+                id: string;
+                external_id: string;
+            };
+            enrollment: components["schemas"]["ActiveEnrollment"] | null;
+        };
+        ContactDetail: {
+            id: string;
+            projectId: string;
+            /** @description Your id for this person, as given in `PUT /v1/contacts/{id}`. */
+            externalId: string;
+            firstName: string | null;
+            lastName: string | null;
+            email: string | null;
+            /** @description E.164. */
+            phone: string | null;
+            /** @description ISO 3166-1 alpha-2, upper case. */
+            country: string | null;
+            /** @description IANA zone. */
+            timezone: string | null;
+            smsConsent: boolean;
+            smsConsentAt: string | null;
+            smsConsentSource: string | null;
+            attrs: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            suppressions: components["schemas"]["Suppression"][];
+            enrollment: components["schemas"]["ActiveEnrollment"] | null;
+        };
+        ReportedEvent: {
+            /** @description The signal the event became. */
+            signal: string;
+            /** @description False when the event id was seen before. */
+            created: boolean;
+        };
+        Sequence: {
+            id: string;
+            projectId: string;
+            externalId: string | null;
+            name: string;
+            description: string | null;
+            createdBy: string | null;
+            labels: {
+                [key: string]: unknown;
+            };
+            /** @enum {string} */
+            status: "active" | "paused" | "archived";
+            /** @description The published version new enrollments use. */
+            defaultVersionId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Version: {
+            id: string;
+            projectId: string;
+            sequenceId: string;
+            tag: string;
+            /** @enum {string} */
+            status: "draft" | "published" | "archived";
+            /** @description The sequence definition document. */
+            definition: {
+                [key: string]: unknown;
+            };
+            schemaVersion: number;
+            /** @description Send it back as `lock_version` when saving a draft. */
+            lockVersion: number;
+            basedOnVersionId: string | null;
+            createdBy: string | null;
+            publishedBy: string | null;
+            publishedAt: string | null;
+            archivedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        VersionSummary: {
+            id: string;
+            tag: string;
+            /** @enum {string} */
+            status: "draft" | "published" | "archived";
+            published_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /** @description Enrollments of the sequence by status, every version together. Replies and meetings come from the analytics endpoints. */
+        EnrollmentCounts: {
+            active: number;
+            paused: number;
+            waiting_limit: number;
+            completed: number;
+            exited: number;
+            failed: number;
+        };
+        SequenceListItem: {
+            id: string;
+            projectId: string;
+            externalId: string | null;
+            name: string;
+            description: string | null;
+            createdBy: string | null;
+            labels: {
+                [key: string]: unknown;
+            };
+            /** @enum {string} */
+            status: "active" | "paused" | "archived";
+            /** @description The published version new enrollments use. */
+            defaultVersionId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            versions: components["schemas"]["VersionSummary"][];
+            counts: components["schemas"]["EnrollmentCounts"];
+        };
+        SequenceDetail: {
+            id: string;
+            projectId: string;
+            externalId: string | null;
+            name: string;
+            description: string | null;
+            createdBy: string | null;
+            labels: {
+                [key: string]: unknown;
+            };
+            /** @enum {string} */
+            status: "active" | "paused" | "archived";
+            /** @description The published version new enrollments use. */
+            defaultVersionId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            versions: components["schemas"]["VersionSummary"][];
+        };
+        VersionWithProblems: {
+            version: components["schemas"]["Version"];
+            /** @description Current validation problems; warnings do not block publishing. */
+            problems: components["schemas"]["ValidationProblem"][];
+        };
+        CreatedSequence: {
+            sequence: components["schemas"]["Sequence"];
+            /** @description The `v1` draft. */
+            version: components["schemas"]["Version"];
+            problems: components["schemas"]["ValidationProblem"][];
+        };
+        ValidationResult: {
+            /** @description True when no problem is an error. */
+            ok: boolean;
+            problems: components["schemas"]["ValidationProblem"][];
+        };
+        SchemaCatalogue: {
+            /** @description JSON Schema of a definition. */
+            definition: {
+                [key: string]: unknown;
+            };
+            nodes: {
+                type: string;
+                label: string;
+                transitions: {
+                    /** @description In the order a canvas should show them. */
+                    keys: string[];
+                    /** @description Keys that must be wired. */
+                    required: string[];
+                };
+                /** @description JSON Schema of the node params. */
+                params: {
+                    [key: string]: unknown;
+                };
+            }[];
+            channels: {
+                name: string;
+                label: string;
+                actions: {
+                    action: string;
+                    label: string;
+                    transitions: {
+                        /** @description In the order a canvas should show them. */
+                        keys: string[];
+                        /** @description Keys that must be wired. */
+                        required: string[];
+                    };
+                    touch: boolean;
+                    params: {
+                        [key: string]: unknown;
+                    };
+                }[];
+            }[];
+        };
+        SchemaFields: {
+            sources: {
+                prefix: string;
+                label: string;
+                /** @description When true any `<prefix>.<path>` is accepted. */
+                open: boolean;
+                fields: {
+                    field: string;
+                    label: string;
+                    /** @enum {string} */
+                    type: "text" | "number" | "bool" | "enum" | "date";
+                    values?: string[];
+                }[];
+            }[];
+            /** @description From the project `attrs_schema`. */
+            attrs: {
+                field: string;
+                label: string;
+                type: string;
+                values?: string[];
+            }[];
+        };
+        Enrollment: {
+            id: string;
+            projectId: string;
+            sequenceId: string;
+            /** @description Pinned at enroll time. */
+            versionId: string;
+            contactId: string;
+            senderId: string;
+            enrolledBy: string | null;
+            /** @description `user`, `agent` or `system`. */
+            enrolledByKind: string;
+            /** @description `live` or `dry_run`. */
+            mode: string;
+            /** @enum {string} */
+            status: "active" | "paused" | "waiting_limit" | "completed" | "exited" | "failed";
+            currentNodeId: string;
+            nextRunAt: string | null;
+            /** @description The run an executor is working on right now. */
+            ownerRunId: string | null;
+            waiting: {
+                runId: string;
+                /** @description Event name to transition key. */
+                events: {
+                    [key: string]: string;
+                };
+                onTimeout?: string;
+            } | null;
+            pausedUntil: string | null;
+            /** @description `manual`, `ooo` or `step_failed`. */
+            pauseReason: string | null;
+            /** @description `replied`, `meeting_booked`, `opt_out`, `bounced`, `suppressed`, `manual` or `deleted`. */
+            exitReason: string | null;
+            exitSignalId: string | null;
+            repliedAt: string | null;
+            repliedChannel: string | null;
+            meetingBookedAt: string | null;
+            meetingChannel: string | null;
+            touchCount: number;
+            lastTouchAt: string | null;
+            /** @description Per-enrollment event counter; webhooks carry it so a receiver can order events. */
+            seq: number;
+            /** Format: date-time */
+            enrolledAt: string;
+            finishedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        EnrollmentListItem: {
+            id: string;
+            projectId: string;
+            sequenceId: string;
+            /** @description Pinned at enroll time. */
+            versionId: string;
+            contactId: string;
+            senderId: string;
+            enrolledBy: string | null;
+            /** @description `user`, `agent` or `system`. */
+            enrolledByKind: string;
+            /** @description `live` or `dry_run`. */
+            mode: string;
+            /** @enum {string} */
+            status: "active" | "paused" | "waiting_limit" | "completed" | "exited" | "failed";
+            currentNodeId: string;
+            nextRunAt: string | null;
+            /** @description The run an executor is working on right now. */
+            ownerRunId: string | null;
+            waiting: {
+                runId: string;
+                /** @description Event name to transition key. */
+                events: {
+                    [key: string]: string;
+                };
+                onTimeout?: string;
+            } | null;
+            pausedUntil: string | null;
+            /** @description `manual`, `ooo` or `step_failed`. */
+            pauseReason: string | null;
+            /** @description `replied`, `meeting_booked`, `opt_out`, `bounced`, `suppressed`, `manual` or `deleted`. */
+            exitReason: string | null;
+            exitSignalId: string | null;
+            repliedAt: string | null;
+            repliedChannel: string | null;
+            meetingBookedAt: string | null;
+            meetingChannel: string | null;
+            touchCount: number;
+            lastTouchAt: string | null;
+            /** @description Per-enrollment event counter; webhooks carry it so a receiver can order events. */
+            seq: number;
+            /** Format: date-time */
+            enrolledAt: string;
+            finishedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description A summary; `GET /v1/contacts/{id}` has the rest. */
+            contact: {
+                id: string;
+                external_id: string;
+                name: string | null;
+                email: string | null;
+            } | null;
+        };
+        EnrollPreview: {
+            accepted: {
+                contact_id: string;
+                external_id: string;
+                /** Format: date-time */
+                first_touch_at: string;
+            }[];
+            skipped: {
+                contact_id: string;
+                external_id: string;
+                /** @description `suppressed:<reason>`, `already_enrolled_before` or `reenroll_before_<n>d`. */
+                reason: string;
+            }[];
+            capacity: {
+                /** @description The sender's email daily_limit. */
+                per_day: number;
+                days_to_first_touches: number;
+            };
+        };
+        EnrollResult: {
+            accepted: {
+                contact_id: string;
+                external_id: string;
+                /** Format: date-time */
+                first_touch_at: string;
+            }[];
+            skipped: {
+                contact_id: string;
+                external_id: string;
+                /** @description `suppressed:<reason>`, `already_enrolled_before` or `reenroll_before_<n>d`. */
+                reason: string;
+            }[];
+            capacity: {
+                /** @description The sender's email daily_limit. */
+                per_day: number;
+                days_to_first_touches: number;
+            };
+            enrollments: {
+                id: string;
+                /** @description The contact id. */
+                contact: string;
+                /** @enum {string} */
+                status: "active" | "paused" | "waiting_limit" | "completed" | "exited" | "failed";
+                next_run_at: string | null;
+            }[];
+        };
+        Run: {
+            id: string;
+            projectId: string;
+            enrollmentId: string;
+            sequenceId: string;
+            versionId: string;
+            nodeId: string;
+            nodeType: string;
+            channel: string | null;
+            action: string | null;
+            /** @description Set when the step counted as a touch. */
+            touchNumber: number | null;
+            attempt: number;
+            /** @enum {string} */
+            status: "running" | "waiting" | "done" | "deferred" | "skipped" | "failed" | "needs_review" | "skipped_dry_run";
+            idempotencyKey: string;
+            /** @description Transition key to node id. */
+            next: {
+                [key: string]: string;
+            };
+            startedAt: string | null;
+            finishedAt: string | null;
+            provider: string | null;
+            /** @description The provider's id for what was sent. */
+            providerRef: string | null;
+            /** @description The email thread replies are matched to. */
+            threadRef: string | null;
+            /** @description The transition taken. */
+            branch: string | null;
+            /** @description What the step saw and did: `facts`, `rendered`, `skip_reason`, `outcome`, … */
+            result: {
+                [key: string]: unknown;
+            };
+            error: string | null;
+            senderId: string;
+            enqueuedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Message: {
+            id: string;
+            projectId: string;
+            contactId: string;
+            senderId: string;
+            /** @description The outreach run that sent it; null for inbound. */
+            runId: string | null;
+            channel: string;
+            /** @enum {string} */
+            direction: "out" | "in";
+            fromAddress: string | null;
+            toAddress: string | null;
+            subject: string | null;
+            /** @description Inbound bodies are stored only with `store_inbound_bodies`. */
+            body: string | null;
+            /** @description `sent`, `delivered`, `bounced`, `received`, … */
+            status: string;
+            provider: string;
+            providerId: string | null;
+            threadRef: string | null;
+            /** @description The RFC 5322 Message-ID. */
+            messageId: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+        };
+        Signal: {
+            id: string;
+            projectId: string;
+            contactId: string;
+            /** @enum {string} */
+            kind: "reply" | "bounce" | "complaint" | "opt_out" | "ooo" | "task_completed" | "call_connected" | "meeting_booked" | "sender_channel_status" | "contact_suppressed" | "crm_changed";
+            channel: string | null;
+            /** @description `smtp`, `allo`, `client`, `optout_link`, `mock`, … */
+            source: string;
+            /** @description The provider's or your event id; the idempotency key. */
+            externalId: string;
+            /** Format: date-time */
+            occurredAt: string;
+            /** Format: date-time */
+            receivedAt: string;
+            payload: {
+                [key: string]: unknown;
+            };
+            processedAt: string | null;
+            attributedRunId: string | null;
+            /** @description `direct`, `assisted` or `none`. */
+            attribution: string | null;
+        };
+        Task: {
+            id: string;
+            projectId: string;
+            enrollmentId: string;
+            runId: string;
+            senderId: string;
+            contactId: string;
+            /** @description `call`, `linkedin`, `manual`, … */
+            kind: string;
+            title: string;
+            body: string | null;
+            link: string | null;
+            dueAt: string | null;
+            /** @description When it takes `no_answer` by itself. */
+            expiresAt: string | null;
+            /** @description `open`, `done`, `expired` or `cancelled`. */
+            status: string;
+            outcome: string | null;
+            note: string | null;
+            /** @description Outcomes that count as a reply. */
+            connectedOutcomes: string[];
+            branchesByOutcome: {
+                [key: string]: string;
+            };
+            onCompleted: string | null;
+            onExpired: string | null;
+            /** @description Pushed to the Allo dialer. */
+            dialer: boolean;
+            autoComplete: boolean;
+            dialerPushedAt: string | null;
+            completedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Journey: {
+            enrollment: components["schemas"]["Enrollment"];
+            contact: components["schemas"]["Contact"];
+            /** @description The pinned version, with its definition. */
+            version: components["schemas"]["Version"];
+            /** @description In order; the path is consecutive runs. */
+            runs: components["schemas"]["Run"][];
+            messages: components["schemas"]["Message"][];
+            signals: components["schemas"]["Signal"][];
+            tasks: components["schemas"]["Task"][];
+        };
+        TimelineItem: {
+            /** @constant */
+            kind: "message";
+            /** Format: date-time */
+            at: string;
+            item: components["schemas"]["Message"];
+        } | {
+            /** @constant */
+            kind: "signal";
+            /** Format: date-time */
+            at: string;
+            item: components["schemas"]["Signal"];
+        } | {
+            /** @constant */
+            kind: "task";
+            /** Format: date-time */
+            at: string;
+            item: components["schemas"]["Task"];
+        };
+        WebhookEndpoint: {
+            id: string;
+            url: string;
+            /** @description Event types, or `["*"]`. */
+            event_types: string[];
+            /** @description `active` or `disabled`. */
+            status: string;
+            disabled_reason: string | null;
+            disabled_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        WebhookEndpointWithSecret: {
+            endpoint: components["schemas"]["WebhookEndpoint"];
+            /** @description `whsec_…`, shown once. */
+            secret: string;
+        };
+        WebhookDelivery: {
+            id: string;
+            endpoint: string;
+            event_id: string;
+            event_type: string;
+            enrollment: string | null;
+            /** @description `pending`, `delivered`, `failed` or `disabled`. */
+            status: string;
+            attempts: number;
+            next_attempt_at: string | null;
+            last_status_code: number | null;
+            last_error: string | null;
+            /** @description The event body as sent. */
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            created_at: string;
+            delivered_at: string | null;
+        };
+        SequenceSummary: {
+            sequence: string;
+            enrolled: number;
+            /** @description Includes `paused` and `waiting_limit`. */
+            active: number;
+            exited: number;
+            completed: number;
+            touches_delivered: number;
+            replies: number;
+            meetings: number;
+            /** @description Per 100, one decimal; null without a denominator. */
+            reply_rate_per_100_enrolled: number | null;
+            /** @description Per 100, one decimal; null without a denominator. */
+            meeting_rate_per_100_enrolled: number | null;
+            /** @description Per 100, one decimal; null without a denominator. */
+            reply_rate_per_100_delivered: number | null;
+            /** @description Per 100, one decimal; null without a denominator. */
+            meeting_rate_per_100_delivered: number | null;
+            replies_by_channel: {
+                [key: string]: number;
+            };
+        };
+        SequenceExits: {
+            sequence: string;
+            /** @description Largest first. */
+            exits: {
+                reason: string;
+                count: number;
+            }[];
+        };
+        NodeReport: {
+            node_id: string;
+            node_type: string;
+            channel: string | null;
+            reached: number;
+            executed: number;
+            skipped: number;
+            skipped_by_reason: {
+                [key: string]: number;
+            };
+            failed: number;
+            delivered: number;
+            bounced: number;
+            replies: number;
+            meetings: number;
+            /** @description Per 100, one decimal; null without a denominator. */
+            reply_rate_per_100_delivered: number | null;
+            median_time_to_reply_seconds: number | null;
+        };
+        SequenceNodes: {
+            sequence: string;
+            nodes: components["schemas"]["NodeReport"][];
+        };
+        ChannelReport: {
+            channel: string;
+            /** @description 0 groups the skipped and failed runs of the channel. */
+            touch_number: number;
+            reached: number;
+            sent: number;
+            skipped: number;
+            delivered: number;
+            bounced: number;
+            replies: number;
+            meetings: number;
+            /** @description Per 100, one decimal; null without a denominator. */
+            reply_rate_per_100_sent: number | null;
+            /** @description Per 100, one decimal; null without a denominator. */
+            meeting_rate_per_100_sent: number | null;
+        };
+        SequenceChannels: {
+            sequence: string;
+            channels: components["schemas"]["ChannelReport"][];
+        };
+        SequenceRow: {
+            sequence: string;
+            name: string;
+            status: string;
+            enrolled: number;
+            replies: number;
+            meetings: number;
+            /** @description Per 100, one decimal; null without a denominator. */
+            replies_per_100_enrolled: number | null;
+            /** @description Per 100, one decimal; null without a denominator. */
+            meetings_per_100_enrolled: number | null;
+        };
+        AllSequences: {
+            /** @description Ranked by replies then meetings per 100 enrolled. */
+            sequences: components["schemas"]["SequenceRow"][];
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;

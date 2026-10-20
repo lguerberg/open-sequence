@@ -77,7 +77,7 @@ export type { OpenSequenceErrorInit } from './errors.js';
 export { verifyWebhook, signWebhook, WebhookVerificationError, DEFAULT_TOLERANCE_SECONDS } from './webhooks.js';
 export type { HeaderLike, VerifyWebhookInput } from './webhooks.js';
 export type * from './types.js';
-export type { paths } from './generated/openapi.js';
+export type { components, paths } from './generated/openapi.js';
 
 export { Senders } from './resources/senders.js';
 export type { SenderInput, SmsChannelInput, ChannelPatch, SenderTasksQuery } from './resources/senders.js';

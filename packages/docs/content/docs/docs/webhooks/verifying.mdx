@@ -29,15 +29,18 @@ app.post('/hooks/opensequence', express.raw({ type: 'application/json' }), (req,
 ```python title="Python"
 import base64, hashlib, hmac, time
 
-def verify(secret: str, headers: dict, raw_body: bytes, tolerance=300) -> dict:
+def verify(secrets: list[str], headers: dict, raw_body: bytes, tolerance=300) -> dict:
+    """`secrets` holds every secret currently accepted for the endpoint: one, or two during a rotation."""
     msg_id = headers["webhook-id"]; ts = headers["webhook-timestamp"]; sig = headers["webhook-signature"]
     if abs(time.time() - int(ts)) > tolerance:
         raise ValueError("timestamp outside tolerance")
-    key = base64.b64decode(secret.removeprefix("whsec_"))
-    expected = hmac.new(key, f"{msg_id}.{ts}.".encode() + raw_body, hashlib.sha256).digest()
-    for part in sig.split(" "):
-        if part.startswith("v1,") and hmac.compare_digest(base64.b64decode(part[3:]), expected):
-            import json; return json.loads(raw_body)
+    signed = f"{msg_id}.{ts}.".encode() + raw_body
+    for secret in secrets:
+        key = base64.b64decode(secret.removeprefix("whsec_"))
+        expected = hmac.new(key, signed, hashlib.sha256).digest()
+        for part in sig.split(" "):
+            if part.startswith("v1,") and hmac.compare_digest(base64.b64decode(part[3:]), expected):
+                import json; return json.loads(raw_body)
     raise ValueError("no signature matched")
 ```
 
@@ -61,9 +64,22 @@ printf '%s.%s.' "$ID" "$TS" | cat - body.json \
 
 Reject timestamps more than five minutes from your clock (the SDK's default `toleranceSeconds` is 300) to blunt replays. Compare MACs in constant time. Use the **raw** request bytes: the service signs the exact JSON it sends, and a body that went through a JSON parser and back will not match.
 
+## Storing the secret
+
+The secret is in the response of `POST /v1/webhooks` (and of `rotate-secret`) once; no later call returns it, and the service keeps only an encrypted copy for signing. Store it where you store other credentials (a secrets manager, or an encrypted column), keyed by the endpoint id (`wep_…`) so a project with several endpoints can find the right one, and never log it. If it is lost, rotate: there is no way to read it back.
+
+A receiver without the SDK should keep a **list** of accepted secrets per endpoint, not a single value, and try each one against the `webhook-signature` header. That is what makes rotation safe:
+
 ## Rotation
 
-`POST /v1/webhooks/{id}/rotate-secret` returns a new secret; deliveries from that moment are signed with it and there is no overlap window on the service side. The SDK's `verifyWebhook` accepts `secret: [newSecret, oldSecret]`, so switch your handler to accept both, rotate, then drop the old one. A retry of a delivery first attempted before the rotation is re-signed with the current secret at each attempt.
+`POST /v1/webhooks/{id}/rotate-secret` returns a new secret; deliveries from that moment are signed with it and there is no overlap window on the service side. The SDK's `verifyWebhook` accepts `secret: [newSecret, oldSecret]`. Without the SDK, the procedure is the same four steps:
+
+1. Call `rotate-secret` and store the new secret **alongside** the old one for that endpoint.
+2. Verify incoming deliveries against every stored secret (the Python example above takes a list and tries each one before it raises).
+3. Watch the deliveries log (`GET /v1/webhooks/{id}/deliveries`) until nothing signed with the old secret is still pending: a retry of a delivery first attempted before the rotation is re-signed with the **current** secret at each attempt, so this is quick, and it is only in-flight attempts between your call and your store update that can still carry the old signature.
+4. Drop the old secret.
+
+If you cannot change your receiver to accept two secrets, rotate at a quiet moment and accept that deliveries in that window fail once and are retried with the new signature five seconds later ([Retries and recovery](/docs/webhooks/retries-and-recovery)).
 
 ## Errors the SDK throws
 

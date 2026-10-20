@@ -7,6 +7,8 @@ const header = `# OpenSequence
 
 > ${siteDescription}
 
+Adding OpenSequence to a product? Start with ${siteUrl}/docs/integrate: the questions to ask the user first, every API call in order, the events to handle and the admin screens to build in your own design system. Then ${siteUrl}/docs/community/faq for the questions integrators ask next.
+
 Every page below is also available as Markdown at ${siteUrl}/llms.mdx/<page path>/content.md. The whole site in one file: ${siteUrl}/llms-full.txt. The OpenAPI document: ${siteUrl}/openapi.json.
 `;
 

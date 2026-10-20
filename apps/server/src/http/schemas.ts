@@ -1,4 +1,4 @@
-/** Request schemas shared by routes. Response bodies use the envelope with an open `data`. */
+/** Request schemas shared by routes. Response schemas, with the envelope, live in responses.ts. */
 import { z } from 'zod';
 
 export const idParam = z.object({ id: z.string().min(1).max(128) });
@@ -9,10 +9,6 @@ export const listQuerySchema = z.object({
   cursor: z.string().optional(),
   updated_since: z.coerce.date().optional(),
 });
-
-export const okEnvelope = z.object({ success: z.literal(true), data: z.unknown(), meta: z.object({ request_id: z.string(), next_cursor: z.string().nullable().optional() }) });
-export const errEnvelope = z.object({ success: z.literal(false), error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }), meta: z.object({ request_id: z.string() }) });
-export const responses = { 200: okEnvelope, 201: okEnvelope, 400: errEnvelope, 401: errEnvelope, 403: errEnvelope, 404: errEnvelope, 409: errEnvelope, 422: errEnvelope, 429: errEnvelope, 500: errEnvelope } as const;
 
 export const contactBody = z
   .object({

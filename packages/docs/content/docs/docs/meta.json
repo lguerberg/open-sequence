@@ -2,5 +2,5 @@
   "title": "Docs",
   "description": "Guides, from the quickstart to self-hosting",
   "root": true,
-  "pages": ["index", "get-started", "use-cases", "sending", "sequences", "contacts", "webhooks", "analytics", "self-hosting", "security", "community"]
+  "pages": ["index", "integrate", "get-started", "use-cases", "sending", "sequences", "contacts", "webhooks", "analytics", "self-hosting", "security", "community"]
 }

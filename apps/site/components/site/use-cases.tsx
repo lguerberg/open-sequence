@@ -48,6 +48,18 @@ export function UseCases() {
                 <div className="mt-3 grid gap-3 sm:mt-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4">
                   <p className="rounded-2xl bg-surface px-5 py-4 font-mono text-[14px] leading-[1.5] text-foreground">
                     {u.claim}
+                    {u.lang === 'typescript' && (
+                      <>
+                        {' '}
+                        <span className="text-foreground/60">
+                          The SDK is not on npm yet: build it from the repository or call the same endpoints with fetch (
+                          <a href={`${DOCS}/sdks/typescript`} className="underline underline-offset-2 hover:text-foreground">
+                            how
+                          </a>
+                          ).
+                        </span>
+                      </>
+                    )}
                   </p>
                   <a
                     href={`${DOCS}${u.href}`}

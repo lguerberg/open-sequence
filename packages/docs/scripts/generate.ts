@@ -85,9 +85,10 @@ const TAG_TITLES: Record<string, { title: string; description: string }> = {
 };
 
 /**
- * The server inlines the response envelope in every response of every route (no `$ref`), which
- * makes the document ten times bigger than it needs to be, and every API page embeds the whole
- * document. Hoist every schema that appears more than once into `components.schemas`.
+ * The server names its resources (`components.schemas.Contact`) but inlines the envelope around them
+ * in every response, and every API page embeds the whole document. Hoist every schema that appears
+ * more than once into `components.schemas`, named after the resource it wraps (`ContactResponse`,
+ * `TaskListResponse`).
  */
 function hoistSharedSchemas(doc: OpenApiDoc): number {
   const counts = new Map<string, number>();
@@ -104,11 +105,16 @@ function hoistSharedSchemas(doc: OpenApiDoc): number {
   let n = 0;
   for (const [json, count] of counts) {
     if (count < 2 || json === 'undefined') continue;
-    const schema = JSON.parse(json) as { properties?: Record<string, { const?: boolean; enum?: unknown[] }> };
+    const schema = JSON.parse(json) as { $ref?: string; properties?: Record<string, { const?: boolean; enum?: unknown[]; $ref?: string; type?: string; items?: { $ref?: string } }> };
+    if (schema.$ref) continue; // already a component
     const props = schema.properties ?? {};
     const success = props['success']?.const ?? props['success']?.enum?.[0];
+    const data = props['data'];
+    const refName = (ref: string | undefined) => ref?.split('/').pop();
     const name =
-      success === true ? 'SuccessEnvelope'
+      success === true && refName(data?.$ref) ? `${refName(data?.$ref)}Response`
+      : success === true && data?.type === 'array' && refName(data.items?.$ref) ? `${refName(data.items?.$ref)}ListResponse`
+      : success === true ? `SuccessResponse${++n}`
       : success === false ? 'ErrorEnvelope'
       : 'scopes' in props && 'name' in props ? 'ApiKeyBody'
       : 'first_name' in props && 'external_id' in props ? 'ContactWithExternalIdBody'
@@ -119,7 +125,10 @@ function hoistSharedSchemas(doc: OpenApiDoc): number {
   }
   const components = ((doc['components'] ??= {}) as { schemas?: Record<string, unknown> });
   components.schemas ??= {};
-  for (const [json, name] of names) components.schemas[name] = JSON.parse(json);
+  for (const [json, name] of names) {
+    if (name in components.schemas) throw new Error(`generate: hoisted schema name ${name} collides with a component the server already names`);
+    components.schemas[name] = JSON.parse(json);
+  }
   let hoisted = 0;
   for (const op of ops) {
     visit(op, (media) => {
@@ -676,17 +685,17 @@ interface EventDoc {
 /** Payload notes per event, from the use cases that raise them; the generator fails when an event has none. */
 const EVENT_DOCS: Record<string, EventDoc> = {
   'enrollment.created': { when: 'after a successful enroll, one per contact', payload: '`enrollment` (id, sequence, version, contact, sender, status, mode, current_node_id, touch_count, enrolled_at, seq)' },
-  'enrollment.exited': { when: 'an exit by rule (reply, meeting, opt-out, bounce, suppression) or by API', payload: '`enrollment`, `exit_reason` (`replied`, `meeting_booked`, `opt_out`, `bounced`, `suppressed`, `manual`, `deleted`), `signal` (the signal id, when one caused it), `label` (manual exits)' },
+  'enrollment.exited': { when: 'an exit by rule (reply, meeting, opt-out, bounce, suppression) or by API', payload: '`enrollment`, `exit_reason` (`replied`, `meeting_booked`, `opt_out`, `bounced`, `suppressed`, `manual`, `deleted`), `signal` (the signal id, when one caused it), `label` (manual exits). Two exits carry the enrollment **id** in `enrollment` instead of the object: a contact erased with `DELETE /v1/contacts/{id}` adds `contact: { id, external_id }`; a sequence archived with `exit_active` adds `contact: { id }`' },
   'enrollment.completed': { when: 'an `end` node, an unwired transition, or a task completed with no next step', payload: '`enrollment`' },
   'enrollment.paused': { when: 'a manual pause, an out-of-office reply, or a step that failed with no `failed` transition', payload: '`enrollment`, `pause_reason` (`manual`, `ooo`, `step_failed`), `paused_until`' },
   'enrollment.resumed': { when: 'a manual resume or a pause whose `paused_until` passed', payload: '`enrollment`, `pause_reason` (the reason it had), `paused_until: null`' },
-  'run.done': { when: 'an outreach step was sent', payload: '`run` (id, node_id, node_type, channel, action, status, touch_number, provider, provider_ref, branch, enrollment), `enrollment`' },
+  'run.done': { when: 'an outreach step was sent', payload: '`run` (id, node_id, node_type, channel, action, status, touch_number, provider, provider_ref, branch, enrollment), `enrollment`. No subject or body: the journey (`GET /v1/enrollments/{id}`) has the message whose `runId` is `run.id`' },
   'run.skipped': { when: 'a gate refused a step for good (no consent, no phone, suppressed, no channel, country not allowed, no time zone)', payload: '`run`, `reason`' },
   'run.failed': { when: 'a step ran out of retries or was stuck', payload: '`run`, `error`' },
   'run.needs_review': { when: 'the outcome of a send is unknown (an SMS that may or may not have left)', payload: '`run`, `error`' },
   'task.created': { when: 'a `task` node created a task for the sender', payload: '`task` (id, kind, title, body, link, due_at, expires_at, status, outcome, dialer, enrollment, contact, sender)' },
   'task.expired': { when: 'a task reached `expires_at` (the step takes `no_answer`) or was cancelled by an exit', payload: '`task` (the id only when expired by the timer; the full task when cancelled by an exit)' },
-  'signal.received': { when: 'any signal was processed: reply, bounce, complaint, opt-out, meeting, call, task completion, client event', payload: '`signal` (id, kind, channel, source, occurred_at, attribution, attributed_run), `contact` (id, external_id, email, phone, first_name, last_name)' },
+  'signal.received': { when: 'any signal was processed: reply, bounce, complaint, opt-out, meeting, call, task completion, client event', payload: '`signal` (id, kind, channel, source, occurred_at, attribution, attributed_run), `contact` (id, external_id, email, phone, first_name, last_name). `kind` is one of `reply`, `bounce`, `complaint`, `opt_out`, `ooo`, `task_completed`, `call_connected`, `meeting_booked`, `contact_suppressed`; the schema also declares `sender_channel_status` and `crm_changed`, which nothing records today. The only event that carries `contact`' },
   'sender.channel_status': { when: 'a channel changed status (`credentials_needed`, `restricted`, back to `active`)', payload: '`sender`, `channel`, `status`' },
   'endpoint.disabled': { when: 'an endpoint failed every delivery for three days, or its secret can no longer be decrypted', payload: '`endpoint` (id, url, event_types, status, disabled_reason, disabled_at), `reason`' },
 };
@@ -700,20 +709,21 @@ async function generateEvents(): Promise<void> {
       GENERATED_NOTE('packages/engine/src/domain/shared/events.ts') +
       `
 
-\`GET /v1/schema/events\` returns the same list. Every delivery body has the shape below; the fields in the table are inside \`data\`. Subscribe to \`"*"\` or to a list of types when you create an endpoint. See [Receiving webhooks](/docs/webhooks/overview).
+\`GET /v1/schema/events\` returns the same list. Every delivery body has the shape below, five fields and nothing else; the fields in the table are inside \`data\`. Subscribe to \`"*"\` or to a list of types when you create an endpoint. See [Receiving webhooks](/docs/webhooks/overview).
 
 \`\`\`json
 {
   "id": "evt_01J9…",
   "type": "enrollment.exited",
   "project": "prj_01J9…",
-  "enrollment": "enr_01J9…",
   "occurred_at": "2026-10-13T09:00:00.000Z",
   "data": { "enrollment": { "id": "enr_01J9…", "seq": 7, "...": "..." }, "exit_reason": "replied", "signal": "sig_01J9…" }
 }
 \`\`\`
 
-${table(['Event', 'When', 'Payload (`data`)'], EVENT_TYPES.map((t) => [code(t), cell(EVENT_DOCS[t]!.when).replace(/\\`/g, '`'), EVENT_DOCS[t]!.payload.replace(/\|/g, '\\|')]))}
+Payload fields are snake_case. \`enrollment\` in a payload is a summary built for the event (\`id\`, \`sequence\`, \`version\`, \`contact\`, \`sender\`, \`status\`, \`mode\`, \`current_node_id\`, \`exit_reason\`, \`pause_reason\`, \`touch_count\`, \`replied_at\`, \`meeting_booked_at\`, \`enrolled_at\`, \`finished_at\`, \`seq\`), with \`contact\` and \`sender\` as ids; \`task\` is \`id\`, \`kind\`, \`title\`, \`body\`, \`link\`, \`due_at\`, \`expires_at\`, \`status\`, \`outcome\`, \`dialer\`, \`enrollment\`, \`contact\`, \`sender\`. Only \`signal.received\` carries a \`contact\` object; every other event names the contact by id through \`enrollment.contact\` or \`task.contact\`.
+
+${table(['Event', 'When', 'Payload (`data`)'], EVENT_TYPES.map((t) => [code(t), cell(EVENT_DOCS[t]!.when).replace(/\\`/g, '`'), EVENT_DOCS[t]!.payload.replace(/\|/g, '\\|').replace(/[{}]/g, (c) => `\\${c}`)]))}
 `,
   );
 }
@@ -827,7 +837,7 @@ async function generateErrors(): Promise<void> {
 }
 \`\`\`
 
-Messages are plain English and may change; \`code\` is stable, so branch on it. \`details\` is structured when there is something to act on (the conflicts of \`ALREADY_IN_SEQUENCE\`, the \`problems\` of \`INVALID_DEFINITION\`, the \`missing\` scopes of \`SCOPES_MISSING\`). The TypeScript SDK throws \`OpenSequenceError\` with \`status\`, \`code\`, \`message\`, \`details\` and \`requestId\`.`;
+Messages are plain English and may change; \`code\` is stable, so branch on it. \`details\` is structured when there is something to act on (the conflicts of \`ALREADY_IN_SEQUENCE\`, the \`problems\` of \`INVALID_DEFINITION\`, the \`missing\` scopes of \`SCOPES_MISSING\`). The TypeScript SDK throws \`OpenSequenceError\` with \`status\`, \`code\`, \`message\`, \`details\` and \`requestId\` (the envelope's \`meta.request_id\`).`;
 
   await write(
     'content/api/errors.mdx',

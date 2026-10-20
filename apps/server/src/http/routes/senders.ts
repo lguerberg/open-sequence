@@ -7,7 +7,8 @@ import { splitSmtpCredentials } from '@opensequence/providers';
 import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
 import { fail, ok } from '../envelope.js';
-import { idParam, listQuerySchema, responses } from '../schemas.js';
+import { connection, deleted, disabled, listResponse, okResponse, readiness, sender, senderChannel, senderDetail, task } from '../responses.js';
+import { idParam, listQuerySchema } from '../schemas.js';
 
 const mailServer = z
   .object({
@@ -35,13 +36,13 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.put('/v1/senders/:id', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Create or update a sender by your own id', params: idParam, body: senderInputSchema, response: responses },
+    schema: { tags: ['Senders'], summary: 'Create or update a sender by your own id', params: idParam, body: senderInputSchema, response: okResponse(sender) },
     handler: async (req, reply) => ok(reply, await upsertSender(ctx.deps, projectOf(req), req.params.id, req.body)),
   });
 
   app.get('/v1/senders', {
     preHandler: read,
-    schema: { tags: ['Senders'], summary: 'List senders', querystring: listQuerySchema, response: responses },
+    schema: { tags: ['Senders'], summary: 'List senders', querystring: listQuerySchema, response: listResponse(sender) },
     handler: async (req, reply) => {
       const page = await ctx.deps.uow.repos.senders.list(projectOf(req), req.query);
       return ok(reply, page.items, { next_cursor: page.nextCursor });
@@ -50,7 +51,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/senders/:id', {
     preHandler: read,
-    schema: { tags: ['Senders'], summary: 'A sender with channels, connections and readiness', params: idParam, response: responses },
+    schema: { tags: ['Senders'], summary: 'A sender with channels, connections and readiness', params: idParam, response: okResponse(senderDetail) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -61,13 +62,12 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/senders/:id/readiness', {
     preHandler: read,
-    schema: { tags: ['Senders'], summary: 'Which steps this sender can run, and why not', params: idParam, response: responses },
+    schema: { tags: ['Senders'], summary: 'Which steps this sender can run, and why not', params: idParam, response: okResponse(readiness) },
     handler: async (req, reply) => {
       const sender = await resolveSender(ctx.deps, projectOf(req), req.params.id);
       return ok(reply, await senderReadiness(ctx.deps, sender.id));
     },
   });
-
 
   app.put('/v1/senders/:id/channels/email', {
     preHandler: admin,
@@ -77,7 +77,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
       description: 'Replaces the sender email channel, whatever it was before. Passwords are encrypted at rest and never returned. 422 with SMTP_AUTH_FAILED, IMAP_AUTH_FAILED, SMTP_UNREACHABLE, IMAP_UNREACHABLE, SMTP_REFUSED or IMAP_REFUSED when a login fails.',
       params: idParam,
       body: smtpChannelBody,
-      response: responses,
+      response: okResponse(senderChannel),
     },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
@@ -96,7 +96,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/senders/:id/connections', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Mailbox connections of a sender (no secrets)', params: idParam, response: responses },
+    schema: { tags: ['Senders'], summary: 'Mailbox connections of a sender (no secrets)', params: idParam, response: okResponse(z.array(connection)) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -104,10 +104,9 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
     },
   });
 
-
   app.put('/v1/senders/:id/channels/sms', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: "The sender's Allo number and user", params: idParam, body: z.object({ allo_user_id: z.string().min(1), number: z.string().min(5) }), response: responses },
+    schema: { tags: ['Senders'], summary: "The sender's Allo number and user", params: idParam, body: z.object({ allo_user_id: z.string().min(1).describe("The Allo user id (`usr-…`), not the email; from GET /v1/project/providers/allo/users."), number: z.string().min(5).describe('E.164; one the Allo key can see and that can send SMS.') }), response: okResponse(senderChannel) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -121,7 +120,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.patch('/v1/senders/:id/channels/:channel', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Limits and status of a channel', params: z.object({ id: z.string(), channel: z.enum(['email', 'sms']) }), body: channelPatchSchema, response: responses },
+    schema: { tags: ['Senders'], summary: 'Limits and status of a channel', params: z.object({ id: z.string(), channel: z.enum(['email', 'sms']) }), body: channelPatchSchema, response: okResponse(senderChannel) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -131,7 +130,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.delete('/v1/senders/:id/channels/:channel', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Remove a channel; its steps skip from now on. Removing email deletes the stored SMTP and IMAP passwords', params: z.object({ id: z.string(), channel: z.enum(['sms', 'email']) }), response: responses },
+    schema: { tags: ['Senders'], summary: 'Remove a channel; its steps skip from now on. Removing email deletes the stored SMTP and IMAP passwords', params: z.object({ id: z.string(), channel: z.enum(['sms', 'email']) }), response: okResponse(deleted) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -146,7 +145,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.delete('/v1/senders/:id', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Disable a sender (their enrollments pause; nothing is deleted)', params: idParam, response: responses },
+    schema: { tags: ['Senders'], summary: 'Disable a sender (their enrollments pause; nothing is deleted)', params: idParam, response: okResponse(disabled) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -157,7 +156,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/senders/:id/tasks', {
     preHandler: read,
-    schema: { tags: ['Tasks'], summary: "A sender's tasks", params: idParam, querystring: listQuerySchema.extend({ status: z.string().optional(), kind: z.string().optional() }), response: responses },
+    schema: { tags: ['Tasks'], summary: "A sender's tasks", params: idParam, querystring: listQuerySchema.extend({ status: z.string().optional(), kind: z.string().optional() }), response: listResponse(task) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);

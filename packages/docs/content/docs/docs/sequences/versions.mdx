@@ -54,7 +54,7 @@ Creating a sequence makes `v1` as a draft; pass `definition` in the create body 
 
 ## What enrolled contacts do when a new version ships
 
-Nothing changes for them: an enrollment is pinned to its version id, the definition is immutable, and the journey shows the definition the contact actually ran. New enrollments (and `POST .../enrollments` without an explicit `version`) use the new default. To move people, exit them (`POST /v1/enrollments:exit { sequence, status: "active" }`) and enroll them again; the re-enrollment rule (`settings.reenroll`) applies, so `never` will skip them.
+Nothing changes for them: an enrollment is pinned to its version id, the definition is immutable, and the journey shows the definition the contact actually ran. New enrollments (and `POST .../enrollments` without an explicit `version`) use the new default. To move people, exit them (`POST /v1/enrollments:exit { sequence, status: "active" }`) and enroll them again; they start the new version from its entry node, and the re-enrollment rule (`settings.reenroll`) applies, so `never` will skip them with `already_enrolled_before`.
 
 ## Pausing and archiving a sequence
 
@@ -62,4 +62,31 @@ Nothing changes for them: an enrollment is pinned to its version id, the definit
 
 ## Reading
 
-`GET /v1/sequences` lists sequences with their versions (`id`, `tag`, `status`) and headline counts (enrolled, active, replies, meetings); `GET /v1/sequences/{id}` adds `published_at`; `GET /v1/sequences/{id}/versions/{vid}` returns the definition and its current validation problems.
+`GET /v1/sequences` lists sequences, each with its version summaries and its enrollment counts by status. The sequence itself is a stored record (camelCase); `versions` and `counts` are built for the list (snake_case). One row:
+
+```json
+{
+  "id": "seq_01J9…", "projectId": "prj_01J9…", "externalId": null, "name": "UK intro", "description": null, "createdBy": null, "labels": {},
+  "status": "active", "defaultVersionId": "ver_01J9…", "createdAt": "…", "updatedAt": "…",
+  "versions": [
+    { "id": "ver_01J9…", "tag": "v1", "status": "published", "published_at": "2026-10-13T09:00:00.000Z", "created_at": "…" },
+    { "id": "ver_01JA…", "tag": "v2", "status": "draft", "published_at": null, "created_at": "…" }
+  ],
+  "counts": { "active": 142, "paused": 3, "waiting_limit": 0, "completed": 57, "exited": 88, "failed": 0 }
+}
+```
+
+`counts` is every enrollment of the sequence, all versions together, by its current status; every key is present, `0` when empty. For a list screen: running is `active + paused + waiting_limit`, finished is `completed + exited`. Replies and meetings are not in this list: read them from [`GET /v1/analytics/sequences`](/docs/analytics/endpoints#cross-sequence) (one call for every sequence) or from a sequence's `analytics/summary`.
+
+`GET /v1/sequences/{id}` returns the same record with `versions` and without `counts`. `GET /v1/sequences/{id}/versions` returns the full version records. `GET /v1/sequences/{id}/versions/{vid}` returns the version with its current validation problems; the definition is inside `version`:
+
+```json
+{
+  "version": { "id": "ver_01J9…", "sequenceId": "seq_01J9…", "tag": "v1", "status": "draft", "lockVersion": 4, "schemaVersion": 1,
+               "definition": { "schema_version": 1, "entry": "start", "nodes": { … }, "...": "..." },
+               "basedOnVersionId": null, "createdBy": null, "publishedBy": null, "publishedAt": null, "archivedAt": null, "createdAt": "…", "updatedAt": "…" },
+  "problems": [ { "path": "nodes.email_intro.params.subject", "code": "TEMPLATE_UNKNOWN_FIELD", "message": "…", "severity": "warning" } ]
+}
+```
+
+`PUT .../draft`, `POST .../publish` and `POST /v1/sequences` return this same `{ version, problems }` pair (the create adds `sequence`).

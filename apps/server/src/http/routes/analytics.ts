@@ -2,11 +2,12 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { allSequences, resolveSequence, sequenceChannels, sequenceExits, sequenceNodes, sequenceSummary, type AnalyticsQuery, type Deps } from '@opensequence/engine';
+import { allSequences as allSequencesReport, resolveSequence, sequenceChannels as channelsReport, sequenceExits as exitsReport, sequenceNodes as nodesReport, sequenceSummary as summaryReport, type AnalyticsQuery, type Deps } from '@opensequence/engine';
 import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
 import { ok } from '../envelope.js';
-import { idParam, responses } from '../schemas.js';
+import { allSequences, okResponse, sequenceChannels, sequenceExits, sequenceNodes, sequenceSummary } from '../responses.js';
+import { idParam } from '../schemas.js';
 
 const analyticsQuery = z.object({
   version: z.string().optional(),
@@ -24,23 +25,23 @@ export async function analyticsRoutes(fastify: FastifyInstance, ctx: AppContext)
 
   app.get('/v1/analytics/sequences', {
     preHandler: read,
-    schema: { tags: ['Analytics'], summary: 'Every sequence with enrolled, replies, meetings and rates', querystring: analyticsQuery.extend({ min_enrolled: z.coerce.number().int().min(0).optional() }), response: responses },
+    schema: { tags: ['Analytics'], summary: 'Every sequence with enrolled, replies, meetings and rates', querystring: analyticsQuery.extend({ min_enrolled: z.coerce.number().int().min(0).optional() }), response: okResponse(allSequences) },
     handler: async (req, reply) => {
       const { min_enrolled, ...q } = req.query;
-      return ok(reply, await allSequences(ctx.deps, projectOf(req), { ...(q as AnalyticsQuery), minEnrolled: min_enrolled }));
+      return ok(reply, await allSequencesReport(ctx.deps, projectOf(req), { ...(q as AnalyticsQuery), minEnrolled: min_enrolled }));
     },
   });
 
-  const perSequence: Array<[string, PerSequence]> = [
-    ['summary', sequenceSummary as PerSequence],
-    ['exits', sequenceExits as PerSequence],
-    ['nodes', sequenceNodes as PerSequence],
-    ['channels', sequenceChannels as PerSequence],
+  const perSequence: Array<[string, string, PerSequence, z.ZodType]> = [
+    ['summary', 'Enrolled, active, exited, completed, delivered touches, replies and meetings, with rates', summaryReport as PerSequence, sequenceSummary],
+    ['exits', 'Exits by reason, largest first', exitsReport as PerSequence, sequenceExits],
+    ['nodes', 'Per step: reached, executed, skipped by reason, failed, delivered, bounced, replies, meetings', nodesReport as PerSequence, sequenceNodes],
+    ['channels', 'Per channel and touch number: sent, delivered, bounced, replies, meetings', channelsReport as PerSequence, sequenceChannels],
   ];
-  for (const [name, fn] of perSequence) {
+  for (const [name, summary, fn, data] of perSequence) {
     app.get(`/v1/sequences/:id/analytics/${name}`, {
       preHandler: read,
-      schema: { tags: ['Analytics'], summary: `Sequence ${name}`, params: idParam, querystring: analyticsQuery, response: responses },
+      schema: { tags: ['Analytics'], summary, params: idParam, querystring: analyticsQuery, response: okResponse(data) },
       handler: async (req, reply) => {
         const projectId = projectOf(req);
         const s = await resolveSequence(ctx.deps, projectId, req.params.id);

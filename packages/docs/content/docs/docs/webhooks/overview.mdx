@@ -16,7 +16,7 @@ const { endpoint, secret } = await oseq.webhooks.create({
   url: 'https://app.acme.com/hooks/opensequence',
   event_types: ['enrollment.exited', 'task.created', 'signal.received'],
 });
-// store `secret` next to the endpoint id; it is needed to verify deliveries
+// store `secret` next to the endpoint id, encrypted; it is needed to verify deliveries and is never shown again
 ```
 
 </CodeGroup>
@@ -28,17 +28,20 @@ The service tells your backend what happened with the delivery guarantees you ex
 | Event | When |
 |---|---|
 | `enrollment.created` | after a successful enroll, one per contact |
-| `enrollment.exited` | an exit by rule or by API, with `exit_reason` and the `signal` that caused it |
+| `enrollment.exited` | an exit by rule or by API, with `exit_reason` and the `signal` that caused it. Two exits carry the enrollment **id** instead of the object: a contact erased with `DELETE /v1/contacts/{id}` (`contact: { id, external_id }`) and a sequence archived with `exit_active` (`contact: { id }`) |
 | `enrollment.completed` | an `end` node or an unwired transition |
 | `enrollment.paused`, `enrollment.resumed` | a pause or resume, any cause, with `pause_reason` and `paused_until` |
-| `run.done` | an outreach step was sent: the run (node, channel, touch number, provider ref) and the enrollment |
-| `run.skipped`, `run.failed`, `run.needs_review` | a step did not execute, with `reason` or `error` |
-| `task.created`, `task.expired` | a task for a sender appeared or expired |
-| `signal.received` | any signal after processing (reply, bounce, opt-out, meeting, call, task completion, your own events), with its attribution and the contact |
+| `run.done` | an outreach step was sent: `run` (`id`, `node_id`, `node_type`, `channel`, `action`, `status`, `touch_number`, `provider`, `provider_ref`, `branch`, `enrollment`) and `enrollment`. The subject and body are not in it: read the [journey](/docs/contacts/journey) and take the message whose `runId` is `run.id` |
+| `run.skipped`, `run.failed`, `run.needs_review` | a step did not execute, with `run` and a `reason` or an `error` |
+| `task.created` | a task for a sender appeared, with the rendered `task` |
+| `task.expired` | a task closed without the sender: `task` is the full task when an exit cancelled it, but only the id (`task: "tsk_…"`) when its timer expired |
+| `signal.received` | any signal after processing, with `signal` (`kind`, `channel`, `source`, `attribution`, `attributed_run`) and `contact` (`id`, `external_id`, `email`, `phone`, `first_name`, `last_name`). `kind` is `reply`, `bounce`, `complaint`, `opt_out`, `ooo`, `task_completed`, `call_connected`, `meeting_booked` or `contact_suppressed` |
 | `sender.channel_status` | a channel changed status (`credentials_needed`, `restricted`, back to `active`) |
 | `endpoint.disabled` | an endpoint was disabled after three days of failures |
 
 The generated reference lists every payload field: [Webhook events](/reference/webhook-events). `GET /v1/schema/events` returns the type list.
+
+Payloads are snake_case, like request bodies, and reference other records by id: `data.enrollment` is a summary (`id`, `sequence`, `version`, `contact`, `sender`, `status`, `mode`, `current_node_id`, `exit_reason`, `pause_reason`, `touch_count`, `replied_at`, `meeting_booked_at`, `enrolled_at`, `finished_at`, `seq`), not the full record, and `data.contact` is present only on `signal.received` (and, reduced to ids, on the two exits noted above). Any other event finds its contact through `data.enrollment.contact` or `data.task.contact`, both contact ids; `GET /v1/contacts/{id}` has the rest.
 
 ## The payload
 
@@ -78,7 +81,7 @@ Answer any `2xx` within 10 seconds. Anything else, a timeout or a connection err
 | `GET /v1/webhooks`, `GET /v1/webhooks/{id}` | list and read (never the secret) |
 | `PATCH /v1/webhooks/{id}` | change `url` or `event_types` |
 | `DELETE /v1/webhooks/{id}` | delete the endpoint and its deliveries |
-| `POST /v1/webhooks/{id}/rotate-secret` | a new secret, shown once; deliveries from this moment are signed with it, there is no overlap window |
+| `POST /v1/webhooks/{id}/rotate-secret` | a new secret, shown once; deliveries from this moment are signed with it, there is no overlap window, so accept both secrets while you switch ([how](/docs/webhooks/verifying#rotation)) |
 | `POST /v1/webhooks/{id}/enable` | re-enable a disabled endpoint and replay what was held |
 | `POST /v1/webhooks/{id}/recover { since }` | re-send every delivery that failed for good since a time |
 | `GET /v1/webhooks/{id}/deliveries` | the log: status, attempts, last status code and error, the payload |

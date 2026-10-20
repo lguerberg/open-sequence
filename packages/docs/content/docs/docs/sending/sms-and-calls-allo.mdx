@@ -43,7 +43,7 @@ The key needs these scopes: `SMS_SEND`, `DIALING_QUEUE_READ_WRITE`, `PHONE_NUMBE
 
 ## Mapping a sender
 
-`PUT /v1/senders/{id}/channels/sms` takes `allo_user_id` and `number` (E.164). The number must be one the key can see (`422 UNKNOWN_NUMBER`) and must be able to send SMS (`422 NUMBER_HAS_NO_SMS`). Build the pickers in your UI from `GET /v1/project/providers/allo/users` and `.../numbers`; each number lists the users who can use it.
+`PUT /v1/senders/{id}/channels/sms` takes `allo_user_id` and `number` (E.164). `allo_user_id` is Allo's user id (`usr-…`, the `id` field of `GET /v1/project/providers/allo/users`), not the person's email. The number must be one the key can see (`422 UNKNOWN_NUMBER`) and must be able to send SMS (`422 NUMBER_HAS_NO_SMS`). Build the pickers in your UI from `GET /v1/project/providers/allo/users` and `.../numbers`; each number lists the users who can use it.
 
 The `sms` channel is also the sender's **Allo identity for calls**: call tasks are matched to the sender by this number. Set it even for senders who only call.
 

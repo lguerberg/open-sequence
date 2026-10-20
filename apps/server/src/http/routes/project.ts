@@ -7,7 +7,8 @@ import { alloProbe, alloRegisterWebhook, attioProbe } from '@opensequence/provid
 import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
 import { ok } from '../envelope.js';
-import { idParam, responses } from '../schemas.js';
+import { alloNumber, alloUser, apiKeySummary, createdApiKey, createdResponse, credential, crmSchema, engineHealth, flagValue, okResponse, project, projectView, revoked } from '../responses.js';
+import { idParam } from '../schemas.js';
 
 const providerParam = z.object({ provider: z.enum(['allo', 'attio', 'mock']) });
 
@@ -18,7 +19,7 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/project', {
     preHandler: read,
-    schema: { tags: ['Project'], summary: 'The project, its settings, provider credential status and webhook URLs', response: responses },
+    schema: { tags: ['Project'], summary: 'The project, its settings, provider credential status and webhook URLs', response: okResponse(projectView) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const project = await ctx.deps.uow.repos.projects.byId(projectId);
@@ -34,7 +35,7 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.put('/v1/project/settings', {
     preHandler: admin,
-    schema: { tags: ['Project'], summary: 'Update settings (merged)', body: z.record(z.string(), z.unknown()), response: responses },
+    schema: { tags: ['Project'], summary: 'Update settings (merged)', body: z.record(z.string(), z.unknown()), response: okResponse(project) },
     handler: async (req, reply) => ok(reply, await updateProjectSettings(ctx.deps, projectOf(req), req.body)),
   });
 
@@ -45,7 +46,7 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
       summary: 'Store or rotate a provider credential (write-only). Allo: api_key, webhook_secret?; Attio: api_key.',
       params: providerParam,
       body: z.record(z.string(), z.string()),
-      response: responses,
+      response: okResponse(credential),
     },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
@@ -65,25 +66,25 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/project/providers/allo/numbers', {
     preHandler: read,
-    schema: { tags: ['Project'], summary: 'Numbers the Allo key can see (for pickers)', response: responses },
+    schema: { tags: ['Project'], summary: 'Numbers the Allo key can see (for pickers)', response: okResponse(z.array(alloNumber)) },
     handler: async (req, reply) => ok(reply, await ctx.deps.providers.sms.listNumbers(projectOf(req))),
   });
 
   app.get('/v1/project/providers/allo/users', {
     preHandler: read,
-    schema: { tags: ['Project'], summary: 'Allo team members (for mapping senders)', response: responses },
+    schema: { tags: ['Project'], summary: 'Allo team members (for mapping senders)', response: okResponse(z.array(alloUser)) },
     handler: async (req, reply) => ok(reply, await ctx.deps.providers.sms.listUsers(projectOf(req))),
   });
 
   app.get('/v1/project/providers/attio/schema', {
     preHandler: read,
-    schema: { tags: ['Project'], summary: 'Attio objects and attributes, for crm.* condition pickers', response: responses },
+    schema: { tags: ['Project'], summary: 'Attio objects and attributes, for crm.* condition pickers', response: okResponse(crmSchema) },
     handler: async (req, reply) => ok(reply, await ctx.deps.providers.crm.schema(projectOf(req))),
   });
 
   app.get('/v1/api-keys', {
     preHandler: admin,
-    schema: { tags: ['Project'], summary: 'List API keys (prefix only)', response: responses },
+    schema: { tags: ['Project'], summary: 'List API keys (prefix only)', response: okResponse(z.array(apiKeySummary)) },
     handler: async (req, reply) => {
       const keys = await ctx.deps.uow.repos.projects.listApiKeys(projectOf(req));
       return ok(reply, keys.map((k) => ({ id: k.id, name: k.name, prefix: k.prefix, scopes: k.scopes, last_used_at: k.lastUsedAt, revoked_at: k.revokedAt, created_at: k.createdAt })));
@@ -92,16 +93,16 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.post('/v1/api-keys', {
     preHandler: admin,
-    schema: { tags: ['Project'], summary: 'Create an API key (shown once)', body: z.object({ name: z.string().min(1).max(80), scopes: z.array(z.enum(['read', 'enroll', 'admin'])).min(1) }), response: responses },
+    schema: { tags: ['Project'], summary: 'Create an API key (shown once)', body: z.object({ name: z.string().min(1).max(80), scopes: z.array(z.enum(['read', 'enroll', 'admin'])).min(1) }), response: createdResponse(createdApiKey) },
     handler: async (req, reply) => {
       const { key, secret } = await createApiKey(ctx.deps, { projectId: projectOf(req), ...req.body });
-      return ok(reply, { key: { id: key.id, name: key.name, prefix: key.prefix, scopes: key.scopes }, api_key: secret }, { status: 201 });
+      return ok(reply, { key: { id: key.id, name: key.name, prefix: key.prefix, scopes: key.scopes, created_at: key.createdAt }, api_key: secret }, { status: 201 });
     },
   });
 
   app.delete('/v1/api-keys/:id', {
     preHandler: admin,
-    schema: { tags: ['Project'], summary: 'Revoke an API key', params: idParam, response: responses },
+    schema: { tags: ['Project'], summary: 'Revoke an API key', params: idParam, response: okResponse(revoked) },
     handler: async (req, reply) => {
       await ctx.deps.uow.repos.projects.revokeApiKey(projectOf(req), req.params.id);
       return ok(reply, { revoked: true });
@@ -110,7 +111,7 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/engine/health', {
     preHandler: admin,
-    schema: { tags: ['Engine'], summary: "This project's flags, queue depths and job state", response: responses },
+    schema: { tags: ['Engine'], summary: "This project's flags, queue depths and job state", response: okResponse(engineHealth) },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const [flags, queues, jobs] = await Promise.all([ctx.deps.uow.repos.projects.listFlags(projectId), ctx.deps.queue.stats(), ctx.deps.uow.repos.scheduler.lastRuns()]);
@@ -120,7 +121,7 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.put('/v1/engine/flags/:key', {
     preHandler: admin,
-    schema: { tags: ['Engine'], summary: 'Flip a kill switch: global or channel:<name>', params: z.object({ key: z.string() }), body: z.object({ value: z.boolean() }), response: responses },
+    schema: { tags: ['Engine'], summary: 'Flip a kill switch: global or channel:<name>', params: z.object({ key: z.string() }), body: z.object({ value: z.boolean() }), response: okResponse(flagValue) },
     handler: async (req, reply) => {
       await setFlag(ctx.deps, projectOf(req), req.params.key, req.body.value, req.auth?.keyId ?? null);
       return ok(reply, { key: req.params.key, value: req.body.value });

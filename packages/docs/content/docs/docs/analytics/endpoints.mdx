@@ -67,7 +67,7 @@ All five take `version` (a version id), `from`, `to`, `sender` and `country`; sc
 
 ## Cross-sequence
 
-`GET /v1/analytics/sequences?min_enrolled=` returns every sequence of the project with `enrolled`, `replies`, `meetings`, `replies_per_100_enrolled`, `meetings_per_100_enrolled`, ranked by replies then meetings per 100 enrolled; `min_enrolled` hides tiny samples.
+`GET /v1/analytics/sequences?min_enrolled=` returns `sequences: [{ sequence, name, status, enrolled, replies, meetings, replies_per_100_enrolled, meetings_per_100_enrolled }]`, every sequence of the project ranked by replies then meetings per 100 enrolled; `min_enrolled` hides tiny samples. It has no status counts: for a list screen that also shows running and finished, read `counts` from [`GET /v1/sequences`](/docs/sequences/versions#reading) (active, paused, waiting_limit, completed, exited, failed per sequence, in the same page) and join the two on the sequence id. Neither call is per sequence, so a list screen costs one analytics call plus one page of sequences, not one request per row.
 
 <Note>The architecture document also lists `GET /v1/analytics/channels` (all sequences compared by channel) and a 60-second cache. Neither exists in the code today.</Note>
 

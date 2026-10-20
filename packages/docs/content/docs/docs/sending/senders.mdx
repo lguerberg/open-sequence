@@ -31,6 +31,27 @@ const sender = await oseq.senders.upsert('u_42', {
 
 `PUT /v1/senders/{id}` creates or updates the sender (an upsert on your id). It needs an `admin` key. In every sender route, `{id}` is your own id or the service id (`snd_…`); prefix yours with `ext:` if it could look like a service id.
 
+The sender comes back as a stored record, camelCase, with your id as `externalId`. This is the whole object, the same one `GET /v1/senders` lists and `GET /v1/senders/{id}` extends:
+
+```json
+{
+  "id": "snd_01J9…",
+  "projectId": "prj_01J9…",
+  "externalId": "u_42",
+  "name": "Max Rivera",
+  "email": "max@acme.com",
+  "timezone": "America/New_York",
+  "status": "active",
+  "attrs": { "title": "Account Executive" },
+  "signatureHtml": "<p><b>Max Rivera</b><br>Account Executive, Acme<br><a href=\"https://cal.com/max\">Book a call</a></p>",
+  "signatureText": "Max Rivera\nAccount Executive, Acme\nBook a call (https://cal.com/max)",
+  "createdAt": "2026-10-13T09:00:00.000Z",
+  "updatedAt": "2026-10-13T09:00:00.000Z"
+}
+```
+
+To join the list back to your users, match `externalId` to your user id (or keep the `snd_…` id when you create the sender). `status` is `active` or `disabled`.
+
 | Field | Notes |
 |---|---|
 | `name` | Required, up to 160 characters. Templates read `{{ sender.name }}` and `{{ sender.first_name }}` (the first word of the name). |

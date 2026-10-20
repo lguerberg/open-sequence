@@ -3,7 +3,7 @@ import Fastify from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-import { jsonSchemaTransform, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
+import { jsonSchemaTransform, jsonSchemaTransformObject, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 import type pino from 'pino';
 import type { Runtime } from '../bootstrap.js';
 import { errorHandler } from './envelope.js';
@@ -19,6 +19,32 @@ import { senderRoutes } from './routes/senders.js';
 import { sequenceRoutes } from './routes/sequences.js';
 import { taskRoutes } from './routes/tasks.js';
 import { webhookRoutes } from './routes/webhooks.js';
+
+type OpenApiLike = { components?: { schemas?: Record<string, unknown> } } & Record<string, unknown>;
+
+/** Removes `components.schemas` entries that nothing in the document references (transitively). */
+export function pruneUnreferencedComponents<T extends OpenApiLike>(doc: T): T {
+  const schemas = doc.components?.schemas;
+  if (!schemas) return doc;
+  const refsIn = (value: unknown, out: Set<string>) => {
+    JSON.stringify(value, (_k, v: unknown) => {
+      if (typeof v === 'string' && v.startsWith('#/components/schemas/')) out.add(v.slice('#/components/schemas/'.length));
+      return v;
+    });
+    return out;
+  };
+  const used = refsIn({ ...doc, components: { ...doc.components, schemas: undefined } }, new Set<string>());
+  for (const queue = [...used]; queue.length; ) {
+    const name = queue.pop()!;
+    for (const ref of refsIn(schemas[name], new Set<string>())) {
+      if (used.has(ref)) continue;
+      used.add(ref);
+      queue.push(ref);
+    }
+  }
+  for (const name of Object.keys(schemas)) if (!used.has(name)) delete schemas[name];
+  return doc;
+}
 
 export async function buildApp(rt: Runtime, log: pino.Logger) {
   const app = Fastify({ loggerInstance: log, genReqId: () => `req_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`, trustProxy: true, bodyLimit: 2 * 1024 * 1024 });
@@ -54,6 +80,9 @@ export async function buildApp(rt: Runtime, log: pino.Logger) {
       security: [{ projectKey: [] }],
     },
     transform: jsonSchemaTransform,
+    // Named response schemas (responses.ts) become `components.schemas`. The type provider also emits an
+    // `…Input` twin of every one, which no route references; drop those so the document only names what it uses.
+    transformObject: (doc) => pruneUnreferencedComponents(jsonSchemaTransformObject(doc)),
   });
   await app.register(swaggerUi, { routePrefix: '/docs' });
 

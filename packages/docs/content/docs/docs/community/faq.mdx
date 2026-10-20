@@ -1,64 +1,64 @@
 ---
-title: "FAQ"
-description: "Short answers to the questions people ask first, each with the page that has the long one."
+title: "Common questions"
+description: "Short answers to the questions an integrator asks before and while adding OpenSequence to a product, each with the page that has the long one."
 ---
+
+## Does it work with my CRM?
+
+Yes, with any of them, because it does not depend on one. People in your CRM become contacts keyed by your record id (`PUT /v1/contacts/{your id}`), your reps become senders keyed by your user id, and every webhook carries those ids back. The service writes nothing to your CRM: handle `signal.received` and write the reply or the meeting yourself. The one CRM-specific feature is optional: with an Attio key, `crm.*` conditions read the person, company and open deal at decision time. [Integrate OpenSequence into your product](/docs/integrate), [Webhook recipes](/docs/webhooks/recipes).
+
+## Can I use my own UI and design system?
+
+That is the only option. OpenSequence ships no screens: your product renders the sequence list, the editor, the people running, the senders and the health panel from the API, in your own components. The screens a product needs, with the endpoints each one reads and the actions it calls, are listed on the [integration page](/docs/integrate#admin-ui-you-will-build); [Building a canvas](/docs/sequences/building-a-canvas) covers the editor.
+
+## Where do credentials live?
+
+In the service's Postgres, encrypted under `SEQ_ENCRYPTION_KEYS`: mailbox passwords, the Allo and Attio keys, webhook signing secrets. No endpoint returns one; connections show hosts, ports and a status only. Your own secrets (the project API key, the webhook secret shown once) live in your app, in a secrets manager or an encrypted column. Back up the database and the keys variable together. [Security](/docs/security/security), [Storing the secret](/docs/webhooks/verifying#storing-the-secret).
+
+## What happens when a contact replies?
+
+The poll job reads the sender's mailbox over IMAP (or Allo reports the text), matches the message to the thread the service started, and records a `reply` signal. The first reply is attributed to the step that earned it and sets `repliedAt` on the enrollment. If the sequence has `reply` in `exit_on` (the default for outreach), the enrollment exits with `exit_reason: "replied"`. You receive `signal.received` with `data.contact.external_id` (your id) and then `enrollment.exited`. Out-of-office auto-replies are recorded as `ooo` and do not count. [Email via SMTP and IMAP](/docs/sending/email-smtp#replies-auto-replies-and-bounces), [Outcomes](/docs/analytics/outcomes).
+
+## Does STOP stop everything?
+
+A text made only of `STOP`, `QUIT`, `END`, `CANCEL`, `UNSUBSCRIBE`, `OPT OUT` or `STOPALL` suppresses SMS for that contact and exits every enrollment they are in, email steps included. Email keeps going for them only if you enroll them again in a sequence without SMS steps. An unsubscribe click on the hosted link suppresses email the same way. [Consent and suppressions](/docs/contacts/consent-and-suppressions).
+
+## Can reps send from their own mailbox?
+
+Yes, and that is the model: every sender has their own mailbox over SMTP and IMAP and their own Allo number, so messages come from the rep, land in the rep's sent folder, and replies arrive in the rep's inbox. There is no shared sending domain to warm up. Daily caps, a minimum gap between sends and a send window apply per sender. [Senders](/docs/sending/senders), [Deliverability and compliance](/docs/sending/deliverability-and-compliance).
+
+## Gmail without OAuth?
+
+Yes. Gmail and Google Workspace connect with an **app password** (the account needs 2-step verification on) over `smtp.gmail.com:465` and `imap.gmail.com:993`. There is no Google OAuth flow to build or verify. Microsoft 365 and Outlook.com cannot connect at all: Microsoft retired password sign-in for them. Fastmail, iCloud and any mail server with password login work. [Gmail and Google Workspace](/docs/sending/email-smtp#gmail-and-google-workspace).
+
+## What happens to people in a sequence when I publish a new version?
+
+Nothing. An enrollment is pinned to the version it started on, and that version is immutable, so they finish the steps they were promised. New enrollments use the new default. To move people over, exit them and enroll them again; they restart from step one and the re-enrollment rule (`settings.reenroll`) applies. [Versions](/docs/sequences/versions).
 
 ## Can a contact be in two sequences at once?
 
-No. A contact can be in one active enrollment per project (`active`, `paused` or `waiting_limit`). Enrolling a batch that contains such a contact fails with `409 ALREADY_IN_SEQUENCE`, names the conflicts, and enrolls nobody. Exit them first, or remove them from the selection. [Enrolling](/docs/contacts/enrolling).
+No. One active enrollment per contact per project. Enrolling a batch that contains such a contact fails with `409 ALREADY_IN_SEQUENCE`, names the conflicts in `details`, and enrolls nobody. Exit them first or take them out of the selection. [Enrolling](/docs/contacts/enrolling).
 
-## The contact booked a meeting in Calendly and the sequence kept going. Why?
+## How do I test locally without sending anything?
 
-The service only sees its own channels: replies in threads it started, bounces, STOP texts, unsubscribe clicks, and Allo call results. A booked meeting, a do-not-contact flag in your CRM or a reply in a shared inbox must be reported with `POST /v1/contacts/{id}/events`. [Contact events](/docs/contacts/events).
+Run the service with mock providers (`SEQ_DEV_MOCK_PROVIDERS`, on in the quickstart's Docker Compose file). The mock mailbox accepts any login and keeps sent mail in memory, the contact's timeline shows each message with its rendered body, and `POST /hooks/mock/{project slug}` injects a reply, a bounce or a STOP as if the provider had reported it. The same API, the same webhooks, no real mail. [Quickstart](/docs/get-started/quickstart).
 
-## Why was my SMS step skipped?
+## What are the rate limits?
 
-The run's `result.skip_reason` says: `no_consent`, `no_phone`, `country_not_allowed`, `suppressed`, `no_timezone`, `no_sms_channel` or `sender_channel_<status>`. Consent is false by default and only an `admin` key can set it. The allowed countries are `settings.sms_countries` (default `["US"]`). A text due outside 08:00 to 21:00 in the contact's time zone is deferred, not skipped. These gates are fixed. [Deliverability and compliance](/docs/sending/deliverability-and-compliance).
+600 requests per minute per API key (per `Authorization` header value), then `429` with a `Retry-After` header. Batches are sized so a sync rarely gets near it: 500 contacts per `contacts:batch`, 5,000 contacts per enroll call, 500 events per `contacts:events`. Lists page at up to 200 rows. [Conventions](/api/conventions#rate-limits), [Limits](/reference/limits).
 
-## Why was my email step skipped?
+## What does self-hosting cost?
 
-Read the [journey](/docs/contacts/journey): a `skipped` run carries its reason (`no_email`, `suppressed`, `no_email_channel`, `sender_channel_credentials_needed`, …). A `deferred` run was not skipped: it waits for the send window, the daily cap, the minimum gap or a kill switch, and shows `retry_at`.
+One container and a Postgres you already run; nothing per seat, per contact or per message, and your mailbox provider and Allo bill you directly. [Install](/docs/self-hosting/install).
 
-## Can I edit a sequence that people are in?
+## What is the licence?
 
-Not that version. A published version is immutable; create a new draft from it (`POST /v1/sequences/{id}/versions`), publish it, and new enrollments use it. People already enrolled finish on the version they started. To move them, exit and re-enroll (the `reenroll` setting applies). [Versions](/docs/sequences/versions).
+Apache-2.0, for the service, the SDKs and the MCP server. Run it, embed it in a commercial product, modify it; keep the notices.
 
-## Can I use Fastmail, iCloud or my own mail server?
+## Can I change the sender of someone already running?
 
-Yes. Any mailbox that accepts a password over SMTP and IMAP connects with those settings (`PUT /v1/senders/{id}/channels/email`), Gmail and Google Workspace included with an app password. Microsoft 365 and Outlook.com cannot connect: Microsoft retired password sign-in for them. [Email via SMTP and IMAP](/docs/sending/email-smtp).
-
-## How does the service know an email is a reply to my sequence?
-
-By thread. Every email goes out with the service's own `Message-ID`. The poll job reads new messages in the mailbox and keeps those whose thread or `In-Reply-To` matches an email it sent in the last 30 days; it ignores everything else. A reply outside a thread is matched by addresses only when the project sets `match_replies_outside_thread: true`. [Email via SMTP and IMAP](/docs/sending/email-smtp#replies-auto-replies-and-bounces).
-
-## Does OpenSequence write to my CRM?
-
-No. The CRM port is read-only: `crm.*` conditions read the person, company and open deal from Attio at decision time. To move a deal on a reply, handle the `signal.received` webhook and write to your CRM yourself. [Webhook recipes](/docs/webhooks/recipes).
-
-## What do I have to back up?
-
-The Postgres database and `SEQ_ENCRYPTION_KEYS`, together. Every stored secret (mailbox passwords, Allo and Attio keys, webhook secrets) is encrypted under that variable; a restored database without it has unreadable credentials and every one must be entered again. [Database](/docs/self-hosting/database).
-
-## Can I run several workers or API replicas?
-
-Yes, any number. The planner claims with `FOR UPDATE SKIP LOCKED`, an executor owns a run while it works, scheduler jobs run on whichever replica takes the lease row, and every write re-checks state under a row lock. Two replicas never double-send. [Scaling](/docs/self-hosting/scaling).
-
-## Postgres queue or Redis?
-
-Postgres, unless the queue table itself becomes hot (many thousands of messages a minute). It needs nothing else and an enqueue joins the transaction that records the work. Redis is higher throughput; the reaper covers the gap between a database write and a queue message. [Queues](/docs/self-hosting/queues).
+No. The sender is fixed when the enrollment starts. To move a rep's people to a colleague, exit them (`POST /v1/enrollments:exit { sequence, status: "active" }` or by contact) and enroll them again as the new sender. They restart from step one and `settings.reenroll` applies. [Lifecycle](/docs/contacts/lifecycle).
 
 ## Can an AI agent use it?
 
-Yes, through the MCP server (`@opensequence/mcp`), hosted over HTTP or local over stdio, with a project key. Give agents an `enroll`-scoped key: through the server they can read, upsert contacts, preview and enroll, complete tasks and report events, and nothing else. [MCP server](/sdks/mcp).
-
-## How do I know a step was actually sent?
-
-`run.done` is delivered when the provider accepted the message, and the run's `result.outcome.delivered_at` is stamped (at send time for email, which has no receipt; from Allo's `sms.sent` for texts). The [journey](/docs/contacts/journey) shows every run, message and signal of the enrollment.
-
-## What does it cost?
-
-Nothing per seat or per contact. OpenSequence is Apache-2.0; you run the container and the database. Your mailbox provider, Allo and Attio bill you directly.
-
-## Is there a UI?
-
-No. It is headless by design: your CRM or your application is the UI, built on the API, the SDK or the MCP server. [Building a canvas](/docs/sequences/building-a-canvas) covers the editor side.
+Yes, through the MCP server (`@opensequence/mcp`), hosted over HTTP or local over stdio, with a project key. Give agents an `enroll`-scoped key: they can read, upsert contacts, preview and enroll, complete tasks and report events, and nothing else. [MCP server](/sdks/mcp).
