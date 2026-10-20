@@ -1,5 +1,5 @@
 /**
- * The `auth` schema, the source of truth for migrations (`pnpm db:generate`).
+ * The `seq_auth` schema (not `auth`, which Supabase and others reserve), the source of truth for migrations (`pnpm db:generate`).
  *
  * Same conventions as the engine's `seq` schema: text primary keys that are already the public id
  * (`cred_` and `con_` + ULID), `tenant_id` on every row, no foreign keys to any other schema,
@@ -8,7 +8,7 @@
  */
 import { index, jsonb, pgSchema, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 
-export const auth = pgSchema('auth');
+export const auth = pgSchema('seq_auth');
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' });
 const created = () => ts('created_at').notNull().defaultNow();

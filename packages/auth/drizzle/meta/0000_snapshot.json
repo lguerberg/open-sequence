@@ -4,9 +4,9 @@
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "auth.connections": {
+    "seq_auth.connections": {
       "name": "connections",
-      "schema": "auth",
+      "schema": "seq_auth",
       "columns": {
         "id": {
           "name": "id",
@@ -143,9 +143,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "auth.credentials": {
+    "seq_auth.credentials": {
       "name": "credentials",
-      "schema": "auth",
+      "schema": "seq_auth",
       "columns": {
         "id": {
           "name": "id",
@@ -251,7 +251,7 @@
   },
   "enums": {},
   "schemas": {
-    "auth": "auth"
+    "seq_auth": "seq_auth"
   },
   "sequences": {},
   "roles": {},

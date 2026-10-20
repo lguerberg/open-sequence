@@ -196,9 +196,9 @@ apps/
 
 open-sequence/auth
   src/                   (@opensequence/auth) providers: google (OAuth2, refresh, watch renewal), api-key providers (allo, attio);
-                         crypto (AES-256-GCM, key ids, rotation); store (schema `auth`, migrations); a Fastify plugin for the callback route;
+                         crypto (AES-256-GCM, key ids, rotation); store (schema `seq_auth`, migrations); a Fastify plugin for the callback route;
                          the public API: connect, handleCallback, getAccessToken, credentialsFor, health, revoke, rotateKeys
-  migrations/            auth.credentials, auth.connections (section 4.3)
+  migrations/            seq_auth.credentials, seq_auth.connections (section 4.3)
 ```
 
 Folder names and published names: `sequences-core` is `@opensequence/core`, `sequences-engine` is `@opensequence/engine`, `sequences-queue` is `@opensequence/queue`, `sequences-providers` is `@opensequence/providers` (one entry point per adapter), `sequences-sdk` is `@opensequence/sdk`, `docs` is `@opensequence/docs` (private), and `apps/sequences` builds the image `opensequence/server` and the `oseq` CLI. GitHub organization: `open-sequence`.
@@ -349,7 +349,7 @@ Tokens are the service's problem, not the client's, and the code that handles th
 | Scope changes | If a future version needs a scope the stored grant lacks, the connection is marked `reauth_needed` and `connect` is repeated with incremental auth. |
 | Watches | Gmail `users.watch` (7-day expiry) and Calendar `events.watch` (up to 30 days) are renewed by the `poll` job; without a Pub/Sub topic configured, polling is the mode and nothing needs renewing. |
 | Disconnect | `DELETE /v1/senders/{id}/connections/google` revokes the token at Google, deletes the secret, and sets the channels `disconnected`. |
-| Allo and Attio (API key) | `registerCredential(tenant, 'allo', {api_key, webhook_secret})` probes the key, then stores it encrypted in `auth.credentials`; no connection rows exist for these providers. `credentialsFor(tenant, provider)` (API-key providers) and `getAccessToken(connection)` (OAuth providers) are the only two ways an adapter obtains a secret. |
+| Allo and Attio (API key) | `registerCredential(tenant, 'allo', {api_key, webhook_secret})` probes the key, then stores it encrypted in `seq_auth.credentials`; no connection rows exist for these providers. `credentialsFor(tenant, provider)` (API-key providers) and `getAccessToken(connection)` (OAuth providers) are the only two ways an adapter obtains a secret. |
 | Write-only | Every secret (a Google client secret, a refresh token, an Allo or Attio key, a webhook signing secret) is encrypted with `SEQ_ENCRYPTION_KEYS` the moment it arrives and **can never be read back through any API**: `GET /v1/project` and `GET /v1/senders/{id}/connections` return only the provider, its status, the key id that encrypted it, the last four characters and the timestamps. Secrets are decrypted in memory, only inside the auth module, only to make a provider call, and are never logged. Rotating a provider secret means sending a new one; losing the encryption key means re-entering every secret, which the docs say in bold. |
 | Reuse | Owners are opaque strings (`owner_id`, here a sender id) and tenants are opaque strings (`tenant_id`, here a project id), so another application can use the same package for "connect your Google account" with no sequences in sight. |
 
@@ -357,7 +357,7 @@ Google's OAuth verification applies to the **project's** client, not to OpenSequ
 
 ## 4. Data model
 
-Everything lives in the **service's own database** (Postgres 14 or newer) in two schemas: `seq` (the service, migrations in `apps/sequences/migrations`) and `auth` (owned by `@opensequence/auth`, migrations shipped inside that package). Both sets are hand-written, idempotent, and applied on boot when `SEQ_RUN_MIGRATIONS=1` (or by `oseq migrate`). The migration runner takes a row lock on `seq.migration_lock` inside a transaction, never a session-level advisory lock, so replicas do not race and a transaction pooler is fine. Every statement is re-runnable: `create ... if not exists`, enum creation and constraint additions wrapped in `do $$ ... exception when duplicate_object then null $$`.
+Everything lives in the **service's own database** (Postgres 14 or newer) in two schemas: `seq` (the service, migrations in `apps/sequences/migrations`) and `seq_auth` (owned by `@opensequence/auth`, migrations shipped inside that package). Both sets are hand-written, idempotent, and applied on boot when `SEQ_RUN_MIGRATIONS=1` (or by `oseq migrate`). The migration runner takes a row lock on `seq.migration_lock` inside a transaction, never a session-level advisory lock, so replicas do not race and a transaction pooler is fine. Every statement is re-runnable: `create ... if not exists`, enum creation and constraint additions wrapped in `do $$ ... exception when duplicate_object then null $$`.
 
 **Ids.** Every externally visible row has a `text` primary key that is already the public id: a short prefix and a ULID (`ctc_01J9X…`), generated by the service, sortable by time, with no mapping layer between the database and the API. Prefixes: `prj_` project, `key_` API key, `snd_` sender, `ctc_` contact, `seq_` sequence, `ver_` version, `enr_` enrollment, `run_` run, `msg_` message, `sig_` signal, `tsk_` task, `wep_` webhook endpoint, `wdl_` delivery, `con_` connection, `evt_` event (the stable id a webhook event carries). Internal-only tables (`queue_messages`, `idempotency_keys`, `job_locks`) use plain serials.
 
@@ -434,10 +434,10 @@ create table if not exists seq.api_keys (
   created_at  timestamptz not null default now()
 );
 
--- Provider credentials and connections are OWNED BY @opensequence/auth, in its own schema `auth` (its migrations, its code).
+-- Provider credentials and connections are OWNED BY @opensequence/auth, in its own schema `seq_auth` (its migrations, its code).
 -- Shown here so the whole picture is in one place; `tenant_id` is the project id and `owner_id` is the sender id, both opaque to auth.
 create schema if not exists auth;
-create table if not exists auth.credentials (                -- tenant-level: the Google OAuth client, the Allo API key, the Attio API key
+create table if not exists seq_auth.credentials (                -- tenant-level: the Google OAuth client, the Allo API key, the Attio API key
   id          text primary key,                       -- cred_...
   tenant_id   text not null,
   provider    varchar(24) not null,                   -- google | allo | attio | mock
@@ -451,7 +451,7 @@ create table if not exists auth.credentials (                -- tenant-level: th
   updated_at  timestamptz not null default now(),
   unique (tenant_id, provider)
 );
-create table if not exists auth.connections (                -- owner-level, OAuth providers only: a sender's authorized Google account
+create table if not exists seq_auth.connections (                -- owner-level, OAuth providers only: a sender's authorized Google account
   id            text primary key,                     -- con_...
   tenant_id     text not null,
   owner_id      text not null,                        -- the sender id, opaque to auth
@@ -515,12 +515,12 @@ create table if not exists seq.senders (
 
 -- One row per outreach channel of a sender: email comes from the Google connection; sms is the sender's Allo number under the
 -- project's Allo key (no connection, the Allo user id sits in config).
--- connection_id refers to auth.connections by value, with no cross-schema foreign key, so the auth package stays separable.
+-- connection_id refers to seq_auth.connections by value, with no cross-schema foreign key, so the auth package stays separable.
 create table if not exists seq.sender_channels (
   id             text primary key,
   sender_id      text not null references seq.senders(id) on delete cascade,
   project_id     text not null,
-  connection_id  text,                                 -- auth.connections.id for OAuth channels (email); null for sms (API key)
+  connection_id  text,                                 -- seq_auth.connections.id for OAuth channels (email); null for sms (API key)
   channel        varchar(16) not null check (channel in ('email','sms')),
   address        text not null,                       -- mailbox address | E.164 number
   status         varchar(24) not null default 'pending'
@@ -1759,7 +1759,7 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 
 For local development: `docker compose up` starts Postgres and one container with `SEQ_ROLES=all`, `SEQ_DEV_MOCK_PROVIDERS=1` and a development `SEQ_ADMIN_TOKEN`; sends land in `messages` and show in `GET /v1/contacts/{id}/timeline`, and `POST /hooks/mock/{project}` simulates replies, bounces, bookings and calls. Production turns the mock off and registers the Google client, the Allo key and the Attio key.
 
-**The `oseq` CLI** (in the image and on npm): `oseq migrate` (both the `seq` and the `auth` schemas), `oseq projects create <slug> | list`, `oseq api-keys create <project> --scopes`, `oseq secrets rotate`, `oseq health`, `oseq webhooks replay <delivery>`, `oseq queue dead list | replay`. Every command is a thin wrapper over the operator and project endpoints, so the docs for the API are the docs for the CLI.
+**The `oseq` CLI** (in the image and on npm): `oseq migrate` (both the `seq` and the `seq_auth` schemas), `oseq projects create <slug> | list`, `oseq api-keys create <project> --scopes`, `oseq secrets rotate`, `oseq health`, `oseq webhooks replay <delivery>`, `oseq queue dead list | replay`. Every command is a thin wrapper over the operator and project endpoints, so the docs for the API are the docs for the CLI.
 
 ### 15.2 Configuration (Svix-style: you choose the database and the queue)
 
@@ -1891,7 +1891,7 @@ The first implementation (phase 1 and most of phase 2) follows this document; th
 | Allo `findSent` | "filters by contact number, type, direction, dates and a keyword" | `POST /v2/api/conversations/items/search` with `{ contact_number, allo_number, type: 'SMS', direction: 'OUTBOUND', date: { from, to }, sort: 'DATE_DESC', size: 100 }` and a body match on our side | the real `ItemSearchRequest` shape (verified against Allo's OpenAPI on 2026-10-13); there is no keyword filter |
 | Routes with a colon | `/v1/contacts:batch`, `/v1/sequences:validate`, … | registered as `/v1/contacts::batch` etc. in Fastify (a single colon starts a path parameter); the public URL is unchanged | Fastify syntax, visible only in the route files |
 | Empty JSON bodies | not specified | a `POST` with `content-type: application/json` and no body is accepted as "no body" (optional Zod bodies get `undefined`); malformed JSON is a `400` | curl and most SDKs send exactly that for body-less calls such as `connections/google` and `publish` |
-| Migrations | Drizzle's migrator | Drizzle generates the SQL; a small custom migrator applies it under a row lock (`seq.migration_lock`, `auth.migration_lock`) and records `seq.migrations` / `auth.migrations` | Drizzle's `migrate()` cannot run inside a transaction with postgres.js, and two replicas booting at once must not race |
+| Migrations | Drizzle's migrator | Drizzle generates the SQL; a small custom migrator applies it under a row lock (`seq.migration_lock`, `seq_auth.migration_lock`) and records `seq.migrations` / `seq_auth.migrations` | Drizzle's `migrate()` cannot run inside a transaction with postgres.js, and two replicas booting at once must not race |
 | Undecryptable webhook secret | not specified | the delivery is marked `disabled`, the endpoint goes `disabled` with the reason, `endpoint.disabled` is raised; `rotate-secret` then `enable` recovers it | an operator who dropped a key from `SEQ_ENCRYPTION_KEYS` must see it, not watch retries forever |
 | Field casing | request bodies `snake_case` | request bodies are `snake_case`; the entity objects in `data` are returned as stored, `camelCase` (`currentNodeId`, `exitReason`, `nextRunAt`) | an inconsistency to settle before the API is public: either response DTOs in `snake_case`, or a documented rule. Tracked as an open item below |
 | Response schemas | OpenAPI "generated from the same Zod types" | request schemas are generated; every response is the envelope with `data: unknown`, so the SDK hand-writes its response types | response DTOs are the next step; until then `openapi.json` describes inputs, not outputs |

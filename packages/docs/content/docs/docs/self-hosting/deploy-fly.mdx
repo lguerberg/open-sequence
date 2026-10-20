@@ -70,7 +70,7 @@ kill_timeout = 40
 | Line | Why |
 |---|---|
 | `kill_signal`, `kill_timeout = 40` | the worker finishes in-flight messages for up to 30 seconds after `SIGTERM`, and the process exits within 35 |
-| `release_command` | applies the `seq` and `auth` migrations once per deploy. If it fails, the deploy stops and no machine changes |
+| `release_command` | applies the `seq` and `seq_auth` migrations once per deploy. If it fails, the deploy stops and no machine changes |
 | `[processes]` | the server reads its role from `SEQ_ROLES`; Fly has no per-process `[env]`, so the command sets it |
 | `http_service.processes = ["api"]` | only the api gets a public address. The worker answers the API routes on its port too, so it must not have one |
 | `auto_stop_machines = "off"` | an api stopped by Fly would miss provider webhooks and unsubscribe clicks |

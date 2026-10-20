@@ -1,6 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS "auth";
+CREATE SCHEMA IF NOT EXISTS "seq_auth";
 --> statement-breakpoint
-CREATE TABLE "auth"."connections" (
+CREATE TABLE "seq_auth"."connections" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text NOT NULL,
 	"owner_id" text NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE "auth"."connections" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "auth"."credentials" (
+CREATE TABLE "seq_auth"."credentials" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text NOT NULL,
 	"provider" varchar(24) NOT NULL,
@@ -31,6 +31,6 @@ CREATE TABLE "auth"."credentials" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX "connections_owner_provider_idx" ON "auth"."connections" USING btree ("owner_id","provider");--> statement-breakpoint
-CREATE INDEX "connections_tenant_idx" ON "auth"."connections" USING btree ("tenant_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "credentials_tenant_provider_idx" ON "auth"."credentials" USING btree ("tenant_id","provider");
+CREATE UNIQUE INDEX "connections_owner_provider_idx" ON "seq_auth"."connections" USING btree ("owner_id","provider");--> statement-breakpoint
+CREATE INDEX "connections_tenant_idx" ON "seq_auth"."connections" USING btree ("tenant_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "credentials_tenant_provider_idx" ON "seq_auth"."credentials" USING btree ("tenant_id","provider");

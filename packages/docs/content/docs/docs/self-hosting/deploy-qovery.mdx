@@ -73,7 +73,7 @@ Add a lifecycle job from that registry, image `lguerberg/open-sequence` and your
 
 <Tip>To run your own changes, build from your fork instead: the Dockerfile at `apps/server/Dockerfile`, root path `/` (it copies the whole workspace), for the job and both applications. Every other setting on this page stays the same.</Tip>
 
-The command applies the `seq` and `auth` migrations and exits. It is safe to run on every deploy: an up-to-date database prints `already up to date`.
+The command applies the `seq` and `seq_auth` migrations and exits. It is safe to run on every deploy: an up-to-date database prints `already up to date`.
 
 </Step>
 <Step title="Create the api application">

@@ -4,7 +4,7 @@
  * Conventions (docs/ARCHITECTURE.md section 4): text primary keys that are already the public id
  * (prefix + ULID), `project_id` on every tenant-owned table and on every unique index that could
  * collide across projects, no foreign keys to any client table, `updated_at` on every mutable row.
- * Credentials and connections live in the `auth` schema owned by @opensequence/auth.
+ * Credentials and connections live in the `seq_auth` schema owned by @opensequence/auth.
  */
 import { sql } from 'drizzle-orm';
 import { boolean, index, integer, jsonb, pgSchema, smallint, text, timestamp, uniqueIndex, varchar, bigserial, bigint } from 'drizzle-orm/pg-core';
@@ -141,7 +141,7 @@ export const senderChannels = seq.table(
       .notNull()
       .references(() => senders.id, { onDelete: 'cascade' }),
     projectId: text('project_id').notNull(),
-    /** auth.connections.id for OAuth channels (email); null for sms (API key). No cross-schema FK. */
+    /** seq_auth.connections.id for OAuth channels (email); null for sms (API key). No cross-schema FK. */
     connectionId: text('connection_id'),
     channel: varchar('channel', { length: 16 }).notNull(),
     address: text('address').notNull(),

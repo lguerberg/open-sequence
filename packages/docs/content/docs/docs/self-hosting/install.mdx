@@ -29,7 +29,7 @@ The image runs Node 22 on Alpine as the non-root user `oseq` (uid 100, gid 101).
 </Step>
 <Step title="Provision Postgres">
 
-Give OpenSequence its own database on Postgres 14 or newer. It needs no extensions. It creates and owns two schemas, `seq` and `auth`. A transaction pooler is fine. See [Database](/docs/self-hosting/database).
+Give OpenSequence its own database on Postgres 14 or newer. It needs no extensions. It creates and owns two schemas, `seq` and `seq_auth`, so it can share a database such as Supabase's. A transaction pooler is fine. See [Database](/docs/self-hosting/database).
 
 </Step>
 <Step title="Generate the secrets">
@@ -58,7 +58,7 @@ docker run -d --name oseq-api -p 8080:8080 \
   ghcr.io/lguerberg/open-sequence:main
 ```
 
-With `SEQ_RUN_MIGRATIONS=1` the process applies the `seq` and `auth` migrations before it opens its port. Each migration runs in its own transaction behind a row lock, so replicas that start together do not race. If a migration fails, the process exits with code 1. To migrate from a pipeline instead, see [Upgrades](/docs/self-hosting/upgrades).
+With `SEQ_RUN_MIGRATIONS=1` the process applies the `seq` and `seq_auth` migrations before it opens its port. Each migration runs in its own transaction behind a row lock, so replicas that start together do not race. If a migration fails, the process exits with code 1. To migrate from a pipeline instead, see [Upgrades](/docs/self-hosting/upgrades).
 
 `SEQ_PUBLIC_URL` is the HTTPS origin the outside world reaches. Google sends the sender's browser back to it after consent, Allo posts webhooks to it, and every email's unsubscribe link points at it. It defaults to `http://localhost:8080`, so always set it in production. The service speaks plain HTTP: put a TLS terminator in front.
 

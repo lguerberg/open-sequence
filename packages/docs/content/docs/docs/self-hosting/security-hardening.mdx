@@ -33,8 +33,8 @@ The value is a comma-separated list of `id:base64key`. Each key must decode to 3
 Check what still uses an old key:
 
 ```sql
-select 'credentials' as t, key_id, count(*) from auth.credentials group by key_id
-union all select 'connections', key_id, count(*) from auth.connections group by key_id
+select 'credentials' as t, key_id, count(*) from seq_auth.credentials group by key_id
+union all select 'connections', key_id, count(*) from seq_auth.connections group by key_id
 union all select 'webhook_endpoints', key_id, count(*) from seq.webhook_endpoints group by key_id;
 ```
 

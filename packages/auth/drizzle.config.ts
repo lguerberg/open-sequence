@@ -7,8 +7,8 @@ export default defineConfig({
   dialect: 'postgresql',
   schema: './src/infrastructure/persistence/schema.ts',
   out: './drizzle',
-  schemaFilter: ['auth'],
-  migrations: { schema: 'auth', table: 'migrations' },
+  schemaFilter: ['seq_auth'],
+  migrations: { schema: 'seq_auth', table: 'migrations' },
   strict: true,
   verbose: true,
 });

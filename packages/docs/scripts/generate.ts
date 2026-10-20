@@ -194,7 +194,7 @@ const ENV_DESCRIPTIONS: Record<string, string> = {
   SEQ_PORT: 'HTTP port. The API for `api` and `all`; `/healthz` and `/readyz` only for `worker`.',
   SEQ_HOST: 'The interface to bind.',
   SEQ_ROLES: '`api` serves HTTP, `worker` runs the scheduler and the queue consumers, `all` does both in one process.',
-  SEQ_RUN_MIGRATIONS: 'Apply the `seq` and `auth` migrations at boot, serialized by a row lock so replicas starting together do not race.',
+  SEQ_RUN_MIGRATIONS: 'Apply the `seq` and `seq_auth` migrations at boot, serialized by a row lock so replicas starting together do not race.',
   SEQ_CONCURRENCY: 'Messages in flight per queue per replica.',
   SEQ_DISABLED_CHANNELS: 'Platform-wide kill switch per channel, comma-separated (`sms`). Steps on a disabled channel are deferred, not skipped.',
   SEQ_PAUSED: 'Platform-wide stop: the planner claims nothing while it is on. In-flight steps finish.',

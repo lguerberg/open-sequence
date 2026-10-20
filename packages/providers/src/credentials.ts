@@ -1,6 +1,6 @@
 /**
  * How an adapter gets a project's secrets. The auth module implements this over its encrypted
- * `auth.credentials` table; adapters never read a table themselves.
+ * `seq_auth.credentials` table; adapters never read a table themselves.
  *
  * Known shapes: allo → { api_key, webhook_secret }, attio → { api_key }.
  */
@@ -10,7 +10,7 @@ export interface CredentialSource {
 
 /**
  * How an adapter gets an owner's password-based connection (SMTP and IMAP settings). The auth
- * module implements this over its encrypted `auth.connections` table: `config` is the non-secret
+ * module implements this over its encrypted `seq_auth.connections` table: `config` is the non-secret
  * half of the row, `secrets` the decrypted half. OAuth providers use TokenSource instead.
  */
 export interface ConnectionSecretSource {

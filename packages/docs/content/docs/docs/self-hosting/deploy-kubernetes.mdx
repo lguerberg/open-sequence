@@ -93,7 +93,7 @@ spec:
             limits: { memory: 256Mi }
 ```
 
-The Job applies the `seq` and `auth` migrations and exits. Jobs are immutable, so give each release its own name. Running it against an up-to-date database is a no-op. If you prefer, drop the Job and add `SEQ_RUN_MIGRATIONS: "1"` to the ConfigMap: every pod then migrates before it opens its port, serialized by a row lock.
+The Job applies the `seq` and `seq_auth` migrations and exits. Jobs are immutable, so give each release its own name. Running it against an up-to-date database is a no-op. If you prefer, drop the Job and add `SEQ_RUN_MIGRATIONS: "1"` to the ConfigMap: every pod then migrates before it opens its port, serialized by a row lock.
 
 ## 3. The api
 

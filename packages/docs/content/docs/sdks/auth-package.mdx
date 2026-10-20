@@ -11,7 +11,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
 const db = drizzle(postgres(process.env.DATABASE_URL!));
-await runAuthMigrations(db);                                       // creates the `auth` schema
+await runAuthMigrations(db);                                       // creates the `seq_auth` schema
 
 const auth = createAuth({
   db,
@@ -51,6 +51,6 @@ Scopes requested: `gmail.send`, `gmail.readonly`, `calendar.readonly`, `userinfo
 
 ## Storage
 
-Two tables in the `auth` schema, `credentials` and `connections`, created by `runAuthMigrations(db)` (idempotent). Secrets are AES-256-GCM under the first key; each row carries its key id. The exported `authSchema`, `credentialsTable` and `connectionsTable` let you join from your own Drizzle code. `AesGcmCipher`, `parseEncryptionKeys` and `GoogleOAuthClient` are exported for tests and custom wiring; pass your own `google: OAuthClient` and `clock` to `createAuth` to fake Google.
+Two tables in the `seq_auth` schema, `credentials` and `connections`, created by `runAuthMigrations(db)` (idempotent). Secrets are AES-256-GCM under the first key; each row carries its key id. The exported `authSchema`, `credentialsTable` and `connectionsTable` let you join from your own Drizzle code. `AesGcmCipher`, `parseEncryptionKeys` and `GoogleOAuthClient` are exported for tests and custom wiring; pass your own `google: OAuthClient` and `clock` to `createAuth` to fake Google.
 
 The package is destined for its own repository (`open-sequence/auth`); it never imports the engine.
