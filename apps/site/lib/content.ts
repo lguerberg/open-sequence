@@ -67,7 +67,7 @@ await oseq.contacts.upsert('dana', {
   email: 'dana@example.com',
 });
 
-// First email at 09:12 Dana's time, from Max's own Gmail
+// First email at 09:12 Dana's time, from Max's own mailbox
 await oseq.sequences.enroll(ukIntro.id, { contacts: ['dana'], sender: 'max' });`,
   },
   {
@@ -128,14 +128,14 @@ const callStep = {
 };`,
   },
   {
-    id: 'gmail',
-    label: 'Connect Gmail',
+    id: 'mailbox',
+    label: 'Connect a mailbox',
     icon: 'inbox',
-    file: 'connect-gmail.ts',
+    file: 'connect-mailbox.ts',
     meta: '@opensequence/sdk',
     lang: 'typescript',
-    href: '/docs/senders/connect-google',
-    claim: 'Each rep connects Gmail once. Every email leaves from their inbox.',
+    href: '/docs/sending/email-smtp',
+    claim: 'Each rep connects their mailbox once. Every email leaves from their inbox.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
 const { SEQ_URL, SEQ_KEY } = process.env;
@@ -143,9 +143,14 @@ const oseq = new OpenSequence({ baseUrl: SEQ_URL!, apiKey: SEQ_KEY! });
 
 await oseq.senders.upsert('max', { name: 'Max Rivera', email: 'max@acme.com' });
 
-// Max opens auth_url once: Gmail send, Gmail read, Calendar read.
-// Tokens renew on their own; every email leaves from max@acme.com.
-const { auth_url } = await oseq.senders.connectGoogle('max');`,
+// SMTP sends, IMAP reads replies. Gmail works with an app password.
+// Both logins are checked first; every email leaves from max@acme.com.
+const login = { user: 'max@acme.com', password: process.env.MAX_APP_PASSWORD!, secure: true };
+await oseq.senders.setSmtp('max', {
+  provider: 'smtp',
+  smtp: { host: 'smtp.gmail.com', port: 465, ...login },
+  imap: { host: 'imap.gmail.com', port: 993, ...login },
+});`,
   },
   {
     id: 'webhooks',
@@ -214,7 +219,7 @@ export const valueProps = [
   {
     icon: 'mail',
     label: 'Your deliverability',
-    text: "Mail leaves each rep's own Gmail, not a shared sending pool. Another company's bad list cannot hurt your domain's reputation.",
+    text: "Mail leaves each rep's own mailbox, not a shared sending pool. Another company's bad list cannot hurt your domain's reputation.",
   },
   {
     icon: 'git-branch',
@@ -294,7 +299,7 @@ export const hardParts = [
     label: 'Idempotency',
     problem: 'A crash between the send and the database write must not turn into a second email.',
     handled:
-      'Every step has an idempotency key and its own Message-ID. After a crash the engine asks Gmail before it sends again.',
+      'Every step has an idempotency key and its own Message-ID. After a crash the engine checks the Sent folder before it sends again.',
     evidence: 'Message-ID <seq.enr.01J9.intro.a1…>',
   },
   {
@@ -310,9 +315,9 @@ export const hardParts = [
     icon: 'shield',
     label: 'Authentication',
     problem:
-      "Every rep's Gmail needs OAuth, refresh tokens that expire, and secrets that must never leak.",
+      "Every rep's mailbox password and every provider key is a secret that must never leak.",
     handled:
-      'A built-in auth module runs the consent flow, refreshes tokens before they expire, and stores every secret encrypted and write-only.',
+      'A built-in auth module checks each login before saving it and stores every secret encrypted and write-only.',
     evidence: 'AES-256-GCM · key rotation',
   },
   {
@@ -321,7 +326,7 @@ export const hardParts = [
     problem:
       "Mail has to leave the rep's own mailbox, in their thread, under their limits, or it lands in spam.",
     handled:
-      'OpenSequence sends through the Gmail API as the rep, threads follow-ups, and enforces a daily cap and a minimum gap between sends.',
+      "OpenSequence sends through the rep's own SMTP server, threads follow-ups, and enforces a daily cap and a minimum gap between sends.",
     evidence: 'daily_limit: 60 · min_gap_seconds: 90',
   },
   {
@@ -337,9 +342,9 @@ export const hardParts = [
     icon: 'reply',
     label: 'Reply detection',
     problem:
-      'A reply, a booking, a bounce or an opt-out has to find its enrollment and stop it within seconds.',
+      'A reply, a bounce or an opt-out has to find its enrollment and stop it within seconds.',
     handled:
-      "One signal pipeline matches each signal by thread, Message-ID or calendar attendee, then exits the enrollment by the sequence's rules.",
+      "One signal pipeline matches each signal by thread or Message-ID, then exits the enrollment by the sequence's rules.",
     evidence: 'exit_reason: replied',
   },
 ];
@@ -355,7 +360,7 @@ export const faq: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Can I configure everything through the API?',
-    a: 'Yes. Projects, keys, senders, channels, contacts, sequences and versions, enrollments, tasks, webhooks, settings and analytics are all endpoints, 81 operations in the OpenAPI file. The TypeScript SDK and the MCP server call the same API, and the oseq CLI runs the same use cases.',
+    a: 'Yes. Projects, keys, senders, channels, contacts, sequences and versions, enrollments, tasks, webhooks, settings and analytics are all endpoints, 79 operations in the OpenAPI file. The TypeScript SDK and the MCP server call the same API, and the oseq CLI runs the same use cases.',
   },
   {
     q: 'How do agents use it?',
@@ -363,7 +368,7 @@ export const faq: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Does it send email itself?',
-    a: "Yes, through the Gmail API with each sender's own consent and your own Google OAuth client. It sets its own Message-ID, adds List-Unsubscribe, replies in thread when asked, and never exceeds the channel's daily limit. There is no shared sending pool.",
+    a: "Yes, through each sender's own mailbox over SMTP, and it reads replies over IMAP. Gmail and Google Workspace work with an app password. It sets its own Message-ID, adds List-Unsubscribe, replies in thread when asked, and never exceeds the channel's daily limit. There is no shared sending pool.",
   },
   {
     q: 'What do I need to run it?',

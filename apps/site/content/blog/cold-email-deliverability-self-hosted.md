@@ -3,7 +3,7 @@ title: "Cold email deliverability when you self-host sequences"
 h1: "Cold email deliverability when sequences send from your own stack"
 description: "Cold email deliverability for self-hosted sequences: Gmail, Yahoo and Outlook sender rules, SPF, DKIM and DMARC records, mailbox caps, bounces and opt-outs."
 date: 2026-10-14
-updated: 2026-10-14
+updated: 2026-10-20
 author: Leo Guerberg
 tags: [deliverability, cold-email, dns, self-hosting]
 keyword: "cold email deliverability"
@@ -15,9 +15,9 @@ We build OpenSequence, an open source sequencing engine you run yourself, so rea
 
 ## What you take on when you leave the vendor
 
-OpenSequence sends each email through the rep's own Google Workspace mailbox with the Gmail API. Google's servers relay the message, so reverse DNS, TLS and IP reputation are Google's problem, not yours. You own the domain, its DNS records, the list, the volume, the content and the monitoring.
+OpenSequence sends each email through the rep's own mailbox over SMTP. On Google Workspace that means Google's servers relay the message, so reverse DNS, TLS and IP reputation are Google's problem, not yours. The examples below use Workspace. You own the domain, its DNS records, the list, the volume, the content and the monitoring.
 
-Today the only email provider is Google. Reps on Microsoft 365 cannot send through OpenSequence yet. SMTP and IMAP are on the [roadmap](https://docs.opensequence.dev/docs/community/roadmap) as a later phase, with no date. The engine also has no warm-up, no email verification and no inbox placement testing. If you want those bundled, and nobody on the team will manage DNS and check bounce numbers every week, a hosted cold email tool is the better choice. Our [lemlist alternative post](/blog/lemlist-alternative-self-hosted) covers that tradeoff.
+Any mailbox that allows SMTP and IMAP with a password works. Reps on Microsoft 365 cannot send through OpenSequence yet, because Microsoft turned password sign-in off for both. The engine also has no warm-up, no email verification and no inbox placement testing. If you want those bundled, and nobody on the team will manage DNS and check bounce numbers every week, a hosted cold email tool is the better choice. Our [lemlist alternative post](/blog/lemlist-alternative-self-hosted) covers that tradeoff.
 
 ## Which rules are law and which are provider policy
 
@@ -107,9 +107,9 @@ You lose open-based branching and open alerts. Measure replies and meetings per 
 
 ## Bounces, complaints and list hygiene
 
-The engine polls each sender's Gmail every minute. A message from `mailer-daemon` or `postmaster` with a delivery-status part counts as a bounce, and the engine matches it to the original by `Message-ID`. A 5.x.x status is a hard bounce. It suppresses the address for email and exits the enrollment with `bounced`. A 4.x.x soft bounce suppresses nothing.
+The engine reads each sender's inbox over IMAP every minute. A message from `mailer-daemon` or `postmaster` with a delivery-status part counts as a bounce, and the engine matches it to the original by `Message-ID`. A 5.x.x status is a hard bounce. It suppresses the address for email and exits the enrollment with `bounced`. A 4.x.x soft bounce suppresses nothing.
 
-The engine does not detect complaints. It handles a `complaint` signal, but the Gmail adapter never produces one, because Gmail gives individual senders no per-message complaint feed. Postmaster Tools is the only complaint view you get.
+The engine does not detect complaints. It handles a `complaint` signal, but the mail adapter never produces one, because neither IMAP nor Gmail gives individual senders a per-message complaint feed. Postmaster Tools is the only complaint view you get.
 
 The engine does not verify addresses. Run your list through a verification service before you enroll. A new domain has no sending history to offset the bounces from a bad list. Report do-not-contact flags from your CRM as `suppressed` events ([contact events](https://docs.opensequence.dev/docs/contacts/events)). The engine only sees its own channels, so a contact marked "do not email" in your CRM keeps getting mail until you report it. Our rule of thumb is to stop email for the project when a batch bounces above 2%, then clean the list before turning email back on. To stop it, send `PUT /v1/engine/flags/channel:email` with `{"value": false}`.
 
@@ -117,13 +117,13 @@ The engine does not verify addresses. Run your list through a verification servi
 
 | Item | OpenSequence | You |
 |---|---|---|
-| PTR, TLS, IP reputation | Sends via Gmail API on Google's servers | Nothing |
+| PTR, TLS, IP reputation | Sends through the rep's mail provider (Google's servers on Workspace) | Nothing |
 | SPF, DKIM, DMARC | Nothing | DNS records, DKIM in the Admin console |
 | One-click unsubscribe | Headers on every email, hosted page, publish warning | Public HTTPS `SEQ_PUBLIC_URL`, stable keys |
 | Honoring opt-outs | Suppress and exit at once, checked at every send | Report CRM opt-outs |
 | Volume | `daily_limit`, `min_gap_seconds`, staggered first touches | The ramp |
 | Send times | `settings.send_window` in the contact's zone | Set the window |
-| Hard bounces | Detects them in Gmail, suppresses and exits | Verify lists first |
+| Hard bounces | Detects them in the inbox, suppresses and exits | Verify lists first |
 | Spam complaints | Not detected | Postmaster Tools |
 | Tracking | None | UTM links if needed |
 | Postal address | Nothing | Put it in the template |

@@ -203,7 +203,6 @@ import { OpenSequence } from '@opensequence/sdk';
 
 const oseq = new OpenSequence({ baseUrl: process.env.SEQ_URL!, apiKey: process.env.SEQ_ADMIN_KEY! });
 
-await oseq.project.setProvider('google', { client_id: process.env.GOOGLE_CLIENT_ID!, client_secret: process.env.GOOGLE_CLIENT_SECRET! });
 await oseq.project.setProvider('allo', { api_key: process.env.ALLO_API_KEY! });
 await oseq.project.updateSettings({ sms_countries: ['US', 'CA', 'GB'] });
 ```
@@ -221,15 +220,15 @@ await oseq.senders.upsert(owner.id, {
   signature_html: owner.signatureHtml,
 });
 
-// The owner opens this URL once to connect Gmail.
-const google = await oseq.senders.connectGoogle(owner.id, { return_url: 'https://app.example.com/settings' });
-if ('auth_url' in google) sendToOwner(google.auth_url);
+// Their mailbox: both logins are checked before anything is stored.
+const mailbox = (host: string, port: number) => ({ host, port, secure: true, user: owner.email, password: owner.appPassword });
+await oseq.senders.setSmtp(owner.id, { provider: 'smtp', smtp: mailbox('smtp.gmail.com', 465), imap: mailbox('imap.gmail.com', 993) });
 
 // Their Allo user and number: texts go out from it and the dialer queue is theirs.
 await oseq.senders.setSms(owner.id, { allo_user_id: owner.alloUserId, number: owner.alloNumber });
 ```
 
-An owner whose mailbox is not on Google connects it through [SMTP and IMAP](/docs/sending/email-smtp) instead.
+The hosts above are Gmail's; [Email via SMTP and IMAP](/docs/sending/email-smtp) lists other providers and how to get an app password.
 
 </Step>
 <Step title="Create and publish the sequence">

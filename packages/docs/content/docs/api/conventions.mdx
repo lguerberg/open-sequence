@@ -73,7 +73,7 @@ curl "$SEQ/v1/enrollments?status=active&limit=100&updated_since=2026-10-13T00:00
 
 ## Bodies
 
-JSON only (`Content-Type: application/json`), 2 MB at most. A `POST` with that content type and **no body** is accepted where the body is optional (`.../connections/google`, `.../publish`, `.../pause`, `.../exit`). Unknown fields are rejected on the strict schemas (contacts, senders' channel patches, sequence patches, webhook endpoints) with `400 VALIDATION_ERROR` and the offending path in `details`.
+JSON only (`Content-Type: application/json`), 2 MB at most. A `POST` with that content type and **no body** is accepted where the body is optional (`.../publish`, `.../pause`, `.../exit`). Unknown fields are rejected on the strict schemas (contacts, senders' channel patches, sequence patches, webhook endpoints) with `400 VALIDATION_ERROR` and the offending path in `details`.
 
 ## Rate limits
 

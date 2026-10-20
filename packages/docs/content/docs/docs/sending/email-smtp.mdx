@@ -1,9 +1,9 @@
 ---
 title: "Email via SMTP and IMAP"
-description: "Connect any mailbox with a password: the service sends through the sender's SMTP server and reads replies, bounces and auto-replies over IMAP."
+description: "Connect any mailbox, Gmail included: the service sends through the sender's SMTP server and reads replies, bounces and auto-replies over IMAP."
 ---
 
-Use this page when a sender's mailbox is not on Google: Fastmail, Zoho, iCloud, Proton, a company server. The service sends through their SMTP server, reads their IMAP inbox, and sequences see the same `email` channel Google creates.
+This page connects a sender's mailbox. The service sends through their SMTP server and reads their IMAP inbox, and sequences use it as the sender's `email` channel. Any mailbox with SMTP and IMAP works: Gmail and Google Workspace, Fastmail, Zoho, iCloud, Proton, a company server.
 
 <CodeGroup>
 
@@ -28,7 +28,7 @@ const channel = await oseq.senders.setSmtp('u_42', {
 
 </CodeGroup>
 
-`PUT /v1/senders/{id}/channels/email` needs an `admin` key and returns the email channel. It replaces that channel, a Gmail one included. Saving again (a new password, say) updates the same connection, keeps the limits and sets the channel `active`. A missing `imap` or an unknown field is a `400`.
+`PUT /v1/senders/{id}/channels/email` needs an `admin` key and returns the email channel. It replaces any email channel the sender had. Saving again (a new password, say) updates the same connection, keeps the limits and sets the channel `active`. A missing `imap` or an unknown field is a `400`.
 
 | Field | Notes |
 |---|---|
@@ -40,6 +40,16 @@ const channel = await oseq.senders.setSmtp('u_42', {
 | `password` | Write-only. Use an app password wherever the provider offers one. |
 
 <Warning>Microsoft 365, Exchange Online and Outlook.com cannot connect this way: Microsoft has retired password sign-in for SMTP and IMAP. There is no Microsoft connector yet.</Warning>
+
+## Gmail and Google Workspace
+
+1. Turn on 2-Step Verification for the Google account.
+2. Create an app password at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) and use it as both passwords.
+3. Use `smtp.gmail.com`, port 465, and `imap.gmail.com`, port 993, both with `secure: true`. The user is the full address.
+
+A Workspace admin can block app passwords. If the page says the setting is not available, ask the admin to allow them.
+
+Google limits how much one mailbox sends: about 2,000 messages a day on Workspace and about 500 on a free Gmail account. Keep the channel's `daily_limit` well under that (the default is 30).
 
 ## Verified on save
 
@@ -69,7 +79,7 @@ Both passwords are encrypted under `SEQ_ENCRYPTION_KEYS` and never returned or l
 
 | Mailbox | SMTP | IMAP | Notes |
 |---|---|---|---|
-| Gmail or Google Workspace | `smtp.gmail.com`, 465, `secure: true` | `imap.gmail.com`, 993, `secure: true` | Needs 2-Step Verification and an app password. [The Google connection](/docs/sending/email-gmail) is better: it adds Calendar. |
+| Gmail or Google Workspace | `smtp.gmail.com`, 465, `secure: true` | `imap.gmail.com`, 993, `secure: true` | Needs 2-Step Verification and an app password. See [Gmail and Google Workspace](#gmail-and-google-workspace). |
 | Fastmail | `smtp.fastmail.com`, 465, `secure: true` | `imap.fastmail.com`, 993, `secure: true` | An app password with IMAP and SMTP access. |
 | Zoho Mail | `smtp.zoho.com`, 465, `secure: true` | `imap.zoho.com`, 993, `secure: true` | Organization accounts use `smtppro.zoho.com` and `imappro.zoho.com`; other regions use their own domain (`.eu`, `.in`). Turn on IMAP access. |
 | iCloud Mail | `smtp.mail.me.com`, 587, `secure: false` | `imap.mail.me.com`, 993, `secure: true` | An app-specific password. If IMAP refuses the full address, try the part before the `@`. |
@@ -78,7 +88,7 @@ Both passwords are encrypted under `SEQ_ENCRYPTION_KEYS` and never returned or l
 
 ## Sending
 
-An email step passes the same gates, rendering, `List-Unsubscribe` headers and limits as on Gmail ([Channels](/docs/sending/channels#gates-every-send-passes)). It leaves through the SMTP server with a `Message-ID` the service sets; `reply_in_thread: true` adds `In-Reply-To` and `References`.
+An email step passes the gates and limits every channel has ([Channels](/docs/sending/channels#gates-every-send-passes)) and gets `List-Unsubscribe` headers. It leaves through the SMTP server with a `Message-ID` the service sets; `reply_in_thread: true` adds `In-Reply-To` and `References`.
 
 SMTP keeps no copy, so the service files one, marked read, in the folder the server flags as Sent, else one named Sent, Sent Items, Sent Mail or Sent Messages, else a new `Sent`. A copy the server already filed (Gmail does) is not filed twice. A failure to file is logged and does not fail the step.
 
@@ -96,7 +106,7 @@ A message is kept only if its `In-Reply-To` or `References` names an email or th
 | Auto-reply | an `Auto-Submitted`, `X-Autoreply`, `X-Autorespond` or `Precedence: auto_reply` header, or a subject such as "Automatic reply" or "Out of office" | pauses the enrollment until the return date it mentions, or for seven days |
 | Bounce | from `mailer-daemon` or `postmaster`, or carrying a delivery status report, naming one of our emails | a 4.x.x status is soft and changes nothing; anything else is hard: email is suppressed for the contact and the enrollment exits with `bounced` |
 
-Reply bodies are not fetched today, whatever `store_inbound_bodies` says; only an auto-reply's text is read, to find the return date. An SMTP mailbox has no calendar, so meetings are not detected: report them with `POST /v1/contacts/{id}/events` and `{ "id": "…", "type": "meeting_booked" }` ([Contact events](/docs/contacts/events)).
+Reply bodies are not fetched today, whatever `store_inbound_bodies` says; only an auto-reply's text is read, to find the return date. The service does not read calendars, so it never sees a meeting. Report one with `POST /v1/contacts/{id}/events` and `{ "id": "…", "type": "meeting_booked" }` ([Contact events](/docs/contacts/events)).
 
 ## Health
 
@@ -111,7 +121,7 @@ Every 15 minutes, after a successful poll, the service signs in to IMAP and SMTP
 
 A change made by this check raises `sender.channel_status`. A login refused during a send also sets `credentials_needed` and defers the step an hour, without the webhook, so watch readiness too. While the channel is not `active`, email steps skip and the inbox is not polled. Save working settings again to bring it back.
 
-## Removing and switching
+## Removing
 
 <CodeGroup>
 
@@ -127,6 +137,4 @@ await oseq.senders.deleteChannel('u_42', 'email');
 
 This removes the email channel, deletes the passwords and marks the `smtp` connection `disconnected`; email steps skip from then on. To stop for a while, `PATCH` the channel with `{ "status": "paused" }`.
 
-- `DELETE /v1/senders/{id}/connections/google` leaves an SMTP channel alone; it only disconnects a Gmail one.
-- Connecting Google replaces the channel and moves the sender back to Gmail. The `smtp` connection and its passwords stay stored, so delete the email channel first if you want them gone.
-- Gmail and IMAP keep separate inbox cursors. Saving SMTP settings restarts the IMAP one at the inbox's current end.
+Saving new settings, for another mailbox or a new password, restarts the IMAP cursor at the inbox's current end.

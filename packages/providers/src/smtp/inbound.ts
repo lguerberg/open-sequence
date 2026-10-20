@@ -1,7 +1,7 @@
 /**
  * Reading one inbox message without the mailbox: what IMAP hands over (envelope, a few headers,
  * the body structure) becomes an `InboundMeta`, and `classifyInbound` turns that into the same
- * InboundEvent the Gmail adapter produces (reply, auto-reply, bounce) or nothing. A bounce needs
+ * InboundEvent (reply, auto-reply, bounce) or nothing. A bounce needs
  * the full source, which the caller fetches on demand; the fixture tests build the meta from a
  * raw message with `metaFromSource`.
  */
@@ -127,7 +127,7 @@ export async function classifyInbound(
 
   if (threadRef === undefined && inReplyTo === undefined) return null;
 
-  // An auto-reply's "back on" date sits in its text; read it even when bodies are not kept (Gmail reads the snippet).
+  // An auto-reply's "back on" date sits in its text; read it even when bodies are not kept.
   const auto = isAutoReplyHeaders(meta.header, meta.subject);
   const text =
     scope.includeBodies || auto ? bodyText(await simpleParser(await source())) : undefined;

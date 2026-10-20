@@ -20,8 +20,7 @@ The first version. The server image is published on every push to `main` as `ghc
 
 **Channels and providers**
 
-- Email through the sender's Gmail (Google OAuth per project, Gmail history polling for replies and bounces, Google Calendar polling for meetings). A follow-up sent with `reply_in_thread` carries the full `References` chain of the thread.
-- Email through any mailbox over SMTP and IMAP (`PUT /v1/senders/{id}/channels/email`, `senders.setSmtp`): both logins checked on save, passwords encrypted and write-only, a copy filed in Sent, replies, bounces and auto-replies read from the IMAP inbox every minute. `DELETE /v1/senders/{id}/channels/email` removes the channel and its passwords. Microsoft 365 is not supported.
+- Email through the sender's own mailbox over SMTP and IMAP, Gmail and Google Workspace included with an app password (`PUT /v1/senders/{id}/channels/email`, `senders.setSmtp`): both logins checked on save, passwords encrypted and write-only, a copy filed in Sent, replies, bounces and auto-replies read from the IMAP inbox every minute. `DELETE /v1/senders/{id}/channels/email` removes the channel and its passwords. A follow-up sent with `reply_in_thread` carries the full `References` chain of the thread. Microsoft 365 is not supported.
 - SMS and call completion through Allo (consent, country, time zone and quiet-hours gates on every text, with no limit on texts per sequence; STOP words; `call.completed` completing call tasks).
 - Attio as the read-only CRM behind `crm.*` conditions.
 - A mock provider for development and CI, with `POST /hooks/mock/{slug}` to simulate inbound events.

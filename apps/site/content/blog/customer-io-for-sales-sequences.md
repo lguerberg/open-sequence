@@ -1,15 +1,15 @@
 ---
 title: "Customer.io for sales outreach: where it works and breaks"
 h1: "When Customer.io works for sales outreach, when it breaks, and how to split the job"
-description: "Customer.io handles lifecycle email to people who signed up. Its policy bans cold lists, and it cannot send from a rep's Gmail or stop on a reply."
+description: "Customer.io handles lifecycle email to people who signed up. Its policy bans cold lists, and it cannot send from a rep's own mailbox or stop on a reply."
 date: 2026-10-14
-updated: 2026-10-14
+updated: 2026-10-20
 author: Leo Guerberg
 tags: [customer-io, sales-engagement, product-led-growth]
 keyword: "Customer.io for sales outreach"
 ---
 
-Customer.io works for sales outreach only when the recipient signed up for your product and the email can come from your brand. It breaks when a rep needs to send from their own Gmail, when the sequence has to stop on a reply, or when the rep needs a call task or another manual step. Cold outreach is not a judgment call. Customer.io's acceptable use policy forbids purchased, scraped and third-party lists.
+Customer.io works for sales outreach only when the recipient signed up for your product and the email can come from your brand. It breaks when a rep needs to send from their own mailbox, when the sequence has to stop on a reply, or when the rep needs a call task or another manual step. Cold outreach is not a judgment call. Customer.io's acceptable use policy forbids purchased, scraped and third-party lists.
 
 We build OpenSequence, an open source sales sequencing engine, so read this with that in mind. We also think most product-led teams should keep Customer.io and split the work between two tools. The rest of this post shows which jobs go where and how to connect the two.
 
@@ -20,7 +20,7 @@ We build OpenSequence, an open source sales sequencing engine, so read this with
 | Onboarding and activation email | Yes | No |
 | Product-triggered nurture to users | Yes | No |
 | Push, in-app, newsletters | Yes | No |
-| 1:1 email from a rep's Gmail | No | Yes |
+| 1:1 email from a rep's own mailbox | No | Yes |
 | Stop when the person replies | No native email replies | Yes |
 | Call and manual tasks for a rep | No task object | Yes |
 | Per-rep ownership and send caps | No sender object | Yes |
@@ -79,7 +79,7 @@ Pricing is the weakest argument here, but it is real. Customer.io bills by profi
 
 In the setup we recommend, Customer.io keeps sending every message to users, and a separate sales sequencer handles the cases where a rep should get involved. Both tools get the product events your app already emits.
 
-This is how it works with OpenSequence. Each rep is a sender who connects their Google account once ([Connect Google](https://docs.opensequence.dev/docs/senders/connect-google)). Emails leave from their Gmail, and follow-ups can reply in the same thread. The engine polls that mailbox for replies in the threads it started. A sequence can mix email, a text, a wait, a call task and a manual task of your own kind. An opt-out or a hard bounce always exits the enrollment. A reply or a booking on the rep's calendar exits it when the sequence lists that event in `exit_on`.
+This is how it works with OpenSequence. Each rep is a sender who connects their mailbox once over SMTP and IMAP, Gmail included ([Email setup](https://docs.opensequence.dev/docs/sending/email-smtp)). Emails leave from that mailbox, and follow-ups can reply in the same thread. The engine reads the inbox for replies to the emails it sent. A sequence can mix email, a text, a wait, a call task and a manual task of your own kind. An opt-out or a hard bounce always exits the enrollment. A reply or a booking on the rep's calendar exits it when the sequence lists that event in `exit_on`.
 
 ### 1. Decide in your code who gets a human
 
@@ -151,7 +151,7 @@ When someone opts out from a sales email, OpenSequence sends a `signal.received`
 
 ### What this costs you
 
-OpenSequence is headless. It has no inbox UI for reps, so you build the task list in your app or CRM ([Tasks](https://docs.opensequence.dev/docs/enrollments/tasks)). You also run one container plus Postgres ([Install](https://docs.opensequence.dev/docs/self-hosting/install)). Today it sends email through Gmail only. SMTP and IMAP are on the roadmap. The project has not reached 1.0. If those trade-offs are wrong for you, the same split works with a hosted sequencer. Our [guide to replacing your sales sequencing software](/blog/replace-your-sales-sequencing-software) compares the options, and [building your own sequencer](/blog/build-your-own-sales-sequencer) covers what you take on if you write the engine yourself.
+OpenSequence is headless. It has no inbox UI for reps, so you build the task list in your app or CRM ([Tasks](https://docs.opensequence.dev/docs/enrollments/tasks)). You also run one container plus Postgres ([Install](https://docs.opensequence.dev/docs/self-hosting/install)). It sends email over SMTP and IMAP, so Microsoft 365 mailboxes, which no longer allow password sign-in, cannot connect. The project has not reached 1.0. If those trade-offs are wrong for you, the same split works with a hosted sequencer. Our [guide to replacing your sales sequencing software](/blog/replace-your-sales-sequencing-software) compares the options, and [building your own sequencer](/blog/build-your-own-sales-sequencer) covers what you take on if you write the engine yourself.
 
 ## When Customer.io alone is enough
 

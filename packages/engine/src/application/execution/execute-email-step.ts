@@ -5,7 +5,7 @@
  */
 import { render } from '@opensequence/core';
 import type { Deps } from '../deps.js';
-import { emailProviderOf } from '../senders/shared.js';
+import { EMAIL_PROVIDER } from '../senders/shared.js';
 import { channelGate, completeRun, deferRun, failRun, loadStep, skipRun, windowGate, type StepEnv } from './shared.js';
 
 export type StepOutcome = 'done' | 'skipped' | 'deferred' | 'failed' | 'stale' | 'retry';
@@ -39,7 +39,7 @@ export async function executeEmailStep(deps: Deps, runId: string, attempt: numbe
   const messageId = messageIdFor(env, domain);
   const unsubscribe = env.template.unsubscribe_url!;
   const headers = { 'List-Unsubscribe': `<${unsubscribe}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' };
-  const provider = emailProviderOf(channel);
+  const provider = EMAIL_PROVIDER;
   const channelRef = { projectId: run.projectId, senderId: ctx.sender.id, channelId: channel.id, connectionId: channel.connectionId ?? undefined, address: channel.address, config: channel.config };
 
   // Reply in the thread of the previous email of this enrollment, when asked.

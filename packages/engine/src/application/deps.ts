@@ -34,7 +34,7 @@ export interface EngineConfig {
   planMaxTotal: number;
   /** Executor message retries before a run is failed. */
   maxReads: number;
-  /** The public base URL, for opt-out links and OAuth callbacks. */
+  /** The public base URL, for opt-out links. */
   publicUrl: string;
 }
 

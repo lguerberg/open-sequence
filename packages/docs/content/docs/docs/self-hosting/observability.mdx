@@ -60,7 +60,7 @@ The `plan` job runs every 5 seconds, so `info` is chatty. Use `warn` if you only
 | `run.needs_review` webhooks | a text with an unknown outcome waits for a human |
 | `run.failed`, or `enrollment.paused` with `step_failed` | a step ran out of retries with no `failed` branch wired |
 | `endpoint.disabled` | your own webhook receiver has been down for three days, or its secret can no longer be decrypted |
-| `sender.channel_status` with `credentials_needed` | a sender must reconnect Google |
+| `sender.channel_status` with `credentials_needed` | a sender must save their mailbox settings again |
 | `5xx` from the API, `INTERNAL_ERROR` in responses | search the logs by the `request_id` |
 
 Oldest-due lag has no endpoint; [Scaling](/docs/self-hosting/scaling) shows the SQL to read it.

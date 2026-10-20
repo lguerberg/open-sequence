@@ -1,6 +1,5 @@
 import type { ProviderSet } from '@opensequence/core';
 import type { ConnectionSecretSource, CredentialSource } from './credentials.js';
-import type { TokenSource } from './google/token-source.js';
 
 /**
  * Adapters register by name (docs/ARCHITECTURE.md section 20.1). The composition root asks the
@@ -9,8 +8,6 @@ import type { TokenSource } from './google/token-source.js';
 export interface ProviderFactoryContext {
   /** Project-level secrets (API-key providers). */
   credentials: CredentialSource;
-  /** Per-connection access tokens (OAuth providers); the auth module provides it. */
-  tokens?: TokenSource;
   /** Per-connection password settings (SMTP and IMAP); the auth module provides it. */
   connectionSecrets?: ConnectionSecretSource;
   /** Adapter options such as a base URL override; shape is per provider. */

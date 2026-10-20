@@ -7,7 +7,10 @@
  */
 export const redirects: Record<string, string> = {
   '/docs/senders/senders': '/docs/sending/senders',
-  '/docs/senders/connect-google': '/docs/sending/email-gmail',
+  '/docs/senders/connect-google': '/docs/sending/email-smtp',
+  '/docs/sending/email-gmail': '/docs/sending/email-smtp',
+  '/api/senders/post-senders-id-connections-google': '/docs/sending/email-smtp',
+  '/api/senders/delete-senders-id-connections-google': '/api/senders/delete-senders-id-channels-channel',
   '/docs/senders/connect-smtp': '/docs/sending/email-smtp',
   '/docs/senders/connect-allo': '/docs/sending/sms-and-calls-allo',
   '/docs/senders/connect-attio': '/docs/sequences/crm-conditions',

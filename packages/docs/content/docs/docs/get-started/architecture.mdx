@@ -11,7 +11,7 @@ flowchart LR
   SCH[Scheduler jobs] -->|plan, poll, reap| DB
   SCH --> QE[seq_email / seq_sms]
   QE --> EX[Executors]
-  EX -->|send| PRV[Gmail, Allo]
+  EX -->|send| PRV[Mail servers, Allo]
   PRV -->|poll, webhooks| SG[seq_signals]
   SG --> SP[Signal processor]
   SP --> DB
@@ -43,7 +43,7 @@ There is no cron and no Postgres extension. Every worker process ticks each job 
 |---|---|---|---|
 | `plan` | 5 s | 20 s | Claim due enrollments and advance them; resume pauses whose end date has passed |
 | `signals` | 30 s | 2 min | Re-queue signals still unprocessed two minutes after they were recorded |
-| `poll` | 60 s | 5 min | Read every active Gmail mailbox and its calendar from the stored cursor; check the connection's health every 15 minutes |
+| `poll` | 60 s | 5 min | Read every active inbox over IMAP from the stored cursor; check the connection's health every 15 minutes |
 | `reap` | 60 s | 5 min | Release planner claims older than 10 minutes; re-queue runs recorded over 2 minutes ago and never queued; fail runs stuck for 2 hours; re-queue webhook deliveries that are due |
 | `webhooks` | 30 s | 2 min | Re-queue webhook deliveries due for more than two minutes |
 | `retention` | 1 day | 1 h | Delete dead queue messages and delivered webhook deliveries older than 30 days |
@@ -87,7 +87,7 @@ Then the executor sends, stores the message, records the run as `done` with the 
 
 ## Signals
 
-Everything that comes from outside (a polled email or calendar event, an Allo webhook, a completed task, an event you report) is recorded as a signal row, unique per project, source and external id, together with a `seq_signals` message (in the same transaction with the `postgres` queue; the `signals` job covers a lost message). The signal processor then marks the contact suppressed if needed, and for each enrollment the signal can touch, in its own transaction: credits the step that earned it, exits, pauses or wakes the enrollment, and records the effect. A signal processed twice finds its effect already recorded and does nothing.
+Everything that comes from outside (a polled email, an Allo webhook, a completed task, an event you report) is recorded as a signal row, unique per project, source and external id, together with a `seq_signals` message (in the same transaction with the `postgres` queue; the `signals` job covers a lost message). The signal processor then marks the contact suppressed if needed, and for each enrollment the signal can touch, in its own transaction: credits the step that earned it, exits, pauses or wakes the enrollment, and records the effect. A signal processed twice finds its effect already recorded and does nothing.
 
 ## The webhook outbox
 

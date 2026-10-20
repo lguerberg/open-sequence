@@ -196,9 +196,9 @@ await oseq.tasks.complete(taskId, { outcome: 'answered', note: 'Booked a demo fo
 ```
 
 </Step>
-<Step title="Report meetings the calendar cannot see">
+<Step title="Report booked meetings">
 
-For a sender connected with Google, a meeting on their calendar with the contact as an attendee is detected on its own. A booking made elsewhere ends the sequence when you report it:
+The service does not read calendars. A booking ends the sequence when you report it:
 
 ```ts title="TypeScript"
 await oseq.contacts.reportEvent(registrantId, { id: `booking_${bookingId}`, type: 'meeting_booked' });

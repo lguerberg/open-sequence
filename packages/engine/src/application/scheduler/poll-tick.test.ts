@@ -1,4 +1,4 @@
-/** The poll job picks the mail adapter per channel: an SMTP channel keeps its own cursor, records its provider and has no calendar. */
+/** The poll job reads each mailbox from its IMAP cursor, records the events as smtp and checks health. */
 import { ensureBuiltins, type ChannelRef } from '@opensequence/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { closeTestDb, migrateTestDb } from '../../test/db.js';
@@ -14,10 +14,9 @@ describe('pollChannel', () => {
   });
   afterAll(closeTestDb);
 
-  it('an SMTP channel: imap_cursor, events recorded as smtp, no calendar call, health checked', async () => {
+  it('reads from imap_cursor, records events as smtp, checks health', async () => {
     const polled: Array<{ cursor: string | null; config: Record<string, unknown> }> = [];
     const health: ChannelRef[] = [];
-    let calendarCalls = 0;
     const deps = makeTestDeps({
       providers: {
         email: {
@@ -44,12 +43,6 @@ describe('pollChannel', () => {
             return 'active';
           },
         },
-        calendar: {
-          poll: async () => {
-            calendarCalls++;
-            return { events: [], cursor: 'cal' };
-          },
-        },
       },
     });
     const seed = await seedSequence(deps.uow.repos);
@@ -57,57 +50,21 @@ describe('pollChannel', () => {
       channel: 'email',
       address: 'ann@example.com',
       connectionId: 'con_smtp',
-      config: { provider: 'smtp', imap_cursor: '7:40', gmail_cursor: '999' },
+      config: { provider: 'smtp', imap_cursor: '7:40' },
     });
 
     expect(await pollChannel(deps, channel, new Date())).toBe(1);
     expect(polled).toEqual([
       { cursor: '7:40', config: expect.objectContaining({ provider: 'smtp' }) },
     ]);
-    expect(calendarCalls).toBe(0);
     expect(health).toHaveLength(1);
 
     const after = (await deps.uow.repos.senders.channel(seed.senderId, 'email'))!;
     expect(after.config).toMatchObject({
       provider: 'smtp',
       imap_cursor: '7:42',
-      gmail_cursor: '999',
     });
-    expect(after.config['calendar_cursor']).toBeUndefined();
     const signals = await deps.uow.repos.signals.byContact(seed.contactIds[0]!, 10);
     expect(signals.map((s) => [s.kind, s.source])).toEqual([['bounce', 'smtp']]);
-  });
-
-  it('a channel that names no provider is Gmail: gmail_cursor and the calendar', async () => {
-    let calendarCalls = 0;
-    const deps = makeTestDeps({
-      providers: {
-        email: {
-          send: async () => ({ providerId: 'x', threadRef: 'x' }),
-          findSent: async () => null,
-          poll: async (req) => ({ events: [], cursor: `${req.cursor}+1` }),
-          health: async () => 'active',
-        },
-        calendar: {
-          poll: async () => {
-            calendarCalls++;
-            return { events: [], cursor: 'cal-1' };
-          },
-        },
-      },
-    });
-    const seed = await seedSequence(deps.uow.repos);
-    const channel = await setChannel(deps, seed.projectId, seed.senderId, {
-      channel: 'email',
-      address: 'ann@example.com',
-      connectionId: 'con_google',
-      config: { gmail_cursor: '100' },
-    });
-    await pollChannel(deps, channel, new Date());
-    expect(calendarCalls).toBe(1);
-    expect((await deps.uow.repos.senders.channel(seed.senderId, 'email'))!.config).toMatchObject({
-      gmail_cursor: '100+1',
-      calendar_cursor: 'cal-1',
-    });
   });
 });

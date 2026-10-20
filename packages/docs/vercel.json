@@ -9,7 +9,22 @@
     },
     {
       "source": "/docs/senders/connect-google",
-      "destination": "/docs/sending/email-gmail",
+      "destination": "/docs/sending/email-smtp",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sending/email-gmail",
+      "destination": "/docs/sending/email-smtp",
+      "permanent": true
+    },
+    {
+      "source": "/api/senders/post-senders-id-connections-google",
+      "destination": "/docs/sending/email-smtp",
+      "permanent": true
+    },
+    {
+      "source": "/api/senders/delete-senders-id-connections-google",
+      "destination": "/api/senders/delete-senders-id-channels-channel",
       "permanent": true
     },
     {

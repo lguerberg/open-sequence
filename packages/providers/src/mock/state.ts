@@ -50,7 +50,6 @@ export class MockProviders {
   readonly outbox: OutboxEntry[] = [];
   readonly dialerPushes: DialerPush[] = [];
   private readonly inbound = new Map<string, InboundEvent[]>();
-  private readonly calendar = new Map<string, InboundEvent[]>();
   private readonly health = new Map<string, 'active' | 'credentials_needed' | 'restricted'>();
   private readonly callStatus = new Map<string, { callId: string | null; status: string; reason?: string }>();
   readonly now: () => Date;
@@ -61,12 +60,11 @@ export class MockProviders {
     this.crm = options.crm ?? {};
   }
 
-  /** Simulates something arriving from the outside: a reply, a bounce, an opt-out, a call, a booking. */
+  /** Simulates something arriving from the outside: a reply, a bounce, an opt-out, a call. */
   push(projectId: string, event: InboundEvent): void {
-    const queue = event.kind === 'meeting_booked' ? this.calendar : this.inbound;
-    const list = queue.get(projectId) ?? [];
+    const list = this.inbound.get(projectId) ?? [];
     list.push(event);
-    queue.set(projectId, list);
+    this.inbound.set(projectId, list);
   }
 
   /** Removes and returns the pending events for a project, optionally only one channel's. */
@@ -74,12 +72,8 @@ export class MockProviders {
     return this.take(this.inbound, projectId, filter);
   }
 
-  drainCalendar(projectId: string): InboundEvent[] {
-    return this.take(this.calendar, projectId);
-  }
-
   pending(projectId: string): InboundEvent[] {
-    return [...(this.inbound.get(projectId) ?? []), ...(this.calendar.get(projectId) ?? [])];
+    return [...(this.inbound.get(projectId) ?? [])];
   }
 
   /** `key` is a channel id or a channel address; the first wins when both are set. */
@@ -104,7 +98,6 @@ export class MockProviders {
     this.outbox.length = 0;
     this.dialerPushes.length = 0;
     this.inbound.clear();
-    this.calendar.clear();
     this.health.clear();
     this.callStatus.clear();
   }

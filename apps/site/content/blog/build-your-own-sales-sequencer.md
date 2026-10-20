@@ -3,13 +3,13 @@ title: "What breaks when you build your own sales sequencer"
 h1: "What breaks after the cron job when you build your own sales sequencer"
 description: "A sales sequencer takes 16 to 24 engineer-weeks, not a cron job. This post covers time zones, double sends, caps, replies, bounces and RFC 8058, with our code."
 date: 2026-10-14
-updated: 2026-10-14
+updated: 2026-10-20
 author: Leo Guerberg
 tags: [engineering, build-vs-buy, email, architecture]
 keyword: "build your own sales sequencer"
 ---
 
-You can build your own sales sequencer, but the cron job and the templates are the small part. Take a first production version that sends from reps' own Gmail inboxes, stops on replies and never double-sends. It takes one senior engineer about 16 to 24 weeks, plus upkeep. We know the parts list because we built one. We make [OpenSequence](https://github.com/lguerberg/open-sequence), an Apache-2.0 sequencing service. Its service code is about 13,900 lines of TypeScript plus 3,600 lines of tests.
+You can build your own sales sequencer, but the cron job and the templates are the small part. Take a first production version that sends from reps' own inboxes, stops on replies and never double-sends. It takes one senior engineer about 16 to 24 weeks, plus upkeep. We know the parts list because we built one. We make [OpenSequence](https://github.com/lguerberg/open-sequence), an Apache-2.0 sequencing service. Its service code is about 13,900 lines of TypeScript plus 3,600 lines of tests.
 
 Each section below names a failure mode, then shows how OpenSequence handles it, with code from the repo.
 
@@ -18,7 +18,7 @@ Each section below names a failure mode, then shows how OpenSequence handles it,
 ```ts
 // every 5 minutes
 for (const e of await db.enrollments.due()) {
-  await gmail.send(render(e.step, e.contact));
+  await mailer.send(render(e.step, e.contact));
   await db.enrollments.advance(e.id);
 }
 ```
@@ -46,11 +46,11 @@ OpenSequence computes the timing when an enrollment enters a step and checks it 
 
 ## Never double-send under at-least-once delivery
 
-Queues deliver at least once. Say a worker crashes after Gmail accepted the email but before your database recorded it. The worker retries, and the prospect gets two copies. OpenSequence prevents this with two layers.
+Queues deliver at least once. Say a worker crashes after the mail server accepted the email but before your database recorded it. The worker retries, and the prospect gets two copies. OpenSequence prevents this with two layers.
 
 The first layer is ownership. While an executor works on a step, the enrollment's `owner_run_id` points at that run and `next_run_at` is null, so the planner cannot see it. Only the executor that finishes the run releases the enrollment. There is no lease that could expire in the middle of a send.
 
-The second layer is an idempotency key on the email itself. Each run has a unique key (`seq:<enrollment>:<node>:a<attempt>`). OpenSequence derives the `Message-ID` header from that key, and a retry asks Gmail whether the message already went out:
+The second layer is an idempotency key on the email itself. Each run has a unique key (`seq:<enrollment>:<node>:a<attempt>`). OpenSequence derives the `Message-ID` header from that key, and a retry looks for the message in the mailbox before it sends:
 
 ```ts
 export function messageIdFor(env: StepEnv, domain: string): string {
@@ -61,7 +61,7 @@ const already = attempt > 1 ? await deps.providers.email.findSent({ channel: cha
 const sent = already ?? (await deps.providers.email.send({ /* ... */ messageId, headers }));
 ```
 
-`findSent` is a Gmail search for `rfc822msgid:<id>`. Texts have no equivalent key. For an SMS with an unknown outcome, OpenSequence searches the last ten minutes of outbound texts to that number. If that search is inconclusive, the run moves to `needs_review` instead of retrying. A double text is worse than a late one.
+`findSent` is an IMAP search of the Sent folder, then the inbox, for that `Message-ID`. Texts have no equivalent key. For an SMS with an unknown outcome, OpenSequence searches the last ten minutes of outbound texts to that number. If that search is inconclusive, the run moves to `needs_review` instead of retrying. A double text is worse than a late one.
 
 The database also rejects a second active enrollment for the same contact:
 
@@ -74,19 +74,19 @@ With the default Postgres queue, the enqueue is an insert in the same transactio
 
 ## Per-mailbox caps
 
-Providers publish ceilings. [Google Workspace](https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace) allows 2,000 messages a day per user (500 on trial accounts). [Exchange Online](https://learn.microsoft.com/en-us/office365/servicedescriptions/exchange-online-service-description/exchange-online-limits) allows 10,000 recipients a day and 30 messages a minute per mailbox. The [Gmail API](https://developers.google.com/workspace/gmail/api/reference/quota) charges 100 quota units per `messages.send` against a budget of 6,000 units per user per minute. Your reply polling draws on the same budget.
+Providers publish ceilings. [Google Workspace](https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace) allows 2,000 messages a day per user (500 on trial accounts). [Exchange Online](https://learn.microsoft.com/en-us/office365/servicedescriptions/exchange-online-service-description/exchange-online-limits) allows 10,000 recipients a day and 30 messages a minute per mailbox. If you send through the [Gmail API](https://developers.google.com/workspace/gmail/api/reference/quota) instead of SMTP, each `messages.send` costs 100 quota units against a budget of 6,000 units per user per minute, and reply polling draws on the same budget.
 
 Those numbers are ceilings, not targets. A provider can flag a rep's inbox that sends cold email anywhere near them. OpenSequence defaults each email channel to 30 sends per rolling 24 hours with a 60-second minimum gap. You can configure both per sender. When a sender is over the cap, OpenSequence defers the step instead of skipping it, and the enrollment shows `waiting_limit`. On each tick the planner claims at most 50 due enrollments per sender with `FOR UPDATE SKIP LOCKED`, and it takes follow-ups before first touches. One rep's 5,000-contact import therefore cannot starve everyone else.
 
-OpenSequence sends through Gmail only today. It does not support Outlook or Microsoft 365 mailboxes. An SMTP and IMAP adapter is on the roadmap.
+OpenSequence sends over SMTP and reads replies over IMAP, so it works with Gmail, Google Workspace and most other providers. It does not support Microsoft 365 mailboxes, which no longer accept password sign-in for SMTP and IMAP.
 
 ## Reply detection and threading
 
-Gmail's [threading rules](https://developers.google.com/workspace/gmail/api/guides/threads) need three things: the `threadId` on the send request, `In-Reply-To` and `References` headers as RFC 5322 defines them, and a matching subject. A `reply_in_thread` follow-up in OpenSequence sets the first two, and keeping the subject consistent is up to you. `In-Reply-To` names the enrollment's last email, and `References` lists every email of the thread so far. OpenSequence takes the Gmail `threadId` from the thread where it recorded the earlier send.
+Mail clients put a follow-up in the same thread when its `In-Reply-To` and `References` headers name the earlier messages, as RFC 5322 defines them. Gmail also wants a matching subject ([its threading rules](https://developers.google.com/workspace/gmail/api/guides/threads)). A `reply_in_thread` follow-up in OpenSequence sets both headers, and keeping the subject consistent is up to you. `In-Reply-To` names the enrollment's last email, and `References` lists every email of the thread so far.
 
-For inbound mail, the service reads the Gmail history feed from a stored cursor every minute. It keeps only messages in threads it started in the last 30 days. It matches them by thread id, or by finding our `Message-ID` in the `In-Reply-To` and `References` headers ([RFC 5322 section 3.6.4](https://www.rfc-editor.org/rfc/rfc5322#section-3.6.4)). The service stores nothing else from the rep's mailbox, and it stores inbound bodies only if the project turns that on.
+For inbound mail, the service reads the IMAP inbox from a stored cursor every minute. It keeps only messages whose `In-Reply-To` or `References` headers name an email it sent from that mailbox in the last 30 days ([RFC 5322 section 3.6.4](https://www.rfc-editor.org/rfc/rfc5322#section-3.6.4)). The service stores nothing else from the rep's mailbox, and it does not store reply bodies.
 
-An out-of-office reply arrives in the thread and looks like a real reply. OpenSequence treats a message as automatic when it has `Auto-Submitted` set to anything but `no` ([RFC 3834](https://www.rfc-editor.org/rfc/rfc3834)), an `X-Autoreply` or `X-Autorespond` header, `Precedence: auto_reply`, or a subject like "Automatic reply" or "Out of office" (with German, French and Spanish variants). An auto-reply never removes the contact from the sequence. Instead, OpenSequence pauses the enrollment until the return date it parses from the subject or snippet. If it finds no date, the pause lasts 7 days.
+An out-of-office reply arrives in the thread and looks like a real reply. OpenSequence treats a message as automatic when it has `Auto-Submitted` set to anything but `no` ([RFC 3834](https://www.rfc-editor.org/rfc/rfc3834)), an `X-Autoreply` or `X-Autorespond` header, `Precedence: auto_reply`, or a subject like "Automatic reply" or "Out of office" (with German, French and Spanish variants). An auto-reply never removes the contact from the sequence. Instead, OpenSequence pauses the enrollment until the return date it parses from the subject or text. If it finds no date, the pause lasts 7 days.
 
 ## Bounces and suppressions
 
@@ -108,7 +108,7 @@ The problem is link scanners. Many corporate mail filters fetch the URLs in a me
 
 ## Stopping on a meeting or a CRM change
 
-A sequencer only sees its own channels. OpenSequence detects a meeting when a new event on the sender's connected Google Calendar has the contact as an attendee. It cannot see a booking in another tool, a deal moved to "closed won" or a do-not-contact flag in your CRM. Your app reports those through the [contact events API](https://docs.opensequence.dev/docs/contacts/events), which is idempotent on your event id. A homegrown sequencer has the same problem, so budget the CRM webhooks either way. The [CRM integration tutorial](/blog/add-sales-sequences-to-your-crm) shows that code for OpenSequence. OpenSequence does not watch the CRM. A `condition` step can still read a live value from Attio, such as `crm.deal.stage`, when it decides a branch.
+A sequencer only sees its own channels. OpenSequence does not read calendars, so it cannot see a booked meeting, a deal moved to "closed won" or a do-not-contact flag in your CRM. Your app reports those through the [contact events API](https://docs.opensequence.dev/docs/contacts/events), which is idempotent on your event id. A homegrown sequencer has the same problem, so budget the CRM webhooks either way. The [CRM integration tutorial](/blog/add-sales-sequences-to-your-crm) shows that code for OpenSequence. OpenSequence does not watch the CRM. A `condition` step can still read a live value from Attio, such as `crm.deal.stage`, when it decides a branch.
 
 A reply can also arrive in the second between the last check and the provider call. The enrollment row lock and a last-moment status check catch almost all of these. No design can close the remaining race, so OpenSequence logs those cases instead of hiding them.
 
@@ -126,14 +126,14 @@ Six weeks from now, someone will ask why Dana got that email, and you need an an
 
 ## How long a build takes
 
-This is our estimate for one senior engineer who has built queue-backed systems before, with Gmail as the only mailbox provider.
+This is our estimate for one senior engineer who has built queue-backed systems before, with one mailbox provider.
 
 | Piece | Engineer-weeks |
 |---|---|
 | Data model, versions, enrollment rules | 2 |
 | Scheduler, time zones, send windows | 2 |
 | Executors, idempotency, retries | 3 |
-| Google OAuth and token refresh | 2 |
+| Mailbox connections and stored passwords | 2 |
 | Replies, auto-replies, bounces | 3 |
 | Unsubscribe, suppressions, SMS gates | 1 |
 | Tasks and a dialer | 1.5 |
@@ -142,7 +142,7 @@ This is our estimate for one senior engineer who has built queue-backed systems 
 | Mock providers, concurrency tests | 2 |
 | **Total** | **20 (16 to 24)** |
 
-Most of the range comes from the inbound side, where you keep finding bounce and auto-reply formats your parser does not handle. Each extra mailbox provider adds weeks. If your Google OAuth client is public rather than internal to your Workspace, Google reviews apps that request restricted Gmail scopes. You do not control how long that review takes. After launch, someone has to handle token failures, provider API changes and the occasional stuck enrollment.
+Most of the range comes from the inbound side, where you keep finding bounce and auto-reply formats your parser does not handle. Each extra mailbox provider adds weeks. If you send through the Gmail API instead of SMTP and your OAuth client is public rather than internal to your Workspace, Google reviews apps that request restricted Gmail scopes. You do not control how long that review takes. After launch, someone has to handle login failures, provider API changes and the occasional stuck enrollment.
 
 ## When building your own is the right call
 
@@ -176,4 +176,4 @@ Google's published limit is 2,000 messages a day per user, or 500 on trial accou
 
 ### Does OpenSequence work with Outlook or Microsoft 365?
 
-Not today. OpenSequence sends email through Gmail with each rep's Google account, and an SMTP and IMAP adapter is on the roadmap.
+Not today. OpenSequence sends over SMTP and reads replies over IMAP, and Microsoft 365 no longer accepts password sign-in for either. Gmail, Google Workspace and most other providers work.

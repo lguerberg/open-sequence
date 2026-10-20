@@ -43,7 +43,6 @@ export interface ProjectSettings {
   retention_days?: number;
   store_inbound_bodies?: boolean;
   match_replies_outside_thread?: boolean;
-  meeting_detection?: 'calendar' | 'client' | 'both';
   crm?: { deal_selection?: 'newest_open' | 'highest_value' | 'any_open' };
   allo?: { outcome_map?: Record<string, string> };
   max_steps_per_tick?: number;
@@ -141,7 +140,7 @@ export const senderChannels = seq.table(
       .notNull()
       .references(() => senders.id, { onDelete: 'cascade' }),
     projectId: text('project_id').notNull(),
-    /** seq_auth.connections.id for OAuth channels (email); null for sms (API key). No cross-schema FK. */
+    /** seq_auth.connections.id for email (the SMTP and IMAP settings); null for sms (API key). No cross-schema FK. */
     connectionId: text('connection_id'),
     channel: varchar('channel', { length: 16 }).notNull(),
     address: text('address').notNull(),

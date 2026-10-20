@@ -1,6 +1,6 @@
 /**
- * Stores a tenant's credential for a provider: its OAuth client (client_id, client_secret) or a
- * workspace API key (api_key, optional webhook_secret). An API key is probed first and refused
+ * Stores a tenant's credential for a provider: a workspace API key (api_key, optional
+ * webhook_secret). An API key is probed first and refused
  * when the probe fails. The secret is encrypted on arrival and never returned.
  */
 import type { Credential, CredentialMethod } from '../domain/entities.js';
@@ -18,9 +18,9 @@ export interface RegisterCredentialInput {
 }
 
 export async function registerCredential(deps: AuthDeps, input: RegisterCredentialInput): Promise<CredentialView> {
-  const { secret, webhookSecret, config } = split(input.method, input.secrets);
+  const { secret, webhookSecret, config } = split(input.secrets);
 
-  if (input.method === 'api_key' && input.probe) {
+  if (input.probe) {
     const result = await input.probe(input.secrets);
     if (!result.ok) {
       throw new AuthError(
@@ -48,15 +48,7 @@ export async function registerCredential(deps: AuthDeps, input: RegisterCredenti
   return credentialView(deps.cipher, await deps.credentials.upsert(row));
 }
 
-function split(method: CredentialMethod, secrets: Record<string, string>): { secret: string; webhookSecret: string | null; config: Record<string, unknown> } {
-  if (method === 'oauth2') {
-    const clientId = secrets['client_id'];
-    const clientSecret = secrets['client_secret'];
-    if (!clientId || !clientSecret) throw invalid('MISSING_SECRET', 'An oauth2 credential needs client_id and client_secret.');
-    const config: Record<string, unknown> = { client_id: clientId };
-    if (secrets['pubsub_topic']) config['pubsub_topic'] = secrets['pubsub_topic'];
-    return { secret: clientSecret, webhookSecret: null, config };
-  }
+function split(secrets: Record<string, string>): { secret: string; webhookSecret: string | null; config: Record<string, unknown> } {
   const apiKey = secrets['api_key'];
   if (!apiKey) throw invalid('MISSING_SECRET', 'An api_key credential needs api_key.');
   return { secret: apiKey, webhookSecret: secrets['webhook_secret'] ?? null, config: {} };

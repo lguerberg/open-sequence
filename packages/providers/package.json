@@ -1,7 +1,7 @@
 {
   "name": "@opensequence/providers",
   "version": "0.1.0",
-  "description": "OpenSequence provider adapters: google (Gmail + Calendar), allo (SMS + calls), attio (CRM), mock (dev and CI).",
+  "description": "OpenSequence provider adapters: smtp (any mailbox over SMTP and IMAP), allo (SMS + calls), attio (CRM), mock (dev and CI).",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@opensequence/core": "workspace:*",
-    "googleapis": "^185.0.0",
     "imapflow": "2.5.2",
     "mailparser": "3.9.40",
     "nodemailer": "10.1.2",

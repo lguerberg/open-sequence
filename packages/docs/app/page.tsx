@@ -32,8 +32,7 @@ const useCases = [
 ];
 
 const modules = [
-  { href: '/docs/sending/email-gmail', title: 'Gmail', text: 'OAuth, sends from the rep’s own mailbox' },
-  { href: '/docs/sending/email-smtp', title: 'SMTP and IMAP', text: 'any mailbox with a password' },
+  { href: '/docs/sending/email-smtp', title: 'Email', text: 'any mailbox over SMTP and IMAP, Gmail included' },
   { href: '/docs/sending/sms-and-calls-allo', title: 'Allo', text: 'texts and the power dialer' },
   { href: '/docs/sending/call-tasks', title: 'Call tasks', text: 'manual steps for reps' },
   { href: '/docs/sequences/crm-conditions', title: 'Attio', text: 'read-only CRM conditions' },
@@ -73,7 +72,7 @@ function FlowDiagram() {
         <FlowNode label="Engine" sub="planner, waits, gates, executors" strong />
         <Arrow label="send" />
         <div className="grid gap-1.5">
-          <FlowNode label="Gmail · SMTP" sub="email" />
+          <FlowNode label="SMTP · IMAP" sub="email" />
           <FlowNode label="Allo" sub="texts, dialer" />
         </div>
       </div>

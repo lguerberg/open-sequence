@@ -5,7 +5,7 @@
  * The host proves the settings work before calling this; the secrets are never returned.
  */
 import { AuthError, invalid } from '../domain/errors.js';
-import { GOOGLE_PROVIDER, type AuthDeps } from './deps.js';
+import type { AuthDeps } from './deps.js';
 import { connectionView, type ConnectionView } from './connection-status.js';
 
 export interface SavePasswordConnectionInput {
@@ -24,11 +24,6 @@ export async function savePasswordConnection(
   deps: AuthDeps,
   input: SavePasswordConnectionInput
 ): Promise<ConnectionView> {
-  if (input.provider === GOOGLE_PROVIDER)
-    throw invalid(
-      'WRONG_FLOW',
-      'A Google connection is made through the consent flow, not with a password.'
-    );
   if (Object.keys(input.secrets).length === 0)
     throw invalid('MISSING_SECRET', 'A password connection needs at least one secret.');
 

@@ -13,7 +13,6 @@ import { contactRoutes } from './routes/contacts.js';
 import { enrollmentRoutes } from './routes/enrollments.js';
 import { healthRoutes } from './routes/health.js';
 import { hookRoutes } from './routes/hooks.js';
-import { oauthRoutes } from './routes/oauth.js';
 import { optOutRoutes } from './routes/optout.js';
 import { projectRoutes } from './routes/project.js';
 import { senderRoutes } from './routes/senders.js';
@@ -69,7 +68,6 @@ export async function buildApp(rt: Runtime, log: pino.Logger) {
     await taskRoutes(api, rt);
     await webhookRoutes(api, rt);
     await analyticsRoutes(api, rt);
-    await oauthRoutes(api, rt);
     await optOutRoutes(api, rt);
   });
   // Hooks need the raw body for signatures, so they live in their own plugin with their own parsers.

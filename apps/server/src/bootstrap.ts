@@ -7,12 +7,11 @@ import { createHmac } from 'node:crypto';
 import { createAuth, AesGcmCipher, runAuthMigrations } from '@opensequence/auth';
 import { ensureBuiltins, type ProviderSet } from '@opensequence/core';
 import { connect, DEFAULT_CONFIG, DrizzleUnitOfWork, fetchWebhookTransport, runMigrations, systemClock, ulidIds, type Deps } from '@opensequence/engine';
-import { AlloDialerProvider, AlloSmsProvider, AttioCrmProvider, ChannelRoutedEmailProvider, createGoogleProviders, createMockProviders, createSmtpProviders, probeSmtpImap, type MockProviders } from '@opensequence/providers';
+import { AlloDialerProvider, AlloSmsProvider, AttioCrmProvider, createMockProviders, createSmtpProviders, probeSmtpImap, type MockProviders } from '@opensequence/providers';
 import { createQueue, queueJoinsTransaction } from '@opensequence/queue';
 import type pino from 'pino';
 import type { Env } from './config/env.js';
 import type { AppContext, AuthModule } from './http/context.js';
-import { GOOGLE_CALLBACK_PATH } from './http/routes/oauth.js';
 import { healthState } from './http/routes/health.js';
 import { signOptOutToken } from './http/routes/optout.js';
 import { engineLogger } from './infrastructure/logger.js';
@@ -38,7 +37,7 @@ export async function bootstrap(env: Env, log: pino.Logger): Promise<Runtime> {
   const queue = createQueue(env.SEQ_QUEUE, { db, redis: env.SEQ_REDIS_DSN });
   const uow = new DrizzleUnitOfWork(db, ulidIds, systemClock, queue, queueJoinsTransaction(env.SEQ_QUEUE));
 
-  const auth: AuthModule = createAuth({ db, encryptionKeys: env.SEQ_ENCRYPTION_KEYS, publicUrl: env.SEQ_PUBLIC_URL, googleCallbackPath: GOOGLE_CALLBACK_PATH });
+  const auth: AuthModule = createAuth({ db, encryptionKeys: env.SEQ_ENCRYPTION_KEYS });
   const cipher = new AesGcmCipher(env.SEQ_ENCRYPTION_KEYS);
   // The opt-out link signer derives its key from the current encryption key, so one secret rules them all.
   const optOutSecret = createHmac('sha256', env.SEQ_ENCRYPTION_KEYS).update('opt-out-links').digest('hex');
@@ -51,14 +50,11 @@ export async function bootstrap(env: Env, log: pino.Logger): Promise<Runtime> {
     providers = m;
     mock = m.mock;
     probeMailbox = async () => ({ ok: true });
-    log.warn('mock providers are on: nothing is sent to Google, Allo, Attio or any mail server');
+    log.warn('mock providers are on: nothing is sent to Allo, Attio or any mail server');
   } else {
-    const google = createGoogleProviders(auth);
     const smtp = createSmtpProviders(auth, { warn: (message, meta) => log.warn(meta, message) });
     providers = {
-      // Each sender's email channel names its adapter (config.provider); Google when it names none.
-      email: new ChannelRoutedEmailProvider({ google: google.email, smtp: smtp.email }, 'google'),
-      calendar: google.calendar,
+      email: smtp.email,
       sms: new AlloSmsProvider(auth),
       dialer: new AlloDialerProvider(auth),
       crm: new AttioCrmProvider(auth),

@@ -5,7 +5,7 @@
  * reads as "ask the sender to set the channel again".
  */
 import { AuthError } from '../domain/errors.js';
-import { GOOGLE_PROVIDER, type AuthDeps } from './deps.js';
+import type { AuthDeps } from './deps.js';
 import { requireConnection } from './shared.js';
 
 export interface ConnectionSecrets {
@@ -19,13 +19,6 @@ export async function connectionSecrets(
   connectionId: string
 ): Promise<ConnectionSecrets> {
   const c = await requireConnection(deps, connectionId);
-  // A Google refresh token never leaves through here; Google adapters get access tokens instead.
-  if (c.provider === GOOGLE_PROVIDER)
-    throw new AuthError(
-      'WRONG_FLOW',
-      `Connection ${connectionId} is a Google connection; use an access token.`,
-      409
-    );
   if (c.status !== 'active' || !c.secretEnc || !c.keyId) {
     throw new AuthError(
       'CREDENTIALS_NEEDED',

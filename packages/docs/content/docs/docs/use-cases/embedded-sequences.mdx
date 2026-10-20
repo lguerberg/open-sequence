@@ -29,7 +29,6 @@ export async function onWorkspaceCreated(ws: Workspace) {
   await db.workspaces.update(ws.id, { seqProjectId: project.id, seqApiKey: encrypt(api_key) }); // shown once
 
   const oseq = new OpenSequence({ baseUrl: process.env.SEQ_URL!, apiKey: api_key });
-  await oseq.project.setProvider('google', { client_id: process.env.GOOGLE_CLIENT_ID!, client_secret: process.env.GOOGLE_CLIENT_SECRET! });
   const { secret } = await oseq.webhooks.create({ url: `https://app.example.com/hooks/opensequence/${ws.id}`, event_types: ['*'] });
   await db.workspaces.update(ws.id, { seqWebhookSecret: encrypt(secret) });
 }
@@ -37,7 +36,7 @@ export async function onWorkspaceCreated(ws: Workspace) {
 export const seqFor = (ws: Workspace) => new OpenSequence({ baseUrl: process.env.SEQ_URL!, apiKey: decrypt(ws.seqApiKey) });
 ```
 
-Your one Google OAuth client is set on every project. The first key is `admin`; create narrower keys with `oseq.project.apiKeys.create({ name, scopes: ['enroll'] })` for code paths that only enroll.
+The first key is `admin`; create narrower keys with `oseq.project.apiKeys.create({ name, scopes: ['enroll'] })` for code paths that only enroll.
 
 ## Each user is a sender
 
@@ -53,9 +52,8 @@ export async function onUserJoined(ws: Workspace, user: User) {
   });
 }
 
-// "Connect Gmail" button on the user's settings page:
-const google = await seqFor(ws).senders.connectGoogle(user.id, { return_url: 'https://app.example.com/settings/sending' });
-if ('auth_url' in google) redirect(google.auth_url);
+// "Connect your mailbox" form on the user's settings page. A 422 names the login that failed.
+await seqFor(ws).senders.setSmtp(user.id, { provider: 'smtp', smtp: form.smtp, imap: form.imap });
 
 // "Text and call from Allo": list what the workspace's Allo key can see, let the user pick.
 const numbers = await seqFor(ws).project.alloNumbers(); // [{ address, capabilities, users: [{ id, name, email }] }]

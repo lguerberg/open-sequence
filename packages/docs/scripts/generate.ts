@@ -74,7 +74,7 @@ const TAG_TITLES: Record<string, { title: string; description: string }> = {
   Operator: { title: 'Operator', description: 'SEQ_ADMIN_TOKEN: projects, keys and platform health' },
   Project: { title: 'Project', description: 'Settings, provider credentials and API keys' },
   Engine: { title: 'Engine', description: 'This project\u2019s health and kill switches' },
-  Senders: { title: 'Senders', description: 'The acting users, their Google connection and channels' },
+  Senders: { title: 'Senders', description: 'The acting users, their mailbox and channels' },
   Contacts: { title: 'Contacts', description: 'The people who receive sequences' },
   Sequences: { title: 'Sequences', description: 'Sequences, versions, drafts and publishing' },
   Schema: { title: 'Schema', description: 'What a canvas or an agent reads first' },
@@ -190,7 +190,7 @@ const ENV_DESCRIPTIONS: Record<string, string> = {
   SEQ_REDIS_DSN: 'Redis connection, required when SEQ_QUEUE=redis. Enable persistence on the Redis side.',
   SEQ_ENCRYPTION_KEYS: 'Encryption keys for every stored secret, `id:base64key[,id:base64key...]`; the first entry encrypts, every entry decrypts. Generate one with `oseq secrets new-key`. Back it up with the database: without it the stored secrets are unreadable and must be re-entered.',
   SEQ_ADMIN_TOKEN: 'The operator token that creates projects and keys (`/v1/admin/*`). Required by the `api` and `all` roles. Long and random.',
-  SEQ_PUBLIC_URL: 'The base URL providers call back: inbound webhooks, the Google OAuth return and the opt-out links. The OpenAPI document served by the instance lists it as its server.',
+  SEQ_PUBLIC_URL: 'The base URL providers call back: inbound webhooks and the opt-out links. The OpenAPI document served by the instance lists it as its server.',
   SEQ_PORT: 'HTTP port. The API for `api` and `all`; `/healthz` and `/readyz` only for `worker`.',
   SEQ_HOST: 'The interface to bind.',
   SEQ_ROLES: '`api` serves HTTP, `worker` runs the scheduler and the queue consumers, `all` does both in one process.',
@@ -198,7 +198,7 @@ const ENV_DESCRIPTIONS: Record<string, string> = {
   SEQ_CONCURRENCY: 'Messages in flight per queue per replica.',
   SEQ_DISABLED_CHANNELS: 'Platform-wide kill switch per channel, comma-separated (`sms`). Steps on a disabled channel are deferred, not skipped.',
   SEQ_PAUSED: 'Platform-wide stop: the planner claims nothing while it is on. In-flight steps finish.',
-  SEQ_DEV_MOCK_PROVIDERS: 'Every project uses the `mock` adapters: nothing reaches Google, Allo or Attio, sends land in the timeline, and `POST /hooks/mock/{slug}` simulates replies, bounces, bookings and calls. Refused when NODE_ENV=production.',
+  SEQ_DEV_MOCK_PROVIDERS: 'Every project uses the `mock` adapters: nothing reaches a mail server, Allo or Attio, sends land in the timeline, and `POST /hooks/mock/{slug}` simulates replies, bounces and calls. Refused when NODE_ENV=production.',
   SEQ_LOG_LEVEL: 'Pino log level.',
   SEQ_METRICS: 'Reserved for a Prometheus `/metrics` endpoint. Accepted by the schema; the endpoint is not served yet.',
   SEQ_DB_POOL: 'Postgres connections per process.',
@@ -325,7 +325,7 @@ Because the database is the truth and queue messages are hints, a lost or empty 
 
 | \`SEQ_ROLES\` | Runs | Exposed publicly |
 |---|---|---|
-| \`api\` | the public API, inbound provider webhooks, the OAuth return, the opt-out page, \`/healthz\` and \`/readyz\` | yes |
+| \`api\` | the public API, inbound provider webhooks, the opt-out page, \`/healthz\` and \`/readyz\` | yes |
 | \`worker\` | the scheduler (planner, signals, poll, reaper, retention, webhooks) and the queue consumers (email, SMS, signals, deliveries) | no; it listens for \`/healthz\` and \`/readyz\` only |
 | \`all\` | both in one process | yes |
 
@@ -788,7 +788,6 @@ async function scanErrorCodes(): Promise<{ validation: ErrorCode[]; http: ErrorC
 const ERROR_MESSAGE_OVERRIDES: Record<string, string> = {
   VERSION_NOT_EDITABLE: 'Version … is … and cannot be edited. Create a new version from it. (Also: only drafts can be deleted.)',
   UNAUTHORIZED: 'Send a project API key as a Bearer token. / This API key is unknown or revoked. / This endpoint needs the operator token.',
-  INVALID_STATE: 'The OAuth state is malformed, its signature does not match, or it belongs to another connection. Start the connection again.',
   NOT_ACTIVE: 'This enrollment is … (only active and waiting_limit enrollments can be paused).',
   NOT_PAUSED: 'This enrollment is … (only paused and waiting_limit enrollments can be resumed).',
   INVALID_DEFINITION: 'The definition has errors; fix them before publishing. `details.problems` lists them.',

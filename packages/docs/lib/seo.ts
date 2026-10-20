@@ -54,7 +54,7 @@ export function pageTitle(page: Page): string {
 
 /**
  * An API page's title is its route's one-line summary, which can run past 100 characters. For the
- * `<title>`, keep the first clause: "Disconnect Google: revokes the token; ..." becomes "Disconnect Google".
+ * `<title>`, keep the first clause: "Remove a channel; its steps skip from now on. ..." becomes "Remove a channel".
  * The page's heading keeps the whole summary.
  */
 function shortTitle(page: Page, title: string): string {

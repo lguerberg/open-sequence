@@ -3,10 +3,9 @@ import { MockProviders, type MockProviderOptions } from './state.js';
 import { MockEmailProvider } from './email.js';
 import { MockSmsProvider } from './sms.js';
 import { MockDialerProvider } from './dialer.js';
-import { MockCalendarProvider } from './calendar.js';
 import { MockCrmProvider } from './crm.js';
 
-export { MockProviders, MockEmailProvider, MockSmsProvider, MockDialerProvider, MockCalendarProvider, MockCrmProvider };
+export { MockProviders, MockEmailProvider, MockSmsProvider, MockDialerProvider, MockCrmProvider };
 export type { MockProviderOptions, MockCrmData, MockCrmRecord, OutboxEntry, DialerPush } from './state.js';
 export { parseInboundEvent, reviveInboundEvent } from './events.js';
 
@@ -18,7 +17,6 @@ export function createMockProviders(opts: MockProviderOptions = {}): ProviderSet
     email: new MockEmailProvider(mock),
     sms: new MockSmsProvider(mock),
     dialer: new MockDialerProvider(mock),
-    calendar: new MockCalendarProvider(mock),
     crm: new MockCrmProvider(mock),
   };
 }

@@ -22,7 +22,7 @@ Two workers never send the same step twice:
 - An executor owns a run while it works on it (the enrollment's `owner_run_id`), and every write re-checks state under a row lock.
 - Each scheduler job takes a lease row in `seq.job_locks` before it runs, so one replica at a time runs a given job.
 
-The API is stateless apart from two per-replica caches: the rate-limit counter and the Google access-token cache.
+The API is stateless apart from one per-replica cache: the rate-limit counter.
 
 ## The knobs
 

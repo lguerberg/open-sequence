@@ -35,13 +35,6 @@ export async function hookRoutes(fastify: FastifyInstance, ctx: AppContext) {
     }
   });
 
-  fastify.post<{ Params: { slug: string } }>('/hooks/google/:slug', { schema: { hide: true } }, async (req, reply) => {
-    // A Pub/Sub push is only a nudge: the poll job reads Gmail history. Acknowledge and let the poller run soon.
-    const project = await projectBySlug(req.params.slug);
-    if (!project) return reply.status(404).send({ ok: false });
-    req.log.info({ projectId: project.id }, 'gmail push received');
-    return reply.status(204).send();
-  });
 
   if (ctx.mock) {
     const mock = ctx.mock;

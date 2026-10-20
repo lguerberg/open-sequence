@@ -51,7 +51,7 @@ It is headless. Bring your own UI, your own CRM and your own infrastructure.
 
 ## Quickstart
 
-Run it locally with mock providers (no Google, Allo or Attio account needed):
+Run it locally with mock providers (no mail server, Allo or Attio account needed):
 
 ```bash
 git clone https://github.com/lguerberg/open-sequence && cd open-sequence
@@ -145,9 +145,9 @@ cannot touch senders or settings, and the engine refuses double enrollment for a
 
 |                |                                                                                                                                                             |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Channels**   | Email (sent from the rep's own Gmail, threaded follow-ups), SMS and calls via [Allo](https://withallo.com), anything else as tasks for a human |
+| **Channels**   | Email (sent from the rep's own mailbox over SMTP, replies read over IMAP, threaded follow-ups), SMS and calls via [Allo](https://withallo.com), anything else as tasks for a human |
 | **Steps**      | `outreach`, `wait`, `wait_for` (a reply, a meeting, a call outcome), `condition`, `task`, `end`                                                             |
-| **Signals**    | Replies, bounces, opt-outs, meetings booked (Google Calendar), call outcomes, and your own events                                                           |
+| **Signals**    | Replies, bounces, opt-outs, call outcomes, and your own events (a meeting booked, for one)                                                                  |
 | **CRM facts**  | Conditions can read the person, company and open deal live from [Attio](https://attio.com) at decision time                                                 |
 | **Webhooks**   | Signed outbound events with retries and secret rotation                                                                                                     |
 | **Interfaces** | REST API with an OpenAPI file, TypeScript SDK, MCP server, the `oseq` operator CLI                                                                          |
@@ -162,8 +162,8 @@ flowchart LR
   APP["Your app<br/>(SDK or HTTP)"] -->|sequences, contacts, enrollments| API["OpenSequence API"]
   API --> PG[("Postgres<br/>state + run ledger")]
   PG --> W["Workers<br/>planner + executors"]
-  W -->|send| P["Gmail · Allo · tasks"]
-  P -->|replies, bounces, bookings| W
+  W -->|send| P["Mailbox · Allo · tasks"]
+  P -->|replies, bounces, calls| W
   W -->|signed webhooks| APP
   AG["Your agent"] -->|MCP| API
 ```
@@ -187,8 +187,8 @@ apps/site            opensequence.dev, the landing page (Next.js, static export)
 packages/core        the pure domain: sequence definitions, validation, templating, interpreter, ports
 packages/engine      entities, use cases and Drizzle persistence
 packages/queue       queue adapters: Postgres, Redis, in-memory
-packages/providers   Google, Allo, Attio and a mock
-packages/auth        provider credentials and the OAuth token lifecycle
+packages/providers   SMTP and IMAP, Allo, Attio and a mock
+packages/auth        provider credentials and mailbox passwords, encrypted
 packages/sdk         @opensequence/sdk, the TypeScript client and webhook verification
 packages/mcp         @opensequence/mcp, the MCP server (hosted HTTP or local stdio)
 packages/docs        docs.opensequence.dev (Fumadocs)

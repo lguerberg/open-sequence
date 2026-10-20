@@ -8,9 +8,9 @@ Each phase is shippable alone and ends with an acceptance test; a phase is done 
 | Phase | Scope | State |
 |---|---|---|
 | 0 Scaffold | the packages, the env schema, health, migrations for both schemas, the queue interface with `postgres` and `memory`, the `oseq` CLI, CI | done |
-| 1 Engine core | the definition, templating and validation, versions, senders, connections and contacts, `@opensequence/auth` with Google, the Gmail and Calendar adapters, the mock adapter, enrollment with the one-sequence rule, the planner, `advance` with ownership, the email executor, the hosted opt-out, logic nodes, the task node, the signal processor, the reaper, flags, dry run | done: the quickstart runs end to end against the mock through the real HTTP app and workers |
+| 1 Engine core | the definition, templating and validation, versions, senders, connections and contacts, `@opensequence/auth`, the mock adapter, enrollment with the one-sequence rule, the planner, `advance` with ownership, the email executor, the hosted opt-out, logic nodes, the task node, the signal processor, the reaper, flags, dry run | done: the quickstart runs end to end against the mock through the real HTTP app and workers |
 | 2 Public API and webhooks | every endpoint with the OpenAPI file and the SDK, outbound webhooks with the full delivery contract, analytics, this site | in progress: the API, the webhooks, the analytics and the SDK exist; see the gaps below |
-| 3 Allo, Attio and Calendar | SMS with the consent and time-zone gates, STOP, `call.completed` auto-completing call tasks, the dialer push, the Attio adapter with `crm.*` conditions, Calendar `meeting_booked` detection | the adapters exist; the dialer push is not wired into a job; verification against real accounts is the acceptance test |
+| 3 Allo and Attio | SMS with the consent and time-zone gates, STOP, `call.completed` auto-completing call tasks, the dialer push, the Attio adapter with `crm.*` conditions | the adapters exist; the dialer push is not wired into a job; verification against real accounts is the acceptance test |
 | 4 SMTP and IMAP | email through any mailbox: per-sender SMTP and IMAP settings checked on save, passwords encrypted, the same `email` channel, a Sent copy, IMAP polling for replies, bounces and auto-replies ([Email via SMTP and IMAP](/docs/sending/email-smtp)) | done: proven against GreenMail in the test suite. Microsoft 365 needs its own OAuth adapter |
 | 5 First client integration | a client on `@opensequence/sdk` with a canvas, a people table, an enroll dialog and the journey | |
 | 6 Redis queue and load | the engine suite on `SEQ_QUEUE=redis`, 10,000 active enrollments with due lag under 2 minutes | the Redis backend exists |
@@ -32,7 +32,6 @@ These docs describe the code. The architecture document goes further in a few pl
 | `oseq secrets rotate`, `oseq webhooks replay`, `oseq queue dead list \| replay` | the CLI |
 | a 24-hour overlap after `rotate-secret` on webhook endpoints | the webhook schema (one secret per endpoint today) |
 | `weekly_limit` on channels | the executors' channel gate |
-| Gmail Pub/Sub `watch` registration and the `pubsub_topic` credential setting | the Google adapter and the poll job |
 | a deep merge of contact `attrs` (the code merges top-level keys) | the contacts repository |
 | typed `attrs.*` conditions from `attrs_schema` (the validator treats every attrs field as text) | the validator |
 | `q` (name or email search) on `GET /v1/enrollments`; readiness per step in the enrollment preview | the enrollments route and use case |
@@ -41,4 +40,4 @@ These docs describe the code. The architecture document goes further in a few pl
 | the validation codes `NO_END` and `BAD_EXIT` (the schema and the unwired-transition rule cover them) | none needed |
 | snippets executed in CI against a container, `test:snippets` | this site |
 
-Open items from the design that need a decision rather than code: the GitHub organization and npm scope registration, Google's app verification for the Gmail scopes, Attio rate limits and how deals link to people in a real workspace.
+Open items from the design that need a decision rather than code: the GitHub organization and npm scope registration, Attio rate limits and how deals link to people in a real workspace.

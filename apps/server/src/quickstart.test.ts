@@ -1,10 +1,9 @@
 /**
  * The quickstart (docs section 18, phase acceptance), end to end through the real HTTP app with
- * mock providers and the real workers: project, sender, Google connection, contact, sequence,
+ * mock providers and the real workers: project, sender, mailbox, contact, sequence,
  * publish, enroll, the planner and the email executor, an inbound reply, exit, analytics.
  * Needs the throwaway Postgres from scripts/test-db.sh (or SEQ_TEST_DB_DSN).
  */
-import { randomBytes } from 'node:crypto';
 import pino from 'pino';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { bootstrap, type Runtime } from './bootstrap.js';
@@ -48,7 +47,8 @@ describe('quickstart through the HTTP app with mock providers', () => {
   beforeAll(async () => {
     const env = loadEnv({
       SEQ_DB_DSN: TEST_DSN,
-      SEQ_ENCRYPTION_KEYS: `k1:${randomBytes(32).toString('base64')}`,
+      // The auth suite's KEY_B: the rotation test re-encrypts every row not under it, so the mailbox stored here must be readable by it.
+      SEQ_ENCRYPTION_KEYS: `kb:${Buffer.alloc(32, 2).toString('base64')}`,
       SEQ_ADMIN_TOKEN: ADMIN,
       SEQ_PUBLIC_URL: 'http://127.0.0.1:8099',
       SEQ_DEV_MOCK_PROVIDERS: '1',
@@ -95,13 +95,13 @@ describe('quickstart through the HTTP app with mock providers', () => {
     const key = created.json.data.api_key as string;
     expect(key).toMatch(/^sk_live_/);
 
-    // Sender and the Google connection. With mock providers the mailbox is active at once, and a
-    // POST with a JSON content type and no body is accepted (curl and most SDKs send exactly that).
+    // Sender and their mailbox. With mock providers the SMTP and IMAP logins are not checked.
     const sender = await call('PUT', '/v1/senders/u_42', { key, body: { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' } });
     expect(sender.status).toBe(200);
-    const connected = await call('POST', '/v1/senders/u_42/connections/google', { key, json: true });
+    const mailbox = (host: string, port: number) => ({ host, port, secure: true, user: 'max@acme.com', password: 'app-password' });
+    const connected = await call('PUT', '/v1/senders/u_42/channels/email', { key, body: { provider: 'smtp', smtp: mailbox('smtp.example.com', 465), imap: mailbox('imap.example.com', 993) } });
     expect(connected.status, JSON.stringify(connected.json)).toBe(200);
-    expect(connected.json.data).toMatchObject({ status: 'active', mock: true, channel: { channel: 'email', address: 'max@acme.com', status: 'active' } });
+    expect(connected.json.data).toMatchObject({ channel: 'email', address: 'max@acme.com', status: 'active' });
 
     const contact = await call('PUT', '/v1/contacts/p_7', { key, body: { first_name: 'Dana', email: 'dana@example.com', timezone: 'Europe/London', attrs: { company: { country: 'UK' } } } });
     expect(contact.status).toBe(200);

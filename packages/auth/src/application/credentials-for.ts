@@ -1,6 +1,6 @@
 /**
  * The decrypted secrets map, for adapters only (section 3.2: one of the two ways a secret leaves
- * this module). oauth2: { client_id, client_secret, pubsub_topic? }; api_key: { api_key, webhook_secret? }.
+ * this module): { api_key, webhook_secret? }.
  */
 import type { Credential } from '../domain/entities.js';
 import { AuthError, notFound } from '../domain/errors.js';
@@ -9,11 +9,6 @@ import type { AuthDeps } from './deps.js';
 
 export function decryptCredential(cipher: Cipher, c: Credential): Record<string, string> {
   const secret = cipher.decrypt(c.secretEnc, c.keyId);
-  if (c.method === 'oauth2') {
-    const out: Record<string, string> = { client_id: String(c.config['client_id'] ?? ''), client_secret: secret };
-    if (typeof c.config['pubsub_topic'] === 'string') out['pubsub_topic'] = c.config['pubsub_topic'];
-    return out;
-  }
   const out: Record<string, string> = { api_key: secret };
   if (c.webhookSecretEnc) out['webhook_secret'] = cipher.decrypt(c.webhookSecretEnc, c.keyId);
   return out;

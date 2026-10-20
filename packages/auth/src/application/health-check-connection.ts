@@ -1,23 +1,13 @@
 /**
- * Proves a connection still works by refreshing its token (bypassing the cache). A dead grant is
- * recorded as `credentials_needed`; anything else is reported without changing the status.
- * Password connections have no token: their adapter checks them (SMTP login), so this reports the row.
+ * Reports whether a connection can be used. A password connection (SMTP and IMAP) has no token to
+ * refresh: its adapter proves it with a login, so this reports the row as stored.
  */
-import { GOOGLE_PROVIDER, type AuthDeps } from './deps.js';
+import type { AuthDeps } from './deps.js';
 import { connectionView, type ConnectionView } from './connection-status.js';
-import { refreshAccessToken } from './get-access-token.js';
-import { errorText, requireConnection } from './shared.js';
+import { requireConnection } from './shared.js';
 
 export async function healthCheckConnection(deps: AuthDeps, connectionId: string): Promise<ConnectionView & { ok: boolean; error: string | null }> {
-  const before = await requireConnection(deps, connectionId);
-  if (before.status !== 'active') return { ...connectionView(before), ok: false, error: before.lastError };
-  if (before.provider !== GOOGLE_PROVIDER) return { ...connectionView(before), ok: true, error: null };
-  let error: string | null = null;
-  try {
-    await refreshAccessToken(deps, connectionId);
-  } catch (err) {
-    error = errorText(err);
-  }
-  const after = await requireConnection(deps, connectionId);
-  return { ...connectionView(after), ok: error === null, error };
+  const connection = await requireConnection(deps, connectionId);
+  const ok = connection.status === 'active';
+  return { ...connectionView(connection), ok, error: ok ? null : connection.lastError };
 }

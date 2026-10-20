@@ -112,7 +112,7 @@ What each part does:
 - **`check_deal`** reads the contact's `attrs` when the step runs, not when the lead was enrolled. Your app sets `attrs.has_open_deal` when a deal opens (`oseq.contacts.patch(id, { attrs: { has_open_deal: true } })`), so a lead who entered the pipeline in the meantime stops here.
 - **`call_1`** gives the rep a call task and puts the number in their Allo power dialer within a minute. When the rep calls, Allo completes the task with the call's outcome: `voicemail` takes the text, anything else takes `completed`. If nobody calls within two business days, the task expires and takes `no_answer`.
 - **`reply_in_thread`** sends the follow-ups as replies to the intro, with `In-Reply-To` and `References` set, so they read as one conversation.
-- **`exit_on`** lists both `reply` and `meeting_booked`. Meetings are detected on the rep's Google Calendar (an event with the lead as an attendee), or reported by your app.
+- **`exit_on`** lists both `reply` and `meeting_booked`. Your app reports a booked meeting with [contact events](/docs/contacts/events).
 
 ## The integration
 
@@ -125,13 +125,12 @@ import { OpenSequence } from '@opensequence/sdk';
 const oseq = new OpenSequence({ baseUrl: process.env.SEQ_URL!, apiKey: process.env.SEQ_ADMIN_KEY! });
 
 // Once per project. Provider keys are checked against the provider before they are stored.
-await oseq.project.setProvider('google', { client_id: process.env.GOOGLE_CLIENT_ID!, client_secret: process.env.GOOGLE_CLIENT_SECRET! });
 await oseq.project.setProvider('allo', { api_key: process.env.ALLO_API_KEY! });
 
 // Once per rep.
 await oseq.senders.upsert('rep_maya', { name: 'Maya Chen', email: 'maya@acme.com', timezone: 'America/Chicago', signature_html: mayaSignature });
-const google = await oseq.senders.connectGoogle('rep_maya', { return_url: 'https://app.acme.com/settings' });
-if ('auth_url' in google) console.log('Maya opens', google.auth_url);
+const mailbox = (host: string, port: number) => ({ host, port, secure: true, user: 'maya@acme.com', password: process.env.MAYA_APP_PASSWORD! });
+await oseq.senders.setSmtp('rep_maya', { provider: 'smtp', smtp: mailbox('smtp.gmail.com', 465), imap: mailbox('imap.gmail.com', 993) });
 await oseq.senders.setSms('rep_maya', { allo_user_id: 'usr_8f2k', number: '+13125550142' });
 ```
 

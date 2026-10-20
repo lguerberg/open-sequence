@@ -25,7 +25,6 @@ description: "Caps on definitions, batches, requests and retention, as enforced 
 | Webhook delivery attempts | 9, over about 3 days (0 s, 5 s, 5 min, 30 min, 2 h, 5 h, 10 h, 10 h, 10 h); 10 s timeout per attempt | delivery |
 | Endpoint disabled after | every delivery failing for 3 days | delivery |
 | Webhook timestamp tolerance | 5 minutes | receivers (SDK default) |
-| OAuth `state` | 10 minutes | auth module |
 | Opt-out link | 90 days | opt-out token |
 | Planner claim | 50 per sender, 500 per tick, released after 10 minutes if not advanced | planner |
 | Poll scope | threads started in the last 30 days, 500 channels per tick | poll job |

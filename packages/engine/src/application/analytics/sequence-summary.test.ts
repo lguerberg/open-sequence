@@ -40,7 +40,7 @@ describe('analytics read model', () => {
       next: {},
       startedAt: sentAt,
       finishedAt: sentAt,
-      provider: 'google',
+      provider: 'smtp',
       providerRef: null,
       threadRef: null,
       branch: 'sent',
@@ -53,7 +53,7 @@ describe('analytics read model', () => {
     const r1 = await repos.runs.insert(run(replied!.id, {}));
     await repos.runs.insert(run(exitedBounce!.id, { result: { outcome: { delivered_at: null, bounced: true } } }));
     await repos.runs.insert(run(active!.id, { status: 'skipped', branch: 'skipped', touchNumber: null, result: { skip_reason: 'no_email' } }));
-    const { signal } = await repos.signals.insertIfNew({ id: newId('signal'), projectId: seed.projectId, contactId: seed.contactIds[0]!, kind: 'reply', channel: 'email', source: 'google', externalId: newId('signal'), occurredAt: new Date(sentAt.getTime() + 600_000), payload: {} });
+    const { signal } = await repos.signals.insertIfNew({ id: newId('signal'), projectId: seed.projectId, contactId: seed.contactIds[0]!, kind: 'reply', channel: 'email', source: 'smtp', externalId: newId('signal'), occurredAt: new Date(sentAt.getTime() + 600_000), payload: {} });
     await repos.signals.attribute(signal.id, r1.id, 'direct');
 
     const summary = await sequenceSummary(deps, seed.projectId, seed.sequenceId);

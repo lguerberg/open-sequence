@@ -8,7 +8,7 @@ export interface ChannelRef {
   projectId: string;
   senderId: string;
   channelId: string;
-  /** The Google connection id for OAuth channels; absent for API-key channels. */
+  /** The mailbox connection id for email channels; absent for API-key channels. */
   connectionId?: string;
   /** Mailbox address or E.164 number. */
   address: string;
@@ -68,11 +68,6 @@ export interface DialerProvider {
   queueState?(req: { channel: ChannelRef }): Promise<Array<{ number: string; callId: string | null; status: string; reason?: string }>>;
 }
 
-export interface CalendarProvider {
-  poll(req: { connectionId: string; projectId: string; cursor: string | null }): Promise<{ events: InboundEvent[]; cursor: string | null }>;
-  watch?(req: { connectionId: string; projectId: string; callbackUrl: string }): Promise<{ expiresAt: Date }>;
-}
-
 export interface CrmSchema {
   objects: Array<{ name: 'person' | 'company' | 'deal'; attributes: Array<{ slug: string; label: string; type: string; values?: string[] }> }>;
 }
@@ -93,6 +88,5 @@ export interface ProviderSet {
   email: EmailProvider;
   sms: SmsProvider;
   dialer: DialerProvider;
-  calendar: CalendarProvider;
   crm: CrmProvider;
 }

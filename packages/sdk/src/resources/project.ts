@@ -2,8 +2,8 @@
 import type { HttpClient } from '../client.js';
 import type { AlloNumber, AlloUser, ApiKeySummary, Body, CreatedApiKey, CredentialView, CrmSchema, EngineHealth, Project, ProjectSettings, ProjectView } from '../types.js';
 
-export type Provider = 'google' | 'allo' | 'attio' | 'mock';
-/** Google: `{ client_id, client_secret, pubsub_topic? }`. Allo: `{ api_key, webhook_secret? }`. Attio: `{ api_key }`. Probed before it is accepted (`INVALID_CREDENTIAL`). */
+export type Provider = 'allo' | 'attio' | 'mock';
+/** Allo: `{ api_key, webhook_secret? }`. Attio: `{ api_key }`. Probed before it is accepted (`INVALID_CREDENTIAL`). */
 export type ProviderCredentialInput = Record<string, string>;
 export type CreateApiKeyInput = Body<'/v1/api-keys', 'post'>;
 

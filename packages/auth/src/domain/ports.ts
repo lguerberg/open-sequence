@@ -8,34 +8,6 @@ export interface Cipher {
   decrypt(ciphertext: string, keyId: string): string;
 }
 
-/** Signs short-lived tokens (the OAuth `state`) under the same key material as the cipher. */
-export interface Signer {
-  sign(payload: string): string;
-  verify(payload: string, signature: string): boolean;
-}
-
-export interface OAuthClientCredentials {
-  clientId: string;
-  clientSecret: string;
-}
-
-export interface OAuthGrant {
-  refreshToken: string | null;
-  accessToken: string;
-  expiresAt: Date;
-  scopes: string[];
-  /** The account that consented, when the provider tells us (Google: the email). */
-  email: string | null;
-}
-
-export interface OAuthClient {
-  authUrl(params: { clientId: string; redirectUri: string; scopes: string[]; state: string; loginHint?: string }): string;
-  exchangeCode(client: OAuthClientCredentials, code: string, redirectUri: string): Promise<OAuthGrant>;
-  /** Rejects with an Error whose message starts with `invalid_grant` when the refresh token is dead. */
-  refresh(client: OAuthClientCredentials, refreshToken: string): Promise<{ accessToken: string; expiresAt: Date }>;
-  revoke(token: string): Promise<void>;
-}
-
 export interface ProbeResult {
   ok: boolean;
   scopes?: string[];
@@ -55,11 +27,6 @@ export interface IdGenerator {
 }
 
 export const systemClock: Clock = { now: () => new Date() };
-
-/** What the providers package needs from auth for OAuth providers, without importing it. */
-export interface TokenSource {
-  accessToken(connectionId: string): Promise<string>;
-}
 
 /** What the providers package needs from auth for API-key providers, without importing it. */
 export interface CredentialSource {

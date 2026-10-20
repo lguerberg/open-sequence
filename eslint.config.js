@@ -53,7 +53,7 @@ export default tseslint.config(
         {
           patterns: [
             { group: ['node:fs', 'node:http', 'node:https', 'node:net', 'node:child_process'], message: 'core is pure' },
-            { group: ['postgres', 'drizzle-orm', 'drizzle-orm/*', 'ioredis', 'googleapis', 'fastify'], message: 'core is pure' },
+            { group: ['postgres', 'drizzle-orm', 'drizzle-orm/*', 'ioredis', 'nodemailer', 'imapflow', 'fastify'], message: 'core is pure' },
             { group: ['@opensequence/*'], message: 'core depends on nothing' },
           ],
         },

@@ -50,7 +50,6 @@ export interface ProjectSettings {
   retention_days?: number;
   store_inbound_bodies?: boolean;
   match_replies_outside_thread?: boolean;
-  meeting_detection?: 'calendar' | 'client' | 'both';
   crm?: { deal_selection?: 'newest_open' | 'highest_value' | 'any_open' };
   allo?: { outcome_map?: Record<string, string> };
   max_steps_per_tick?: number;
@@ -71,7 +70,7 @@ export interface CredentialView {
   id: string;
   tenantId: string;
   provider: string;
-  method: 'oauth2' | 'api_key' | string;
+  method: 'api_key' | string;
   status: string;
   keyId: string;
   last4: string;
@@ -84,8 +83,7 @@ export interface CredentialView {
 export interface ProjectView {
   project: Project | null;
   credentials: CredentialView[];
-  webhook_urls: { allo: string; google: string; mock?: string };
-  google_redirect_uri: string;
+  webhook_urls: { allo: string; mock?: string };
 }
 
 export interface ApiKeySummary {
@@ -202,9 +200,6 @@ export interface SenderDetail extends Sender {
   readiness: Readiness;
   connections: ConnectionView[];
 }
-
-/** Real providers return the consent URL; with mock providers the channel is active at once. */
-export type GoogleConnectResult = { auth_url: string; connection_id: string } | { status: 'active'; mock: true; channel: SenderChannel };
 
 // ------------------------------------------------------------------ contacts
 export interface Contact {

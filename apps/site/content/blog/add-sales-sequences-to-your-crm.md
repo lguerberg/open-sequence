@@ -3,13 +3,13 @@ title: "How to add sales sequences to your own CRM"
 h1: "How to add sales sequences to your own CRM or internal tool"
 description: "Add Outreach-style email, call and SMS sequences to a custom CRM: sync contacts, build an Enroll button, write replies back, and run a task inbox. With code."
 date: 2026-10-15
-updated: 2026-10-15
+updated: 2026-10-20
 author: Leo Guerberg
 tags: [crm, tutorial, api, self-hosting]
 keyword: "add sales sequences to your CRM"
 ---
 
-To add sales sequences to a CRM you built yourself, run a sequencing engine next to it and connect the two through an API and webhooks. Your CRM keeps the people, the deals and the screens. The engine keeps the sequences, sends the emails from each rep's Gmail, creates call tasks, and tells your CRM when someone replies, books a meeting or bounces. This tutorial does it with OpenSequence and TypeScript.
+To add sales sequences to a CRM you built yourself, run a sequencing engine next to it and connect the two through an API and webhooks. Your CRM keeps the people, the deals and the screens. The engine keeps the sequences, sends the emails from each rep's own mailbox, creates call tasks, and tells your CRM when someone replies, books a meeting or bounces. This tutorial does it with OpenSequence and TypeScript.
 
 We build OpenSequence, an open source (Apache-2.0) engine that runs as one container and a Postgres. The steps below match how any API-first sequencer works, so most of the design carries over if you pick another one. The SDK calls and event names are the real ones from our [TypeScript SDK](https://docs.opensequence.dev/sdks/typescript).
 
@@ -21,17 +21,17 @@ If you have no engineer, stop here. Buy a hosted tool. Our [Apollo alternatives 
 
 ## What lives where
 
-Your CRM owns the records reps care about: people, companies, deals, owners, and the activity timeline. OpenSequence owns five things. A contact is a copy of your person, keyed by your id. A sender is a rep, with their connected Gmail and phone. A sequence is a versioned JSON definition. An enrollment is one contact going through one sequence as one sender. A task is a call or any other manual step waiting for a human.
+Your CRM owns the records reps care about: people, companies, deals, owners, and the activity timeline. OpenSequence owns five things. A contact is a copy of your person, keyed by your id. A sender is a rep, with their connected mailbox and phone. A sequence is a versioned JSON definition. An enrollment is one contact going through one sequence as one sender. A task is a call or any other manual step waiting for a human.
 
 The link between the two systems is your id. You call the contact `p_7` in OpenSequence because it is `p_7` in your database, and every API route accepts your id wherever it accepts ours ([ids and external ids](https://docs.opensequence.dev/api/conventions)). You never have to store an OpenSequence contact id.
 
 Data flows in two directions. Your CRM pushes contacts, enrollments and task outcomes in. OpenSequence pushes events back through signed webhooks. Nothing else syncs.
 
-## Step 1. Run the engine and connect each rep's Gmail
+## Step 1. Run the engine and connect each rep's mailbox
 
 The [install guide](https://docs.opensequence.dev/docs/self-hosting/install) covers the container, the database and the project key. Two parts matter for the CRM integration.
 
-First, register a Google OAuth client and give it to the project. If every rep is in your own Google Workspace, make the client Internal and Google skips its app review. Then create a sender per rep and send the rep through Google's consent screen from your settings page:
+Create a sender per rep, then save their mailbox from your settings page. The engine sends over SMTP and reads replies over IMAP, so it needs the server settings and a password. On Google Workspace or Gmail, that is an app password the rep creates once. The engine signs in to both servers before it stores anything:
 
 ```ts
 // lib/oseq.ts
@@ -41,21 +41,26 @@ export const oseq = new OpenSequence({ baseUrl: process.env.OSEQ_URL!, apiKey: p
 ```
 
 ```ts
-// app/api/settings/connect-gmail/route.ts
+// app/api/settings/connect-mailbox/route.ts
 import { oseq } from '@/lib/oseq';
 import { requireUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
   const rep = await requireUser(req);
+  const { appPassword } = await req.json();
   await oseq.senders.upsert(rep.id, { name: rep.name, email: rep.email, timezone: rep.timezone });
-  const { auth_url } = await oseq.senders.connectGoogle(rep.id, {
-    return_url: 'https://crm.acme.com/settings/email',
+  const login = { user: rep.email, password: appPassword, secure: true };
+  // A wrong password comes back as a 422 with a code such as SMTP_AUTH_FAILED.
+  const channel = await oseq.senders.setSmtp(rep.id, {
+    provider: 'smtp',
+    smtp: { host: 'smtp.gmail.com', port: 465, ...login },
+    imap: { host: 'imap.gmail.com', port: 993, ...login },
   });
-  return Response.json({ redirect: auth_url });
+  return Response.json({ status: channel.status });
 }
 ```
 
-The rep's user id becomes the sender id, so later calls pass `rep.id` and nothing else. `oseq.senders.readiness(rep.id)` tells your settings page whether email is ready to send and, if not, why. The [Google connection guide](https://docs.opensequence.dev/docs/senders/connect-google) lists the four OAuth scopes and the redirect URI to register.
+The rep's user id becomes the sender id, so later calls pass `rep.id` and nothing else. `oseq.senders.readiness(rep.id)` tells your settings page whether email is ready to send and, if not, why. The [email setup guide](https://docs.opensequence.dev/docs/sending/email-smtp) lists the server settings for Gmail, Fastmail, Zoho, iCloud and others.
 
 The SDK and the MCP package are not on npm yet. Install them from the repository until they are.
 
@@ -83,7 +88,7 @@ You can also skip the sync and pass contacts inline when you enroll. The engine 
 
 ## Step 3. Define a sequence in code
 
-A sequence is one JSON document of nodes and named transitions. This one sends an intro email, waits up to three business days for a reply, sends a follow-up in the same Gmail thread, then creates a call task:
+A sequence is one JSON document of nodes and named transitions. This one sends an intro email, waits up to three business days for a reply, sends a follow-up in the same thread, then creates a call task:
 
 ```ts
 const definition = {
@@ -226,13 +231,13 @@ The outcome is free text up to 32 characters. The sequence can branch on it, and
 
 ## Step 7. Stop sequences from CRM events
 
-OpenSequence sees replies in threads it started, bounces, unsubscribe clicks, STOP texts and meetings in a connected Google Calendar. It does not see your CRM. When something there should end the outreach, report it:
+OpenSequence sees replies to emails it sent, bounces, unsubscribe clicks and STOP texts. It does not see your CRM or anyone's calendar. When something there should end the outreach, report it:
 
 ```ts
 // a rep marked the person do-not-contact
 await oseq.contacts.reportEvent(person.id, { id: `dnc-${person.id}`, type: 'suppressed', reason: 'do_not_contact' });
 
-// a meeting was booked through a tool OpenSequence does not watch
+// a meeting was booked
 await oseq.contacts.reportEvent(person.id, { id: calendarEventId, type: 'meeting_booked', occurred_at: new Date(start) });
 
 // the deal closed, so take the person out of whatever sequence they are in
@@ -251,7 +256,7 @@ OpenSequence has no user interface. The engine and the calls above are the easy 
 
 | Screen | What it needs | Our estimate |
 |---|---|---|
-| Gmail connection in settings | Step 1 route, readiness badge | 4 hours |
+| Mailbox connection in settings | Step 1 route, readiness badge | 4 hours |
 | Enroll dialog | sequence picker, preview, conflicts, dry run | 12 hours |
 | Activity on the timeline | Step 5 handler, rendering per kind | 12 hours |
 | Task inbox | list, outcome buttons, skip | 16 hours |
@@ -260,13 +265,13 @@ OpenSequence has no user interface. The engine and the calls above are the easy 
 
 That is about 56 hours for an engineer who knows your CRM, plus the [install](https://docs.opensequence.dev/docs/self-hosting/install). The numbers are our estimate, not a measurement, and the enroll dialog and the task inbox are the two most likely to run over. Our [Outreach vs Salesloft cost breakdown](/blog/outreach-vs-salesloft-cost) puts those hours next to per-seat prices for a 15-rep team.
 
-Buying is the better choice when reps need a sequence editor and dashboards on day one, when your team sends from Microsoft 365, since OpenSequence sends through Gmail only today, or when nobody owns the CRM codebase. Building the engine itself is a different and much larger job. Our guide to [what breaks when you build your own sequencer](/blog/build-your-own-sales-sequencer) covers it. If you are moving off a tool you already use, the [migration guide](/blog/replace-your-sales-sequencing-software) covers running both while contacts finish their old sequences.
+Buying is the better choice when reps need a sequence editor and dashboards on day one, when your team sends from Microsoft 365, since OpenSequence cannot sign in to Microsoft 365 mailboxes today, or when nobody owns the CRM codebase. Building the engine itself is a different and much larger job. Our guide to [what breaks when you build your own sequencer](/blog/build-your-own-sales-sequencer) covers it. If you are moving off a tool you already use, the [migration guide](/blog/replace-your-sales-sequencing-software) covers running both while contacts finish their old sequences.
 
 ## FAQ
 
 ### Can I add email sequences to a custom CRM without building the engine?
 
-Yes. Run a sequencing engine with an API next to your CRM, push contacts and enrollments to it, and receive webhooks back. OpenSequence is one open source option. It sends from each rep's Gmail and handles timing, caps, threading and reply detection, so your code only needs the screens and the sync.
+Yes. Run a sequencing engine with an API next to your CRM, push contacts and enrollments to it, and receive webhooks back. OpenSequence is one open source option. It sends from each rep's own mailbox and handles timing, caps, threading and reply detection, so your code only needs the screens and the sync.
 
 ### Does the CRM need to store sequence data?
 
@@ -282,4 +287,4 @@ Yes, as long as you have an app or a job that calls the API. The steps are the s
 
 ### Will emails come from the rep's own address?
 
-Yes. Each email goes out through the rep's connected Gmail account with the Gmail API, so it sits in their Sent folder and replies land in their inbox. Follow-ups with `reply_in_thread` stay in the same Gmail thread.
+Yes. Each email goes out through the rep's own mail server over SMTP, and the engine files a copy in their Sent folder, so replies land in their inbox. Follow-ups with `reply_in_thread` stay in the same thread.

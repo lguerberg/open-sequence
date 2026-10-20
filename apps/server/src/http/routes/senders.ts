@@ -1,8 +1,8 @@
-/** Senders: the acting users, their Google or SMTP connection and their channels. */
+/** Senders: the acting users, their mailbox connection (SMTP and IMAP) and their channels. */
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { channelPatchSchema, emailProviderOf, patchChannel, resolveSender, senderInputSchema, senderReadiness, setChannel, upsertSender, listTasks } from '@opensequence/engine';
+import { channelPatchSchema, patchChannel, resolveSender, senderInputSchema, senderReadiness, setChannel, upsertSender, listTasks } from '@opensequence/engine';
 import { splitSmtpCredentials } from '@opensequence/providers';
 import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
@@ -68,22 +68,6 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
     },
   });
 
-  app.post('/v1/senders/:id/connections/google', {
-    preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Start the Google consent flow (Gmail + Calendar); returns the URL the sender opens once', params: idParam, body: z.object({ return_url: z.string().url().optional() }).optional(), response: responses },
-    handler: async (req, reply) => {
-      const projectId = projectOf(req);
-      const sender = await resolveSender(ctx.deps, projectId, req.params.id);
-      if (ctx.mock) {
-        // Development: no Google, no consent screen; the sender gets an active mailbox at their address.
-        const address = sender.email ?? `${sender.externalId}@mock.local`;
-        const channel = await setChannel(ctx.deps, projectId, sender.id, { channel: 'email', address, connectionId: `con_mock_${sender.id}`, status: 'active', config: { provider: 'google' } });
-        return ok(reply, { status: 'active', mock: true, channel });
-      }
-      const out = await ctx.auth.connect({ tenantId: projectId, ownerId: sender.id, returnUrl: req.body?.return_url });
-      return ok(reply, { auth_url: out.authUrl, connection_id: out.connectionId });
-    },
-  });
 
   app.put('/v1/senders/:id/channels/email', {
     preHandler: admin,
@@ -112,7 +96,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.get('/v1/senders/:id/connections', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Google and SMTP connections of a sender (no secrets)', params: idParam, response: responses },
+    schema: { tags: ['Senders'], summary: 'Mailbox connections of a sender (no secrets)', params: idParam, response: responses },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -120,23 +104,10 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
     },
   });
 
-  app.delete('/v1/senders/:id/connections/google', {
-    preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Disconnect Google: revokes the token; a Gmail email channel goes disconnected (an SMTP one is left alone)', params: idParam, response: responses },
-    handler: async (req, reply) => {
-      const projectId = projectOf(req);
-      const sender = await resolveSender(ctx.deps, projectId, req.params.id);
-      const connections = await ctx.auth.listConnections(projectId, sender.id);
-      for (const c of connections.filter((x) => x.provider === 'google')) await ctx.auth.revoke(c.id);
-      const email = await ctx.deps.uow.repos.senders.channel(sender.id, 'email');
-      if (email && emailProviderOf(email) === 'google') await ctx.deps.uow.repos.senders.updateChannel(email.id, { status: 'disconnected' });
-      return ok(reply, { disconnected: true });
-    },
-  });
 
   app.put('/v1/senders/:id/channels/sms', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: "The sender's Allo number and user (API key provider, no OAuth)", params: idParam, body: z.object({ allo_user_id: z.string().min(1), number: z.string().min(5) }), response: responses },
+    schema: { tags: ['Senders'], summary: "The sender's Allo number and user", params: idParam, body: z.object({ allo_user_id: z.string().min(1), number: z.string().min(5) }), response: responses },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);
@@ -160,7 +131,7 @@ export async function senderRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   app.delete('/v1/senders/:id/channels/:channel', {
     preHandler: admin,
-    schema: { tags: ['Senders'], summary: 'Remove a channel; its steps skip from now on. Removing email deletes stored SMTP passwords; a Google grant stays until Google is disconnected', params: z.object({ id: z.string(), channel: z.enum(['sms', 'email']) }), response: responses },
+    schema: { tags: ['Senders'], summary: 'Remove a channel; its steps skip from now on. Removing email deletes the stored SMTP and IMAP passwords', params: z.object({ id: z.string(), channel: z.enum(['sms', 'email']) }), response: responses },
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const sender = await resolveSender(ctx.deps, projectId, req.params.id);

@@ -26,13 +26,13 @@ const { project, api_key } = await admin.projects.create({ slug: 'acme', name: '
 
 const oseq = new OpenSequence({ baseUrl: process.env.SEQ_URL!, apiKey: api_key });
 
-// 0b. In production, register your own Google OAuth client once (skip with mock providers).
-await oseq.project.setProvider('google', { client_id: '…apps.googleusercontent.com', client_secret: '…' });
-
-// 1. A sender, and connect their Google account (Gmail + Calendar under one consent).
+// 1. A sender and their mailbox. Both logins are checked before anything is stored.
 await oseq.senders.upsert('u_42', { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' });
-const consent = await oseq.senders.connectGoogle('u_42');
-// -> { auth_url, connection_id }: the sender opens auth_url once. With mock providers: { status: 'active', mock: true, channel }.
+await oseq.senders.setSmtp('u_42', {
+  provider: 'smtp',
+  smtp: { host: 'smtp.gmail.com', port: 465, secure: true, user: 'max@acme.com', password: process.env.MAX_APP_PASSWORD! },
+  imap: { host: 'imap.gmail.com', port: 993, secure: true, user: 'max@acme.com', password: process.env.MAX_APP_PASSWORD! },
+});
 
 // 2. A contact.
 await oseq.contacts.upsert('p_7', {
@@ -78,7 +78,7 @@ method for.
 
 | Property | Methods |
 |---|---|
-| `oseq.senders` | `upsert`, `get`, `list`, `listAll`, `readiness`, `connectGoogle`, `connections`, `disconnectGoogle`, `setSms`, `patchChannel`, `deleteChannel`, `disable`, `tasks` |
+| `oseq.senders` | `upsert`, `get`, `list`, `listAll`, `readiness`, `connections`, `setSmtp`, `setSms`, `patchChannel`, `deleteChannel`, `disable`, `tasks` |
 | `oseq.contacts` | `upsert`, `batch`, `list`, `listAll`, `get`, `timeline`, `patch`, `statuses`, `reportEvent`, `reportEvents`, `setSmsConsent`, `delete` |
 | `oseq.sequences` | `list`, `listAll`, `create`, `get`, `update`, `validate`, `enroll`, `previewEnrollment`; `versions.list`, `.create`, `.get`, `.saveDraft`, `.publish`, `.archive`, `.delete` |
 | `oseq.enrollments` | `list`, `listAll`, `get` (the journey), `pause`, `resume`, `exit`, `exitMany` |

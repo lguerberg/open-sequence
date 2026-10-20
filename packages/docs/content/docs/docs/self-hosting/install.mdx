@@ -8,10 +8,10 @@ This page takes you from a clone to a production install: one Docker image, a Po
 ```mermaid
 flowchart LR
   APP["Your application"] -->|HTTPS, project key| API["api role, public"]
-  EXT["Google, Allo, mail clients"] -->|OAuth return, webhooks, opt-out links| API
+  EXT["Allo, mail clients"] -->|webhooks, opt-out links| API
   API --> PG[("Postgres")]
   W["worker role, private"] --> PG
-  W -->|send, poll| P["Gmail, Allo, Attio"]
+  W -->|send, poll| P["Mail servers, Allo, Attio"]
   W -->|signed webhooks| APP
 ```
 
@@ -40,7 +40,7 @@ docker run --rm ghcr.io/lguerberg/open-sequence:main node dist/cli.js secrets ne
 openssl rand -base64 32                                   # -> SEQ_ADMIN_TOKEN
 ```
 
-`SEQ_ENCRYPTION_KEYS` encrypts every stored secret: the Google client secret, each sender's refresh token, the Allo and Attio keys and the webhook signing secrets. `SEQ_ADMIN_TOKEN` is the operator token that creates projects.
+`SEQ_ENCRYPTION_KEYS` encrypts every stored secret: each sender's SMTP and IMAP passwords, the Allo and Attio keys and the webhook signing secrets. `SEQ_ADMIN_TOKEN` is the operator token that creates projects.
 
 <Warning>Back up `SEQ_ENCRYPTION_KEYS` with the database. A database restored without the key that encrypted it has unreadable credentials, and every one must be entered again.</Warning>
 
@@ -60,7 +60,7 @@ docker run -d --name oseq-api -p 8080:8080 \
 
 With `SEQ_RUN_MIGRATIONS=1` the process applies the `seq` and `seq_auth` migrations before it opens its port. Each migration runs in its own transaction behind a row lock, so replicas that start together do not race. If a migration fails, the process exits with code 1. To migrate from a pipeline instead, see [Upgrades](/docs/self-hosting/upgrades).
 
-`SEQ_PUBLIC_URL` is the HTTPS origin the outside world reaches. Google sends the sender's browser back to it after consent, Allo posts webhooks to it, and every email's unsubscribe link points at it. It defaults to `http://localhost:8080`, so always set it in production. The service speaks plain HTTP: put a TLS terminator in front.
+`SEQ_PUBLIC_URL` is the HTTPS origin the outside world reaches. Allo posts webhooks to it, and every email's unsubscribe link points at it. It defaults to `http://localhost:8080`, so always set it in production. The service speaks plain HTTP: put a TLS terminator in front.
 
 </Step>
 <Step title="Run the worker role">
@@ -104,12 +104,11 @@ With mock providers off, nothing is sent until the project has credentials. Each
 
 | What you want | What to register |
 |---|---|
-| Email from Google mailboxes | the project's Google OAuth client, then one consent per sender: [Email via Gmail](/docs/sending/email-gmail) |
-| Email from any other mailbox | the sender's SMTP and IMAP settings: [Email via SMTP and IMAP](/docs/sending/email-smtp) |
+| Email | each sender's SMTP and IMAP settings, Gmail included: [Email via SMTP and IMAP](/docs/sending/email-smtp) |
 | SMS and call tasks | one Allo API key per project, then a number and user per sender: [SMS and calls via Allo](/docs/sending/sms-and-calls-allo) |
 | `crm.*` conditions | one Attio API key per project: [CRM conditions](/docs/sequences/crm-conditions) |
 
-`GET /v1/project` shows the inbound webhook URLs (`webhook_urls.allo`, `webhook_urls.google`) and the Google redirect URI (`google_redirect_uri`), all built from `SEQ_PUBLIC_URL`.
+`GET /v1/project` shows the inbound webhook URL (`webhook_urls.allo`), built from `SEQ_PUBLIC_URL`.
 
 </Step>
 </Steps>

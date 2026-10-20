@@ -36,7 +36,6 @@ export function stubProviders(overrides: Partial<ProviderSet> = {}): ProviderSet
     email: { send: unused, findSent: unused, health: async () => 'active' },
     sms: { send: unused, findSent: unused, verifyWebhook: unused, listNumbers: unused, listUsers: unused, health: async () => 'active' },
     dialer: { pushNumbers: unused },
-    calendar: { poll: unused },
     crm: { schema: unused, lookup: unused },
     ...overrides,
   };

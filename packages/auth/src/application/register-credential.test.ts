@@ -8,7 +8,7 @@ describe('registerCredential', () => {
   beforeAll(migrateTestDb);
   afterAll(closeTestDb);
 
-  const auth = () => createAuth({ db: testDb(), encryptionKeys: KEY_A, publicUrl: 'http://localhost:8080' });
+  const auth = () => createAuth({ db: testDb(), encryptionKeys: KEY_A });
 
   it('refuses an API key whose probe fails, and stores nothing', async () => {
     const tenantId = uniq('prj');
@@ -55,11 +55,11 @@ describe('registerCredential', () => {
 
   it('upserts by (tenant, provider) and keeps the id', async () => {
     const tenantId = uniq('prj');
-    const first = await auth().registerCredential({ tenantId, provider: 'google', method: 'oauth2', secrets: { client_id: '123-abc.apps', client_secret: 'GOCSPX-one' } });
-    const second = await auth().registerCredential({ tenantId, provider: 'google', method: 'oauth2', secrets: { client_id: '456-def.apps', client_secret: 'GOCSPX-two' } });
+    const first = await auth().registerCredential({ tenantId, provider: 'attio', method: 'api_key', secrets: { api_key: 'attio_key_one1' } });
+    const second = await auth().registerCredential({ tenantId, provider: 'attio', method: 'api_key', secrets: { api_key: 'attio_key_two2' } });
     expect(second.id).toBe(first.id);
-    expect(second.last4).toBe('apps');
-    expect(await auth().credentialsFor(tenantId, 'google')).toEqual({ client_id: '456-def.apps', client_secret: 'GOCSPX-two' });
+    expect(second.last4).toBe('two2');
+    expect(await auth().credentialsFor(tenantId, 'attio')).toEqual({ api_key: 'attio_key_two2' });
     expect(await auth().listCredentials(tenantId)).toHaveLength(1);
   });
 

@@ -13,14 +13,14 @@ NODE_ENV=production                      # already set in the image: refuses moc
 
 ## Encryption keys
 
-Every stored secret is AES-256-GCM ciphertext under `SEQ_ENCRYPTION_KEYS`: the Google client secret, each sender's refresh token, the Allo and Attio keys, and the webhook signing secrets. Each row records the id of the key that wrote it.
+Every stored secret is AES-256-GCM ciphertext under `SEQ_ENCRYPTION_KEYS`: each sender's SMTP and IMAP passwords, the Allo and Attio keys, and the webhook signing secrets. Each row records the id of the key that wrote it.
 
 The value is a comma-separated list of `id:base64key`. Each key must decode to 32 bytes, ids must be unique and at most 16 characters. `node dist/cli.js secrets new-key` prints a valid entry.
 
 | Entry | Role |
 |---|---|
-| first | encrypts every new secret and signs OAuth state |
-| every entry | decrypts the rows written with it, and verifies OAuth state |
+| first | encrypts every new secret |
+| every entry | decrypts the rows written with it |
 
 <Warning>The unsubscribe links in sent emails are signed with a key derived from the whole `SEQ_ENCRYPTION_KEYS` value. Any change to it (adding, removing or reordering an entry) makes every link already sent answer "This link has expired". Plan rotations knowing this.</Warning>
 
@@ -28,7 +28,7 @@ The value is a comma-separated list of `id:base64key`. Each key must decode to 3
 
 1. Generate a new entry with `secrets new-key` and put it first. Keep the old entries after it.
 2. Restart both roles. New secrets are now written under the new key; old ones still decrypt.
-3. Each secret moves to the new key when it is written again: a provider credential saved again, a sender reconnecting Google.
+3. Each secret moves to the new key when it is written again: a provider credential saved again, a sender's mailbox saved again.
 
 Check what still uses an old key:
 
@@ -60,8 +60,8 @@ Keys are `sk_live_…` with 256 bits of entropy, stored as SHA-256 hashes, shown
 
 | Component | Exposure |
 |---|---|
-| `api` | public over HTTPS behind a TLS terminator. Needs inbound from your application, Google (OAuth return), Allo (webhooks) and mail clients (unsubscribe links) |
-| `worker` | private. Its port answers the API routes too, so never route traffic to it. Needs outbound to Google, Allo, Attio and your webhook endpoints |
+| `api` | public over HTTPS behind a TLS terminator. Needs inbound from your application, Allo (webhooks) and mail clients (unsubscribe links) |
+| `worker` | private. Its port answers the API routes too, so never route traffic to it. Needs outbound to your senders' mail servers (SMTP and IMAP), Allo, Attio and your webhook endpoints |
 | Postgres, Redis | private |
 
 - `SEQ_PUBLIC_URL` must be the HTTPS origin the world sees. It is written into unsubscribe links and sent to Allo when you save the Allo key. If it changes, save the Allo key again so Allo posts to the new address.
@@ -79,7 +79,6 @@ So a receiver must be reachable at a public HTTPS address, even when it runs nex
 | Path | Check |
 |---|---|
 | `/hooks/allo/{slug}` | Standard Webhooks signature with the secret Allo issued when the service registered the endpoint; timestamps older than 5 minutes are rejected |
-| `/hooks/google/{slug}` | acknowledged only: polling does the reading |
 | `/hooks/mock/{slug}` | exists only with mock providers on, which `NODE_ENV=production` refuses |
 
 ## Rate limits and body size
@@ -98,4 +97,3 @@ Every table carries `project_id` and every query filters on it. A key resolves t
 - `SEQ_PUBLIC_URL` set to the public HTTPS origin before you save any provider credential.
 - A webhook endpoint registered and verifying signatures ([Verifying](/docs/webhooks/verifying)).
 - Application keys with the narrowest scope.
-- Google's app verification for the Gmail scopes if senders are outside your Workspace domain.

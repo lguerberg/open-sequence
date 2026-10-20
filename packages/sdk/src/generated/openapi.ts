@@ -251,8 +251,6 @@ export interface paths {
                             retention_days?: number;
                             store_inbound_bodies?: boolean;
                             match_replies_outside_thread?: boolean;
-                            /** @enum {string} */
-                            meeting_detection?: "calendar" | "client" | "both";
                             crm?: {
                                 /** @enum {string} */
                                 deal_selection?: "newest_open" | "highest_value" | "any_open";
@@ -1380,13 +1378,13 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Store or rotate a provider credential (write-only). Google: client_id, client_secret; Allo: api_key, webhook_secret?; Attio: api_key. */
+        /** Store or rotate a provider credential (write-only). Allo: api_key, webhook_secret?; Attio: api_key. */
         put: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    provider: "google" | "allo" | "attio" | "mock";
+                    provider: "allo" | "attio" | "mock";
                 };
                 cookie?: never;
             };
@@ -4470,443 +4468,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/senders/{id}/connections/google": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Start the Google consent flow (Gmail + Calendar); returns the URL the sender opens once */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** Format: uri */
-                        return_url?: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        /** Disconnect Google: revokes the token; a Gmail email channel goes disconnected (an SMTP one is left alone) */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: unknown;
-                            meta: {
-                                request_id: string;
-                                next_cursor?: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details?: unknown;
-                            };
-                            meta: {
-                                request_id: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/senders/{id}/channels/email": {
         parameters: {
             query?: never;
@@ -5176,7 +4737,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Google and SMTP connections of a sender (no secrets) */
+        /** Mailbox connections of a sender (no secrets) */
         get: {
             parameters: {
                 query?: never;
@@ -5400,7 +4961,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** The sender's Allo number and user (API key provider, no OAuth) */
+        /** The sender's Allo number and user */
         put: {
             parameters: {
                 query?: never;
@@ -5632,7 +5193,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Remove a channel; its steps skip from now on. Removing email deletes stored SMTP passwords; a Google grant stays until Google is disconnected */
+        /** Remove a channel; its steps skip from now on. Removing email deletes the stored SMTP and IMAP passwords */
         delete: {
             parameters: {
                 query?: never;

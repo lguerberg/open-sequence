@@ -1,6 +1,6 @@
 # OpenSequence: a standalone sequences service (design and architecture)
 
-Status: draft v6, 2026-10-16. Version 6 removes LinkedIn from the product: the channels are email and SMS, and everything a human does is a `task` (a call through Allo, or any kind the client defines). Version 5 fixes the provider set and the repositories: two repositories in the `open-sequence` organization from day one (`opensequence`, the service with every package inside, and `auth`, the provider-connection and token module), **Google** for email and calendar (the project brings its own OAuth client; the service owns the token lifecycle), **Allo** for SMS and call tasks, **Attio** as the CRM behind a port, and a `mock` provider for development and CI. Version 4 applied the review of v3: the correctness fixes (planner and executor hand-off, time zones for SMS, Gmail privacy, idempotent migrations and `Idempotency-Key` storage), the pieces an independent release needs (operator bootstrap, channel connection, hosted opt-out, templating), the pieces an open-source release needs (a default provider set anyone can use, a generic `task` node, outbound webhooks early), and the simplifications (three loops, two roles, fewer node and run states, no rollup until it is needed). Items marked **verify** were inferred and must be confirmed at kickoff. The first client, Harpoon, appears only in section 13.
+Status: draft v7, 2026-10-20. Version 7 removes Google: email goes through each sender's own mailbox over SMTP and IMAP, there is no OAuth flow and no calendar reading, and the client reports booked meetings as contact events. Version 6 removes LinkedIn from the product: the channels are email and SMS, and everything a human does is a `task` (a call through Allo, or any kind the client defines). Version 5 fixes the provider set and the repositories: two repositories in the `open-sequence` organization from day one (`opensequence`, the service with every package inside, and `auth`, the provider-connection and token module), **Google** for email and calendar (the project brings its own OAuth client; the service owns the token lifecycle), **Allo** for SMS and call tasks, **Attio** as the CRM behind a port, and a `mock` provider for development and CI. Version 4 applied the review of v3: the correctness fixes (planner and executor hand-off, time zones for SMS, Gmail privacy, idempotent migrations and `Idempotency-Key` storage), the pieces an independent release needs (operator bootstrap, channel connection, hosted opt-out, templating), the pieces an open-source release needs (a default provider set anyone can use, a generic `task` node, outbound webhooks early), and the simplifications (three loops, two roles, fewer node and run states, no rollup until it is needed). Items marked **verify** were inferred and must be confirmed at kickoff. The first client, Harpoon, appears only in section 13.
 
 ## 1. What this system does, in one page
 
@@ -8,7 +8,7 @@ Status: draft v6, 2026-10-16. Version 6 removes LinkedIn from the product: the c
 
 | You do | With |
 |---|---|
-| Register the people who send (a **sender**: a user with a Google account for mail and calendar and an Allo number) | `senders` |
+| Register the people who send (a **sender**: a user with a mailbox reached over SMTP and IMAP and an Allo number) | `senders` |
 | Register the people who receive (a **contact**: email, phone, free attributes, SMS consent) | `contacts` |
 | Design flows as JSON (a **sequence**, versioned, immutable once published) | `sequences` and `versions` |
 | Start a contact on a sequence as a sender, or stop them | `enrollments` |
@@ -17,7 +17,7 @@ Status: draft v6, 2026-10-16. Version 6 removes LinkedIn from the product: the c
 | Branch on what the CRM knows (an open deal, its stage, a company attribute) | `conditions` on `crm.*` facts, read live from Attio |
 | Get told when something happens | outbound `webhooks` |
 
-Everything else happens **inside the service**: it schedules each step, sends the email or the text through the sender's own accounts, pushes calls into the sender's dialer, throttles, listens for replies, bounces, opt-outs, call outcomes and calendar bookings, reads the CRM when a condition asks, exits contacts by rule, and records every decision. The client never calls a provider, never runs a timer and never reads the service's database.
+Everything else happens **inside the service**: it schedules each step, sends the email or the text through the sender's own accounts, pushes calls into the sender's dialer, throttles, listens for replies, bounces, opt-outs and call outcomes, reads the CRM when a condition asks, exits contacts by rule, and records every decision. The client never calls a provider, never runs a timer and never reads the service's database.
 
 Design goals, in priority order:
 
@@ -29,20 +29,20 @@ Design goals, in priority order:
 6. **Independently deployable.** One image, a Postgres you connect, a queue you choose; deployable and rollable back without touching any client.
 7. **Generic and open.** Tenant-aware (`project_id` on every table, one API key per project), providers behind ports, no knowledge of any client's domain, so it can be published and used by anyone.
 
-Non-goals for v1: a built-in UI (clients build their own on the API; a minimal admin page is planned later), providers beyond Google, Allo and Attio (SMTP+IMAP, Twilio and HubSpot come later behind the same ports), SMS without consent, A/B on content, open and click tracking, WhatsApp, holidays in business-day math, a hosted workflow engine.
+Non-goals for v1: a built-in UI (clients build their own on the API; a minimal admin page is planned later), providers beyond SMTP and IMAP, Allo and Attio (Microsoft 365, Twilio and HubSpot come later behind the same ports), reading calendars, SMS without consent, A/B on content, open and click tracking, WhatsApp, holidays in business-day math, a hosted workflow engine.
 
 ### 1.1 One contact's life, in ten lines
 
-1. Your app upserts a sender (`PUT /v1/senders/u_42`) and connects their Google account (`POST .../connections/google`): one consent, Gmail and Calendar.
+1. Your app upserts a sender (`PUT /v1/senders/u_42`) and saves their mailbox (`PUT .../channels/email` with SMTP and IMAP settings); the service signs in to both before it stores them.
 2. Your app upserts a contact with an email, a time zone and some `attrs` (`PUT /v1/contacts/p_7`).
 3. Someone publishes a sequence version: an email, a two-day wait, a condition, a text, a call task.
 4. Your app enrolls the contact as that sender (`POST /v1/sequences/seq_x/enrollments`). The service refuses if the contact is already in any sequence.
 5. The planner sees the enrollment is due, runs the pure interpreter, and queues the email step.
-6. The email executor checks the gates (consent, suppressions, caps, send window), gets a fresh access token from the auth module, sends through the sender's Gmail, records the message and the run, and schedules the wait.
+6. The email executor checks the gates (consent, suppressions, caps, send window), gets the mailbox settings from the auth module, sends through the sender's SMTP server, records the message and the run, and schedules the wait.
 7. Two business days later the planner evaluates the condition: it asks Attio for the contact's open deal and reads its stage, records the facts it read, and takes a branch.
 8. The text step is skipped (`no_consent`) because the contact never opted in; the skip is recorded and the flow continues.
 9. The call step creates a task and pushes the number into the sender's Allo dialer; when Allo reports the call, the task completes itself with the outcome, which wakes the flow.
-10. The contact replies to the first email, or books a slot that lands in the sender's Google Calendar. The signal is attributed to the email step, the enrollment exits with `replied` or `meeting_booked`, and a webhook `enrollment.exited` reaches your app.
+10. The contact replies to the first email, or books a meeting your app reports with `POST /v1/contacts/{id}/events`. The signal is attributed to the email step, the enrollment exits with `replied` or `meeting_booked`, and a webhook `enrollment.exited` reaches your app.
 
 ### 1.2 Quickstart: six calls
 
@@ -51,13 +51,10 @@ Non-goals for v1: a built-in UI (clients build their own on the API; a minimal a
 curl -X POST $SEQ/v1/admin/projects -H "Authorization: Bearer $SEQ_ADMIN_TOKEN" -d '{"slug":"acme","name":"Acme CRM"}'
 # -> { "project": "prj_...", "api_key": "sk_live_..." }  (shown once)
 
-# 0b. In production: register your own Google OAuth client once (skip with mock providers)
-curl -X PUT  $SEQ/v1/project/providers/google -H "Authorization: Bearer $KEY" -d '{"client_id":"...apps.googleusercontent.com","client_secret":"..."}'
-
-# 1. A sender, and connect their Google account (returns a consent URL the sender opens once: Gmail + Calendar)
+# 1. A sender, and their mailbox (both logins are checked first; with mock providers they are not)
 curl -X PUT  $SEQ/v1/senders/u_42 -H "Authorization: Bearer $KEY" -d '{"name":"Max Rivera","email":"max@acme.com","timezone":"America/New_York"}'
-curl -X POST $SEQ/v1/senders/u_42/connections/google -H "Authorization: Bearer $KEY"
-# -> { "auth_url": "https://accounts.google.com/o/oauth2/v2/auth?..." }   (with mock providers: { "status": "active" })
+curl -X PUT  $SEQ/v1/senders/u_42/channels/email -H "Authorization: Bearer $KEY" -d '{"provider":"smtp","smtp":{"host":"smtp.gmail.com","port":465,"secure":true,"user":"max@acme.com","password":"app-password"},"imap":{"host":"imap.gmail.com","port":993,"secure":true,"user":"max@acme.com","password":"app-password"}}'
+# -> { "channel": "email", "address": "max@acme.com", "status": "active", ... }
 
 # 2. A contact
 curl -X PUT  $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" \
@@ -81,8 +78,8 @@ curl $SEQ/v1/sequences/seq_x/analytics/summary -H "Authorization: Bearer $KEY"
 | Term | Meaning |
 |---|---|
 | Project | A tenant. Owns its senders, contacts, sequences, provider credentials, webhook endpoints and API keys. |
-| Sender | The acting user an enrollment runs as. Has a Google connection and channels (email from Google, sms from an Allo number); plus a time zone and limits. |
-| Connection | A sender's authorized account at an OAuth provider (Google: Gmail and Calendar under one consent), with its tokens, owned by the auth module. API-key providers (Allo, Attio) have no connections: one workspace key per project. |
+| Sender | The acting user an enrollment runs as. Has channels (email from a mailbox over SMTP and IMAP, sms from an Allo number); plus a time zone and limits. |
+| Connection | A sender's mailbox: its SMTP and IMAP settings, with the passwords encrypted, owned by the auth module. API-key providers (Allo, Attio) have no connections: one workspace key per project. |
 | Contact | The person who receives a sequence. Has email, phone, country, time zone, `sms_consent`, and free `attrs` JSON. |
 | Sequence | A named container of versions. |
 | Version | One immutable JSON definition once published. Has a tag (`v1`, `v2`, free text). |
@@ -112,7 +109,7 @@ flowchart LR
     Q{{"Queue: postgres or redis"}}
   end
   subgraph EXT["Providers (adapters)"]
-    GO["Google: Gmail send and read, Calendar read"]
+    GO["Mail servers: SMTP send, IMAP read"]
     AL["Allo: SMS, dialer, call outcomes"]
     AT["Attio: person, company, deal facts"]
   end
@@ -122,7 +119,7 @@ flowchart LR
   API --> Q
   WK --> DB
   Q --> WK
-  WK -->|"send mail, poll mail and calendar"| GO
+  WK -->|"send mail, poll the inbox"| GO
   WK -->|"send SMS, push dialer"| AL
   WK -->|"lookup facts"| AT
   GO -->|"Pub/Sub push (optional)"| API
@@ -133,7 +130,7 @@ flowchart LR
 Four rules:
 
 1. **Clients talk only to the API**, with a project API key. A browser never calls the service directly; the client's backend does.
-2. **Providers talk to the API** (inbound webhooks, OAuth callbacks, opt-out clicks) and are called by the **worker** (sends, polls, lookups). Project credentials (a Google OAuth client, an Allo API key, an Attio API key) and per-sender tokens are encrypted; the **auth module** (section 3.2) owns every token's lifecycle.
+2. **Providers talk to the API** (inbound webhooks, opt-out clicks) and are called by the **worker** (sends, polls, lookups). Project credentials (an Allo API key, an Attio API key) and per-sender mailbox passwords are encrypted; the **auth module** (section 3.2) owns every secret.
 3. **The database and queue belong to the service.** No client has a connection string; nothing outside the service reads or writes `seq.*`.
 4. **The worker has no public surface** except health checks.
 
@@ -143,8 +140,8 @@ One Docker image, one process, three settings of `SEQ_ROLES`:
 
 | `SEQ_ROLES` | Runs | Public |
 |---|---|---|
-| `api` | the public API, inbound provider webhooks, OAuth callbacks, opt-out links, `/healthz`, `/readyz`, `/metrics` | yes |
-| `worker` | the scheduler, planner, executors (email, SMS), pollers (Gmail, Calendar), CRM fact reader, signal processor, outbound webhook delivery, reaper, retention | no (health only) |
+| `api` | the public API, inbound provider webhooks, opt-out links, `/healthz`, `/readyz`, `/metrics` | yes |
+| `worker` | the scheduler, planner, executors (email, SMS), the IMAP poller, CRM fact reader, signal processor, outbound webhook delivery, reaper, retention | no (health only) |
 | `all` | both, in one process; local development and small installs | yes |
 
 | | `api` | `worker` |
@@ -176,7 +173,7 @@ Two repositories in the `open-sequence` GitHub organization:
 | Repository | Publishes | Owns |
 |---|---|---|
 | **`open-sequence/opensequence`** | `@opensequence/core`, `engine`, `queue`, `providers`, `sdk`, the image `opensequence/server`, the `oseq` CLI, the docs | the sequences service: everything in this document except the next row |
-| **`open-sequence/auth`** | `@opensequence/auth` | provider connections and the token lifecycle: project credentials (a Google OAuth client, an Allo key, an Attio key), per-owner connections (a sender's Google account), the OAuth flows, token refresh and caching, encryption and key rotation, health checks, revocation, and its own schema and migrations (section 3.2). Usable by any application that needs "connect Google with my own client id", not only by the service |
+| **`open-sequence/auth`** | `@opensequence/auth` | provider secrets: project credentials (an Allo key, an Attio key), per-owner connections (a sender's mailbox settings), encryption and key rotation, health checks, revocation, and its own schema and migrations (section 3.2). Usable by any application that keeps third-party secrets, not only by the service |
 
 `opensequence` depends on a pinned release of `@opensequence/auth`; the two are versioned and released independently, and `oseq migrate` applies both migration sets.
 
@@ -187,7 +184,7 @@ packages/
   sequences-engine/      Postgres engine over `seq`: planner, advance, ledger, signals and attribution, throttles, reaper, webhook delivery.
                          Depends on core and on the provider ports (interfaces). No provider code.
   sequences-queue/       Queue interface and backends: postgres (default), redis, memory.
-  sequences-providers/   Adapters behind the ports: google (email + calendar), allo (sms + calls), attio (crm), mock (dev and CI).
+  sequences-providers/   Adapters behind the ports: smtp (email over SMTP and IMAP), allo (sms + calls), attio (crm), mock (dev and CI).
                          Later, behind the same ports: smtp-imap, twilio, hubspot, unipile.
   sequences-sdk/         Typed client generated from the OpenAPI file.
   docs/                  The documentation site (docs.opensequence.dev): MDX guides, generated API reference, SDK and CLI pages (section 19).
@@ -195,9 +192,9 @@ apps/
   sequences/             The deployable: HTTP API, webhooks, workers (SEQ_ROLES). Dockerfile, migrations, openapi.json, the `oseq` CLI.
 
 open-sequence/auth
-  src/                   (@opensequence/auth) providers: google (OAuth2, refresh, watch renewal), api-key providers (allo, attio);
-                         crypto (AES-256-GCM, key ids, rotation); store (schema `seq_auth`, migrations); a Fastify plugin for the callback route;
-                         the public API: connect, handleCallback, getAccessToken, credentialsFor, health, revoke, rotateKeys
+  src/                   (@opensequence/auth) password connections (smtp), api-key providers (allo, attio);
+                         crypto (AES-256-GCM, key ids, rotation); store (schema `seq_auth`, migrations);
+                         the public API: registerCredential, credentialsFor, savePasswordConnection, connectionSecrets, health, revoke, rotateKeys
   migrations/            seq_auth.credentials, seq_auth.connections (section 4.3)
 ```
 
@@ -205,7 +202,7 @@ Folder names and published names: `sequences-core` is `@opensequence/core`, `seq
 
 Both repositories exist from day one; nothing is developed inside a client's monorepo. Clients, Harpoon included, install `@opensequence/sdk` from npm and never share code with the service. CI in each repository publishes its packages (and, for `opensequence`, the image) on a tagged release.
 
-**Stack (decided, so nobody has to choose):** TypeScript strict, Node 22 LTS, pnpm workspace. HTTP: **Fastify** with `fastify-type-provider-zod`, so every route's Zod schema is also its OpenAPI entry (`@fastify/swagger` writes `openapi.json` at build). Database: `postgres` (postgres.js) with **Drizzle** for the schema and typed queries, raw SQL for the planner, the queue and the analytics queries; migrations are the hand-written idempotent SQL files of section 4, run by the service itself. Ids: ULID. Time zones: `@date-fns/tz` (or Luxon) with the IANA database; phone parsing: `libphonenumber-js`. Google APIs: `googleapis` (Gmail, Calendar, OAuth2 client). Logging: Pino. Tests: Vitest, Testcontainers for Postgres and Redis, the `mock` provider for engine tests and recorded fixtures (`msw`) for adapter contract tests. Lint: ESLint with `eslint-plugin-boundaries` for the package rules. Crypto: Node `crypto` (AES-256-GCM, HMAC-SHA256), no extra library. Queue: the `postgres` backend is plain SQL; the `redis` backend uses `ioredis` streams. Docker: multi-stage image, non-root, `node dist/index.js`.
+**Stack (decided, so nobody has to choose):** TypeScript strict, Node 22 LTS, pnpm workspace. HTTP: **Fastify** with `fastify-type-provider-zod`, so every route's Zod schema is also its OpenAPI entry (`@fastify/swagger` writes `openapi.json` at build). Database: `postgres` (postgres.js) with **Drizzle** for the schema and typed queries, raw SQL for the planner, the queue and the analytics queries; migrations are the hand-written idempotent SQL files of section 4, run by the service itself. Ids: ULID. Time zones: `@date-fns/tz` (or Luxon) with the IANA database; phone parsing: `libphonenumber-js`. Mail: `nodemailer` (SMTP), `imapflow` (IMAP) and `mailparser`. Logging: Pino. Tests: Vitest, Testcontainers for Postgres and Redis, the `mock` provider for engine tests and recorded fixtures (`msw`) for adapter contract tests. Lint: ESLint with `eslint-plugin-boundaries` for the package rules. Crypto: Node `crypto` (AES-256-GCM, HMAC-SHA256), no extra library. Queue: the `postgres` backend is plain SQL; the `redis` backend uses `ioredis` streams. Docker: multi-stage image, non-root, `node dist/index.js`.
 
 ### 2.4 Deployment topology
 
@@ -248,7 +245,7 @@ flowchart TB
     PLAN["planner (claim due enrollments)"]
     ADV["advance (transaction shell)"]
     EX["executors: email, sms"]
-    POLL["pollers: gmail history, calendar events"]
+    POLL["poller: IMAP inbox"]
     AUTHM["auth module: token refresh, watch renewal"]
     FACT["facts: SQL readers and the CRM port (attio)"]
     SIGP["signal processor, attribution"]
@@ -283,7 +280,7 @@ flowchart LR
   subgraph L2["Loop 2: Executors and pollers"]
     E1["queue seq_email"]
     E2["queue seq_sms"]
-    E3["poll: gmail history, calendar, channel health"]
+    E3["poll: IMAP inbox, channel health"]
   end
   subgraph L3["Loop 3: Signals and webhooks"]
     S1["queue seq_signals and sweep"]
@@ -324,7 +321,7 @@ returning job;       -- a row means this replica runs the job now
 |---|---|---|
 | `plan` | 5 s | claim due enrollments fairly and `advance` them |
 | `signals` | 30 s | process unprocessed signals (safety net for a lost message) |
-| `poll` | 60 s | for every active Google connection without Pub/Sub push: Gmail `history.list` from the stored cursor and Calendar `events.list` with `updatedMin`; every 15 minutes `health()` on each connection (raises `sender_channel_status` on a change) and renewal of Gmail and Calendar watches that expire within a day |
+| `poll` | 60 s | for every active email channel: the IMAP inbox from the stored UID cursor; every 15 minutes `health()` on each connection (raises `sender_channel_status` on a change) |
 | `reap` | 60 s | expired executor ownership, resume `paused_until`, expire tasks, reconcile unknown outcomes, re-enqueue recorded-but-unqueued runs and deliveries, re-enqueue deliveries whose `next_attempt_at` is due, disable failing webhook endpoints |
 | `retention` | daily | prune old runs, messages, signals, deliveries and idempotency records per project settings |
 
@@ -336,24 +333,19 @@ Providers authenticate in two ways, and the module treats them as two methods:
 
 | Method | Providers | Tenant level | Sender level | Lifecycle |
 |---|---|---|---|---|
-| **OAuth2** | Google (later: any OAuth provider) | the tenant's own OAuth client (`client_id`, `client_secret`) | one **connection** per sender, holding the encrypted refresh token and scopes | consent flow, refresh, `invalid_grant`, watch renewal, revoke |
+| **Password connection** | SMTP and IMAP (any mailbox that allows password sign-in, Gmail and Google Workspace with an app password) | none | one **connection** per sender, holding the server settings in plain config and the passwords encrypted | the host checks both logins before saving; a refused login at `health()` or at send time sets the channel `credentials_needed`; removing the email channel deletes the passwords |
 | **API key** | Allo, Attio (later: HubSpot and others) | one **workspace key** per tenant, validated with a probe call (Allo `GET /v2/api/me`, which also returns the key's scopes; Attio `GET /v2/self`) before it is stored | none; the sender's identity at the provider (an Allo user id and number) is plain data on the sender's channel | rotate by storing a new key; a failing probe at `health()` marks the credential `invalid` and pauses the steps that need it |
 
-Tokens are the service's problem, not the client's, and the code that handles them is generic enough to be its own package: **`@opensequence/auth`** from `open-sequence/auth`. It stores credentials and connections in its own schema (`auth`), exposes a small API (`connect`, `handleCallback`, `getAccessToken`, `credentialsFor`, `health`, `revoke`, `rotateKeys`) and a Fastify plugin for the callback route, and is configured with a Postgres DSN and `SEQ_ENCRYPTION_KEYS`. The service calls it; the adapters never read a token table. The project registers its **own Google OAuth client** (`PUT /v1/project/providers/google {client_id, client_secret}`, which the service forwards to `auth`) once; from then on the module does everything for every sender, so a client never touches a Google token:
+Secrets are the service's problem, not the client's, and the code that handles them is generic enough to be its own package: **`@opensequence/auth`** from `open-sequence/auth`. It stores credentials and connections in its own schema (`seq_auth`), exposes a small API (`registerCredential`, `credentialsFor`, `savePasswordConnection`, `connectionSecrets`, `health`, `revoke`, `rotateKeys`), and is configured with a Postgres database and `SEQ_ENCRYPTION_KEYS`. The service calls it; the adapters never read a secret table.
 
 | Step | What the auth module does |
 |---|---|
-| Connect | `POST /v1/senders/{id}/connections/google` builds the consent URL with the project's client id, scopes `gmail.send`, `gmail.readonly`, `calendar.readonly`, `access_type=offline`, `prompt=consent`, and a signed `state` (sender, connection, 10-minute expiry). The callback exchanges the code, verifies the Google account matches `senders.email` (or records the address it got), stores the **refresh token encrypted** on `seq.sender_connections`, creates the `email` channel, and starts the Gmail and Calendar watches. |
-| Access tokens | `getAccessToken(connection)` returns a cached access token (in memory per replica, keyed by connection id, refreshed 2 minutes before expiry) and refreshes with the stored refresh token on a miss. Refreshes for one connection are serialized per replica; a concurrent refresh on another replica is harmless (Google returns a new token, the old stays valid). |
-| Failures | `invalid_grant` (revoked, password change, expired after 6 months unused on test apps) marks the connection `credentials_needed`, pauses that sender's email steps, emits `sender.channel_status`, and the readiness endpoint says "reconnect Google". A 429 or 5xx is a transient error with backoff. |
-| Scope changes | If a future version needs a scope the stored grant lacks, the connection is marked `reauth_needed` and `connect` is repeated with incremental auth. |
-| Watches | Gmail `users.watch` (7-day expiry) and Calendar `events.watch` (up to 30 days) are renewed by the `poll` job; without a Pub/Sub topic configured, polling is the mode and nothing needs renewing. |
-| Disconnect | `DELETE /v1/senders/{id}/connections/google` revokes the token at Google, deletes the secret, and sets the channels `disconnected`. |
-| Allo and Attio (API key) | `registerCredential(tenant, 'allo', {api_key, webhook_secret})` probes the key, then stores it encrypted in `seq_auth.credentials`; no connection rows exist for these providers. `credentialsFor(tenant, provider)` (API-key providers) and `getAccessToken(connection)` (OAuth providers) are the only two ways an adapter obtains a secret. |
-| Write-only | Every secret (a Google client secret, a refresh token, an Allo or Attio key, a webhook signing secret) is encrypted with `SEQ_ENCRYPTION_KEYS` the moment it arrives and **can never be read back through any API**: `GET /v1/project` and `GET /v1/senders/{id}/connections` return only the provider, its status, the key id that encrypted it, the last four characters and the timestamps. Secrets are decrypted in memory, only inside the auth module, only to make a provider call, and are never logged. Rotating a provider secret means sending a new one; losing the encryption key means re-entering every secret, which the docs say in bold. |
-| Reuse | Owners are opaque strings (`owner_id`, here a sender id) and tenants are opaque strings (`tenant_id`, here a project id), so another application can use the same package for "connect your Google account" with no sequences in sight. |
-
-Google's OAuth verification applies to the **project's** client, not to OpenSequence: an internal Google Workspace app needs none, a public app needs Google's review for the restricted Gmail scopes. The docs explain both paths.
+| Mailbox | `PUT /v1/senders/{id}/channels/email` sends the SMTP and IMAP settings; the server signs in to both, then `savePasswordConnection` stores the passwords encrypted and the hosts, ports and user names as plain config, one connection per sender (saving again replaces it). The service then creates the `email` channel. |
+| Failures | A refused login (at the 15-minute health check or at send time) sets the email channel `credentials_needed`, which pauses that sender's email steps; readiness says `email_credentials_needed`. An unreachable server is transient. |
+| Disconnect | `DELETE /v1/senders/{id}/channels/email` deletes the passwords, marks the connection `disconnected` and removes the channel. |
+| Allo and Attio (API key) | `registerCredential(tenant, 'allo', {api_key, webhook_secret})` probes the key, then stores it encrypted in `seq_auth.credentials`. `credentialsFor(tenant, provider)` (API-key providers) and `connectionSecrets(connection)` (mailboxes) are the only two ways an adapter obtains a secret. |
+| Write-only | Every secret (a mailbox password, an Allo or Attio key, a webhook signing secret) is encrypted with `SEQ_ENCRYPTION_KEYS` the moment it arrives and **can never be read back through any API**: `GET /v1/project` and `GET /v1/senders/{id}/connections` return only the provider, its status, the key id that encrypted it, the last four characters and the timestamps. Secrets are decrypted in memory, only inside the auth module, only to make a provider call, and are never logged. Rotating a provider secret means sending a new one; losing the encryption key means re-entering every secret, which the docs say in bold. |
+| Reuse | Owners are opaque strings (`owner_id`, here a sender id) and tenants are opaque strings (`tenant_id`, here a project id), so another application can use the same package with no sequences in sight. |
 
 ## 4. Data model
 
@@ -437,11 +429,11 @@ create table if not exists seq.api_keys (
 -- Provider credentials and connections are OWNED BY @opensequence/auth, in its own schema `seq_auth` (its migrations, its code).
 -- Shown here so the whole picture is in one place; `tenant_id` is the project id and `owner_id` is the sender id, both opaque to auth.
 create schema if not exists auth;
-create table if not exists seq_auth.credentials (                -- tenant-level: the Google OAuth client, the Allo API key, the Attio API key
+create table if not exists seq_auth.credentials (                -- tenant-level: the Allo API key, the Attio API key
   id          text primary key,                       -- cred_...
   tenant_id   text not null,
-  provider    varchar(24) not null,                   -- google | allo | attio | mock
-  method      varchar(12) not null,                   -- oauth2 (client secret) | api_key (workspace key)
+  provider    varchar(24) not null,                   -- allo | attio | mock
+  method      varchar(12) not null,                   -- api_key (workspace key)
   status      varchar(12) not null default 'active' check (status in ('active','invalid')),
   secret_enc  bytea not null,                         -- encrypted with the current SEQ_ENCRYPTION_KEYS entry
   key_id      varchar(16) not null,                   -- which encryption key encrypted it (rotation)
@@ -451,17 +443,17 @@ create table if not exists seq_auth.credentials (                -- tenant-level
   updated_at  timestamptz not null default now(),
   unique (tenant_id, provider)
 );
-create table if not exists seq_auth.connections (                -- owner-level, OAuth providers only: a sender's authorized Google account
+create table if not exists seq_auth.connections (                -- owner-level: a sender's mailbox (SMTP and IMAP settings)
   id            text primary key,                     -- con_...
   tenant_id     text not null,
   owner_id      text not null,                        -- the sender id, opaque to auth
-  provider      varchar(24) not null,                 -- google | mock
-  account       text not null,                        -- the Gmail address
+  provider      varchar(24) not null,                 -- smtp
+  account       text not null,                        -- the mailbox address
   scopes        text[] not null default '{}',
-  secret_enc    bytea, key_id varchar(16),            -- google: the refresh token
+  secret_enc    bytea, key_id varchar(16),            -- the SMTP and IMAP passwords, as one JSON object
   status        varchar(24) not null default 'pending'
                 check (status in ('pending','active','credentials_needed','reauth_needed','restricted','disconnected')),
-  config        jsonb not null default '{}',          -- gmail history cursor, calendar sync token, watch expiries
+  config        jsonb not null default '{}',          -- hosts, ports, user names and TLS settings
   last_ok_at    timestamptz, last_error text,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
@@ -513,14 +505,14 @@ create table if not exists seq.senders (
   unique (project_id, external_id)
 );
 
--- One row per outreach channel of a sender: email comes from the Google connection; sms is the sender's Allo number under the
+-- One row per outreach channel of a sender: email comes from the mailbox connection; sms is the sender's Allo number under the
 -- project's Allo key (no connection, the Allo user id sits in config).
 -- connection_id refers to seq_auth.connections by value, with no cross-schema foreign key, so the auth package stays separable.
 create table if not exists seq.sender_channels (
   id             text primary key,
   sender_id      text not null references seq.senders(id) on delete cascade,
   project_id     text not null,
-  connection_id  text,                                 -- seq_auth.connections.id for OAuth channels (email); null for sms (API key)
+  connection_id  text,                                 -- seq_auth.connections.id for email (the mailbox); null for sms (API key)
   channel        varchar(16) not null check (channel in ('email','sms')),
   address        text not null,                       -- mailbox address | E.164 number
   status         varchar(24) not null default 'pending'
@@ -711,7 +703,7 @@ create table if not exists seq.runs (
   idempotency_key text not null unique,               -- seq:<enrollment>:<node>:a<attempt-scope>
   started_at      timestamptz,
   finished_at     timestamptz,
-  provider        varchar(24),                        -- google|allo|mock
+  provider        varchar(24),                        -- smtp|allo|mock
   provider_ref    text,                               -- provider message id
   thread_ref      text,                               -- provider thread id, for reply matching
   branch          varchar(32),                        -- transition key taken
@@ -818,7 +810,7 @@ create table if not exists seq.signals (
   contact_id       text not null references seq.contacts(id) on delete cascade,
   kind             seq.signal_kind not null,
   channel          varchar(16),
-  source           varchar(24) not null,              -- gmail|google_calendar|allo|mock|task|optout_link|client
+  source           varchar(24) not null,              -- smtp|allo|mock|task|optout_link|client
   external_id      text not null,                     -- provider event id, task id, client id
   occurred_at      timestamptz not null,
   received_at      timestamptz not null default now(),
@@ -979,7 +971,7 @@ The settings have one choice, **"Exit the sequence when"**, with two values: **R
 | Sender disabled | pauses with `channel_status` | **the client**, `DELETE /v1/senders/{id}` |
 | Exit through the API | exits with reason `manual` and the caller's label | **the client** |
 
-**The service only sees its own channels.** Replies in threads it started, bounces, STOP texts, unsubscribe clicks and out-of-office messages are detected without any help. Everything that happens in the client's world (a meeting booked in a calendar tool, a contact marked do-not-contact in the CRM, a person who left the company, a deletion) is invisible to it and **must be reported through the API**; section 8.1 and 10.4 list the calls. A client that forgets this will keep emailing people its own users have already excluded, so the integration tutorial treats these calls as mandatory, not optional.
+**The service only sees its own channels.** Replies to emails it sent, bounces, STOP texts, unsubscribe clicks and out-of-office messages are detected without any help. Everything that happens in the client's world (a meeting booked in a calendar tool, a contact marked do-not-contact in the CRM, a person who left the company, a deletion) is invisible to it and **must be reported through the API**; section 8.1 and 10.4 list the calls. A client that forgets this will keep emailing people its own users have already excluded, so the integration tutorial treats these calls as mandatory, not optional.
 
 An exit only ends the enrollment and emits `enrollment.exited`. **Re-enrollment** (`settings.reenroll`: `never`, `always`, `after_<n>d`) is enforced in the enrollment preflight by reading the contact's last enrollment in the same sequence.
 
@@ -1188,13 +1180,13 @@ sequenceDiagram
   X->>Q: delete message
 ```
 
-If the executor crashes after the provider accepted the email but before it recorded the result, the retry first calls `findSent` with the run key and only sends if nothing is found. Every outgoing email carries a `Message-ID` derived from the run key, so Gmail answers that question with a `rfc822msgid:` search (a later IMAP adapter would use a header search). Retries: the message's `read_ct` is the attempt counter. Transient errors leave the message to reappear after the visibility timeout with exponential backoff and jitter. After 5 attempts the message is archived, the run is `failed`, and the enrollment takes the node's `failed` branch if wired, otherwise it pauses with `step_failed`. A per-channel **circuit breaker** (error rate over the last five minutes) pauses that queue's consumers when a provider is unhealthy.
+If the executor crashes after the provider accepted the email but before it recorded the result, the retry first calls `findSent` with the run key and only sends if nothing is found. Every outgoing email carries a `Message-ID` derived from the run key, so the SMTP adapter answers that question with an IMAP header search of the Sent folder, then the inbox. Retries: the message's `read_ct` is the attempt counter. Transient errors leave the message to reappear after the visibility timeout with exponential backoff and jitter. After 5 attempts the message is archived, the run is `failed`, and the enrollment takes the node's `failed` branch if wired, otherwise it pauses with `step_failed`. A per-channel **circuit breaker** (error rate over the last five minutes) pauses that queue's consumers when a provider is unhealthy.
 
 ### 7.4 Per-channel executors
 
 | Executor | Gates, in order | Throttle | Side effect | Unknown outcome |
 |---|---|---|---|---|
-| **Email** (Gmail) | kill switch, contact has email, no email suppression, Google connection `active` | sender channel `daily_limit` (rolling 24h), min gap, send window; Gmail's own quota sits above it | Gmail API send from the sender's mailbox, access token from the auth module | safe to retry (`findSent` by `Message-ID`) |
+| **Email** (SMTP) | kill switch, contact has email, no email suppression, email channel `active` | sender channel `daily_limit` (rolling 24h), min gap, send window; the mail provider's own limit sits above it | SMTP send through the sender's server, settings from the auth module, a copy filed in Sent | safe to retry (`findSent` by `Message-ID`) |
 | **SMS** (Allo) | kill switch, `contact.sms_consent`, contact country in `settings.sms_countries` (default `["US"]`), known recipient time zone, E.164 phone, no SMS suppression, sender has an Allo number | 8:00 to 21:00 recipient-local, per-number rate | Allo send from the sender's number | **`needs_review`, never auto-retry** |
 | **Task** (inline in `advance`) | none | none | create a task; for `kind: call` with `dialer: true`, push the number into the sender's Allo dialing queue (deduped by E.164); the client shows the task | the dialer push is idempotent by task id |
 
@@ -1283,8 +1275,7 @@ sequenceDiagram
 
 | Producer | Emits | Notes |
 |---|---|---|
-| Gmail (Pub/Sub push or the `poll` job) | `reply` (email), `bounce`, `complaint`, `ooo` | only messages in threads the service started are considered (section 9.1); auto-replies become `ooo`, never `reply`; bounces are parsed from delivery-status messages matched by `Message-ID` |
-| Google Calendar (push or the `poll` job) | `meeting_booked` | a new event on the sender's calendar, created after the enrollment's first touch, with the contact's email among the attendees and not declined; `external_id` is the event id, so updates are no-ops; `settings.meeting_detection`: `calendar` (default), `client`, `both` |
+| IMAP inbox (the `poll` job) | `reply` (email), `bounce`, `ooo` | only messages whose `In-Reply-To` or `References` name an email the service sent are considered (section 9.1); auto-replies become `ooo`, never `reply`; bounces are parsed from delivery-status messages matched by `Message-ID` |
 | Allo webhooks (`/hooks/allo/{project}`) | `reply` (sms), `opt_out`, `task_completed` and `call_connected` from `call.completed` | match the contact by E.164 and the sender's number; `STOP`, `QUIT`, `END`, `CANCEL`, `UNSUBSCRIBE`, `OPT OUT` become `opt_out`; a completed call completes the open call task for that sender and contact (section 7.7) |
 | Hosted opt-out link (`GET /u/{token}`) | `opt_out` (email) | signed token names the contact, project and run |
 | Task completion endpoint | `task_completed`, plus `call_connected`, `connection_accepted` or `reply` depending on kind and outcome | section 7.7 |
@@ -1314,11 +1305,10 @@ Rules: out-of-office **pauses and never exits**; auto-replies and bounces are ne
 
 ## 9. Providers (ports and adapters)
 
-The engine never calls a vendor directly; it calls **ports**, implemented by adapters in `sequences-providers`. Project-level credentials (the Google OAuth client, the Allo and Attio keys) and per-sender secrets (a Google refresh token) live in `@opensequence/auth` (`auth.credentials`, `auth.connections`), encrypted; an adapter receives them through `credentialsFor` and `getAccessToken` and never reads a table.
+The engine never calls a vendor directly; it calls **ports**, implemented by adapters in `sequences-providers`. Project-level credentials (the Allo and Attio keys) and per-sender secrets (the mailbox passwords) live in `@opensequence/auth` (`seq_auth.credentials`, `seq_auth.connections`), encrypted; an adapter receives them through `credentialsFor` and `connectionSecrets` and never reads a table.
 
 ```ts
 interface EmailProvider {
-  connect(req: { channel: SenderChannel; returnUrl: string }): Promise<{ authUrl?: string; done?: boolean }>; // OAuth or provision
   send(req: { channel: SenderChannel; to: string; subject: string; text: string; html?: string;
               messageId: string; inReplyTo?: string; headers: Record<string,string> }):
     Promise<{ providerId: string; threadRef: string }>;
@@ -1333,10 +1323,6 @@ interface SmsProvider {
   verifyWebhook(req: { headers; rawBody; secret }): InboundEvent[];     // reply | opt_out
   listNumbers?(credential: ProviderCredential): Promise<{ address: string; ref: string }[]>;
   health(channel: SenderChannel): Promise<'active' | 'credentials_needed' | 'restricted'>;
-}
-interface CalendarProvider {
-  poll(req: { connection: SenderConnection; cursor: string | null }): Promise<{ events: CalendarEvent[]; cursor: string }>;
-  watch?(req: { connection: SenderConnection; callbackUrl: string }): Promise<{ expiresAt: Date }>;
 }
 interface DialerProvider {
   pushNumbers(req: { connection: SenderConnection; numbers: string[]; idempotencyKey: string }): Promise<{ added: number }>;
@@ -1354,14 +1340,14 @@ Three real providers in v1, one mock for development and CI, and the ports stay 
 
 | Provider | Package | Ports | How it works | Notes |
 |---|---|---|---|---|
-| **Google** | `google` | `EmailProvider`, `CalendarProvider` | One OAuth consent per sender with the **project's own client id and secret** (section 3.2). Send: Gmail API `users.messages.send` with our `Message-ID`; `findSent` searches `rfc822msgid:`. Inbound mail: `users.watch` to a Pub/Sub topic pushing to `/hooks/google/{project}` when the project configured one, otherwise `history.list` from the stored cursor every minute. Bounces: delivery-status messages matched by the original `Message-ID`. Calendar: `events.list` with a sync token (or `events.watch`) on the sender's primary calendar; a new event with the contact as attendee becomes `meeting_booked`. | Scopes `gmail.send`, `gmail.readonly`, `calendar.readonly`. Google's verification applies to the project's OAuth client: none for an internal Workspace app, a review for a public app. Gmail's own caps (about 500 a day consumer, about 2,000 Workspace) sit above the channel's `daily_limit`, which stays the binding one. |
+| **SMTP and IMAP** | `smtp` | `EmailProvider` | One **password connection** per sender (section 3.2), checked by signing in to both servers before it is stored. Send: SMTP with our `Message-ID`, then a copy filed in the Sent folder unless the server filed one itself. `findSent` searches Sent, then the inbox, by `Message-ID` header. Inbound mail: the IMAP inbox read by UID from the stored cursor every minute. Bounces: delivery-status messages matched by the original `Message-ID`. | Works with Gmail and Google Workspace (app password), Fastmail, Zoho, iCloud, Proton Bridge and most servers. Microsoft 365 is out: it no longer allows password sign-in for SMTP and IMAP. The provider's own caps (about 500 a day on free Gmail, about 2,000 on Workspace) sit above the channel's `daily_limit`, which stays the binding one. |
 | **Allo** | `allo` | `SmsProvider`, `DialerProvider`, call outcomes | **API-key provider**: one workspace key per project (probed before storing). A sender's `sms` channel holds their Allo user id and number (`listNumbers` and `listUsers` for pickers); there is no per-sender connection. SMS send from the sender's number; inbound SMS and `call.completed` webhooks at `/hooks/allo/{project}`; `pushNumbers` appends to the sender's power-dialer queue. | Verified against Allo's OpenAPI spec and docs in section 9.1b. Allo is also the first client's phone system, so this adapter is exercised from day one. |
 | **Attio** | `attio` | `CrmProvider` | **API-key provider**: one workspace key per project (probed before storing). `schema` lists objects and attributes (cached, refreshed hourly, exposed at `GET /v1/project/providers/attio/schema`). `lookup` finds the person by email, the company by domain, and the deals linked to either, then applies the project's `deal_selection`. | Read-only in v1. Attio's attribute slugs are workspace-specific, so condition fields on `crm.*` are validated against the fetched schema, not a fixed list. |
-| **Mock** | `mock` | all ports | Records sends as `messages` rows, returns canned CRM and calendar data from `settings.mock`, and exposes `POST /hooks/mock/{project}` to simulate a reply, a bounce, a booking or a call. Enabled by `SEQ_DEV_MOCK_PROVIDERS=1` (the compose file sets it). | What the quickstart, the engine tests and the docs snippets run against, so nothing in CI needs a Google, Allo or Attio account. |
+| **Mock** | `mock` | all ports | Records sends as `messages` rows, returns canned CRM data from `settings.mock`, and exposes `POST /hooks/mock/{project}` to simulate a reply, a bounce or a call. Enabled by `SEQ_DEV_MOCK_PROVIDERS=1` (the compose file sets it). | What the quickstart, the engine tests and the docs snippets run against, so nothing in CI needs a mail server, Allo or Attio account. |
 | **Manual** | none | tasks | `task` nodes for visits, handwritten notes, anything. | |
 | Later, behind the same ports | `smtp_imap`, `twilio`, `hubspot`, `agentmail` | email, sms, crm | community adapters once the ports are stable | not in v1 |
 
-**Mailbox and calendar privacy (Google).** The service has read access to the sender's whole mailbox and calendar and must behave accordingly: it looks only for messages that belong to threads it started (`In-Reply-To`, `References` or Gmail's thread id matching a `runs.thread_ref`), it persists headers and the match for those, it stores inbound **bodies only when `settings.store_inbound_bodies` is on** (default off), and it never stores or logs anything else it sees. For the calendar it keeps only events whose attendees include an enrolled contact, and only the event id, start time and the matched attendee, never the title or description. An optional project setting (`match_replies_outside_thread`) also accepts a fresh email from an enrolled contact to the sender's address within the attribution window as a reply, storing metadata only. These rules are written into the adapter contract tests.
+**Mailbox privacy.** The service can read the sender's whole inbox and must behave accordingly: it reads only the inbox, looks only for messages whose `In-Reply-To` or `References` name an email it sent (a `runs.thread_ref` or message id), persists headers and the match for those, and never stores or logs anything else it sees. Reply bodies are not fetched. An optional project setting (`match_replies_outside_thread`) also accepts a fresh email from an enrolled contact to the sender's address within the attribution window as a reply, storing metadata only. These rules are written into the adapter contract tests.
 
 ### 9.1b Allo, as verified against its API (2026-10-13)
 
@@ -1431,7 +1417,7 @@ The service exposes one HTTP API, versioned under `/v1`, documented by an OpenAP
 | Step | Call |
 |---|---|
 | Register a sender | `PUT /v1/senders/{external_id}` |
-| Connect their Google account | `POST /v1/senders/{id}/connections/google` (then the sender opens the returned URL once; Gmail and Calendar) |
+| Connect their mailbox | `PUT /v1/senders/{id}/channels/email` with SMTP and IMAP settings (both logins are checked first) |
 | Register contacts | `PUT /v1/contacts/{external_id}` or `POST /v1/contacts:batch` |
 | Create and publish a sequence | `POST /v1/sequences`, `PUT .../versions/{vid}/draft`, `POST .../versions/{vid}/publish` |
 | Enroll | `POST /v1/sequences/{id}/enrollments` |
@@ -1457,8 +1443,8 @@ The operator is whoever runs the deployment. Bootstrapping an empty database nee
 | Method and path | Purpose |
 |---|---|
 | `GET /v1/project` | the project, its settings, the URLs to register at providers (`/hooks/{provider}/{slug}`), and the status of each provider credential (provider, status, key id, last four, rotated at); never the secret itself |
-| `PUT /v1/project/settings` | `attribution_days` (14), `sms_countries` (`["US"]`), default `send_window`, `attrs_schema` (types and labels for pickers), `retention_days`, `store_inbound_bodies`, `match_replies_outside_thread`, `meeting_detection` (`calendar`), `crm.deal_selection` (`newest_open`), `allo.outcome_map`, `max_steps_per_tick` |
-| `PUT /v1/project/providers/{google\|allo\|attio}` | store or rotate a project credential (stored by `@opensequence/auth`). Two methods: OAuth2 for Google `{client_id, client_secret, pubsub_topic?}`; **API key** for Allo `{api_key, webhook_secret}` and Attio `{api_key}`, probed against the provider before it is accepted (`422 INVALID_CREDENTIAL` otherwise) |
+| `PUT /v1/project/settings` | `attribution_days` (14), `sms_countries` (`["US"]`), default `send_window`, `attrs_schema` (types and labels for pickers), `retention_days`, `store_inbound_bodies`, `match_replies_outside_thread`, `crm.deal_selection` (`newest_open`), `allo.outcome_map`, `max_steps_per_tick` |
+| `PUT /v1/project/providers/{allo\|attio}` | store or rotate a project credential (stored by `@opensequence/auth`): an **API key** for Allo `{api_key, webhook_secret}` and Attio `{api_key}`, probed against the provider before it is accepted (`422 INVALID_CREDENTIAL` otherwise) |
 | `GET /v1/project/providers/allo/numbers`, `GET /v1/project/providers/allo/users` | what the Allo key can see, for pickers when connecting a sender |
 | `GET /v1/project/providers/attio/schema` | Attio objects and attributes, cached; what the condition picker shows under `crm.*` |
 | `GET/POST/DELETE /v1/api-keys` | manage this project's keys |
@@ -1473,11 +1459,10 @@ The operator is whoever runs the deployment. Bootstrapping an empty database nee
 |---|---|---|
 | `PUT /v1/senders/{external_id}` | create or update a sender `{name, email, timezone, attrs}` | admin |
 | `GET /v1/senders`, `GET /v1/senders/{id}` | list and read, each with its channels and readiness | read |
-| `POST /v1/senders/{id}/connections/google` | start the Google consent flow: returns `{auth_url}`; on return the connection is `active` and the `email` channel exists (Gmail and Calendar under one consent) | admin |
-| `PUT /v1/senders/{id}/channels/sms` | `{allo_user_id, number}`: validated against the project's Allo key (the number must belong to that user), creates the `sms` channel; no OAuth, no connection | admin |
-| `GET /v1/senders/{id}/connections`, `DELETE /v1/senders/{id}/connections/google` | list OAuth connections; disconnect (revokes the Google token, sets the email channel `disconnected`) | admin |
+| `PUT /v1/senders/{id}/channels/email` | `{provider: "smtp", from?, smtp, imap}`: signs in to both servers, stores the passwords encrypted, creates or replaces the `email` channel; `422` with `SMTP_AUTH_FAILED`, `IMAP_UNREACHABLE` and the like when a login fails | admin |
+| `PUT /v1/senders/{id}/channels/sms` | `{allo_user_id, number}`: validated against the project's Allo key (the number must belong to that user), creates the `sms` channel; no connection | admin |
+| `GET /v1/senders/{id}/connections` | list the sender's mailbox connection (settings, never a password) | admin |
 | `DELETE /v1/senders/{id}/channels/sms` | remove a channel; its steps skip from now on | admin |
-| `GET /v1/oauth/google/callback` | OAuth return URL (not called by clients); the `state` parameter is a signed, 10-minute token naming the sender and connection, so a callback cannot be replayed or pointed at another sender | none |
 | `PATCH /v1/senders/{id}/channels/{channel}` | limits and settings `{daily_limit, weekly_limit, min_gap_seconds, opted_in, status: paused\|active}` | admin |
 | `GET /v1/senders/{id}/readiness` | which node types this sender can run, and why not (`no_email_channel`, `email_credentials_needed`, `allo_key_missing`, `allo_key_invalid`, `no_allo_number`) | read |
 | `DELETE /v1/senders/{id}` | disable (their enrollments pause with `channel_status`; nothing is deleted) | admin |
@@ -1494,7 +1479,7 @@ The operator is whoever runs the deployment. Bootstrapping an empty database nee
 | `POST /v1/contacts:status` | `{ids or external_ids[]}` returns each contact's active enrollment (sequence, version, sender, status, current step) or null; for "in a sequence" badges in lists | read |
 | `GET /v1/contacts/{id}/timeline` | messages in and out, runs, signals and tasks, merged and ordered | read |
 | `POST /v1/contacts/{id}/events` | report what the service cannot observe: `{id, type, occurred_at, channel?, reason?, data?}` with `type` one of `meeting_booked`, `opt_out` (per `channel`, or `all`), `suppressed` (`reason`: `do_not_contact`, `bad_number`, `invalid_email`, `left_company`, other), `reply` (seen in another tool, with `channel`); idempotent by `id`; each becomes a signal and takes effect on every active enrollment of the contact | enroll |
-| `POST /v1/contacts:events` | the same, for up to 500 events in one call (a nightly sync from the CRM's do-not-contact list, a calendar backfill) | enroll |
+| `POST /v1/contacts:events` | the same, for up to 500 events in one call (a nightly sync from the CRM's do-not-contact list, a backfill of booked meetings) | enroll |
 | `DELETE /v1/contacts/{id}` | erase the contact, their messages, tasks and runs (privacy requests); counts already in analytics stay | admin |
 
 ### 10.5 Sequences and versions
@@ -1574,7 +1559,7 @@ All accept `version`, `from`, `to`, `sender`, `country`. The only two outcomes a
 
 ### 10.9 Not part of the client API
 
-`POST /hooks/{provider}/{project_slug}` receives provider webhooks (signature verified with the project's stored secret, always `2xx` once accepted, idempotent by the provider's event id). `GET /u/{token}` is the hosted opt-out page (one click, no login, writes a suppression; `POST` for `List-Unsubscribe-Post`); the token is `base64url(project, contact, run, expiry)` plus an HMAC-SHA256 under a key derived from the current `SEQ_ENCRYPTION_KEYS` entry, valid for 90 days. `GET /v1/oauth/google/callback` is the OAuth return. `GET /healthz`, `/readyz`, `/metrics` are for the platform.
+`POST /hooks/{provider}/{project_slug}` receives provider webhooks (signature verified with the project's stored secret, always `2xx` once accepted, idempotent by the provider's event id). `GET /u/{token}` is the hosted opt-out page (one click, no login, writes a suppression; `POST` for `List-Unsubscribe-Post`); the token is `base64url(project, contact, run, expiry)` plus an HMAC-SHA256 under a key derived from the current `SEQ_ENCRYPTION_KEYS` entry, valid for 90 days. `GET /healthz`, `/readyz`, `/metrics` are for the platform.
 
 ## 11. Analytics: how the numbers are made
 
@@ -1583,7 +1568,7 @@ All accept `version`, `from`, `to`, `sender`, `country`. The only two outcomes a
 ### 11.1 Definitions
 
 - **Reply**: an inbound email in a thread the service started, an inbound SMS, or a task completed with an outcome the node maps to `call_connected`, from an enrolled contact. Out-of-office, auto-replies, bounces and opt-outs are not replies.
-- **Meeting booked**: detected on the sender's Google Calendar (a new event with the contact as attendee after the first touch), or reported by the client (`POST /v1/contacts/{id}/events {type: meeting_booked}`), per `settings.meeting_detection`. Both are idempotent, so a client that also reports a booking the calendar already showed creates no second signal for the same enrollment (counted once).
+- **Meeting booked**: reported by the client (`POST /v1/contacts/{id}/events {type: meeting_booked}`), idempotent by its id and counted once per enrollment. The service does not read calendars.
 - **Attribution window**: 14 days from the contact's last touch (`settings.attribution_days`).
 - **Counted once per enrollment**: the **first** reply and the **first** meeting are attributed (`direct` or `assisted`); later ones are stored with `attribution='none'` and appear only in the timeline.
 
@@ -1634,7 +1619,7 @@ group by 1, 2, 3
 order by 1;
 ```
 
-`outcome.delivered_at` is set at send time for Gmail (no delivery receipt) and cleared when a bounce for that `Message-ID` arrives; Allo sets it from its delivery status. Enrollment-level numbers (people enrolled, exits by reason, replies and meetings per enrollment) come straight from `seq.enrollments`. Responses are cached for 60 seconds per project. When a query crosses one second in production (expected only past a few million runs), the daily rollup from the v3 design (`stats_daily` recomputed per dirty day) is the planned step, behind the same endpoints.
+`outcome.delivered_at` is set at send time for email (SMTP gives no delivery receipt) and cleared when a bounce for that `Message-ID` arrives; Allo sets it from its delivery status. Enrollment-level numbers (people enrolled, exits by reason, replies and meetings per enrollment) come straight from `seq.enrollments`. Responses are cached for 60 seconds per project. When a query crosses one second in production (expected only past a few million runs), the daily rollup from the v3 design (`stats_daily` recomputed per dirty day) is the planned step, behind the same endpoints.
 
 ### 11.4 What a client can show
 
@@ -1702,19 +1687,19 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 
 | Harpoon event | Call to the service |
 |---|---|
-| A rep is created, changes time zone, connects Google, gets an Allo number | `PUT /v1/senders/{user_id}`, `POST .../connections/google` (Harpoon shows the returned URL to the rep once), `PUT .../channels/sms {allo_user_id, number}` (from `user_settings.allo_user_id`) |
+| A rep is created, changes time zone, connects their mailbox, gets an Allo number | `PUT /v1/senders/{user_id}`, `PUT .../channels/email` (the rep's Workspace app password, entered once in Harpoon), `PUT .../channels/sms {allo_user_id, number}` (from `user_settings.allo_user_id`) |
 | A person is enrolled, or any enrolled person's data relevant to conditions or templates changes (title, company country, opportunity stage) | `PUT /v1/contacts/{person_id}` / `PATCH` with `attrs` |
 | SMS consent recorded (v1: never, consent is unwritable in Harpoon) | `PUT /v1/contacts/{id}/sms-consent` with an admin key |
 | A company or person is marked do-not-contact, a number is marked bad, a person left the company | `POST /v1/contacts/{id}/events {type: suppressed, reason}` |
 | A person unsubscribes by replying to a rep or asking on a call | `POST /v1/contacts/{id}/events {type: opt_out, channel}` |
-| A Cal.com booking arrives at Harpoon | nothing, when Cal.com writes the event to the rep's Google Calendar (the service detects it); otherwise `POST /v1/contacts/{person_id}/events {type: meeting_booked}` |
+| A Cal.com booking arrives at Harpoon | `POST /v1/contacts/{person_id}/events {type: meeting_booked}` |
 | A person is deleted or merged | `DELETE /v1/contacts/{id}` or re-key the `external_id` |
 
 **What Harpoon does with the events** (its webhook endpoint handles these): `run.done` writes an `email_sent` or `sms_sent` activity and, when the sequence email should count for the stage machine, feeds it `email_sent` with a `sequence_id` flag (decision O3 from the product plan); `signal.received` with `kind: reply` lets the stage machine move the company to Contacting as it does for any reply; `enrollment.exited` and `enrollment.completed` are where a "move the opportunity when the sequence ends" rule lives, if the team wants one; `task.created` with `kind: call` creates the `prm_task`, puts the opportunity in To call through the stage machine, and optionally pushes the number into the Allo dialer and posts to Slack.
 
 ### 13.3 Harpoon-specific decisions and open questions
 
-- **Email provider.** Reps send sequence email from their Google Workspace mailbox through the `google` adapter; MobileFirst registers one internal Google OAuth client for the Harpoon project (no Google review needed for an internal Workspace app). The AgentMail inboxes Harpoon uses for one-off email are untouched; an `agentmail` adapter can come later if sequences should use them.
+- **Email provider.** Reps send sequence email from their Google Workspace mailbox through the `smtp` adapter, each with an app password. The AgentMail inboxes Harpoon uses for one-off email are untouched; an `agentmail` adapter can come later if sequences should use them.
 - **Two consumers of the Allo webhook.** Harpoon already receives Allo's `call.completed` and `sms.received` for its own timeline. Allo supports several endpoints per team (`GET /v2/api/webhooks` lists all), and the service registers its own when the Allo key is stored (section 9.1b), so nothing in Harpoon changes.
 - **Deals.** Harpoon's opportunity stage lives in Harpoon, not Attio; conditions on it use `attrs.opportunity.stage` (pushed by Harpoon), while `crm.deal.*` reads the Attio deal the revamp already links meetings to. Both are available in the same picker.
 - **Compliance notes for Harpoon's markets:** US SMS consent (unwritable in v1, so SMS steps always skip), UK cold email allowed to corporate subscribers with an opt-out line, DACH treated as opt-in only; to confirm with counsel. The hosted `{{ unsubscribe_url }}` covers the opt-out mechanics.
@@ -1729,11 +1714,11 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 | Authentication | Project keys `sk_live_…`, `Authorization: Bearer`, stored as SHA-256 hashes (the keys have 256 bits of entropy, so no slow hash is needed), shown once, revocable, with `last_used_at`. Every request resolves to exactly one project; every query is scoped by `project_id`. |
 | Scopes | `read` (GET), `enroll` (read + contacts upsert and `attrs` + enroll, pause, resume + complete tasks + client events), `admin` (everything: senders, channels, sequences, versions, publish, exit, SMS consent, flags, keys, webhooks). An `enroll` key can never publish, edit a sequence or grant consent. |
 | Tenant isolation | `project_id` on every table and on every unique index that could collide; a cross-tenant test suite (every endpoint with another project's key and ids must return 404); the per-project engine health shows only that project's numbers. |
-| Secrets at rest | Project credentials (Google client secret, Allo and Attio keys), per-sender Google refresh tokens and webhook secrets are encrypted with AES-256-GCM under the operator's `SEQ_ENCRYPTION_KEYS` and are **write-only** (no endpoint returns them; responses show status, key id, last four and timestamps). `SEQ_ENCRYPTION_KEYS` is a list `id:base64key,…`; new rows use the first entry, every row records its `key_id`, and `oseq secrets rotate` re-encrypts under the current key so an old key can be removed. Secrets are never logged. |
-| Inbound webhooks | Allo's signature scheme with the project's webhook secret; Google Pub/Sub pushes carry a Google-signed JWT verified against the project's expected audience; idempotent by event id; always 2xx once accepted. |
+| Secrets at rest | Project credentials (Allo and Attio keys), per-sender mailbox passwords and webhook secrets are encrypted with AES-256-GCM under the operator's `SEQ_ENCRYPTION_KEYS` and are **write-only** (no endpoint returns them; responses show status, key id, last four and timestamps). `SEQ_ENCRYPTION_KEYS` is a list `id:base64key,…`; new rows use the first entry, every row records its `key_id`, and `oseq secrets rotate` re-encrypts under the current key so an old key can be removed. Secrets are never logged. |
+| Inbound webhooks | Allo's signature scheme with the project's webhook secret; idempotent by event id; always 2xx once accepted. |
 | Outbound webhooks | Standard Webhooks signatures, timestamp tolerance, SSRF protections (section 9.2). |
-| Mailbox and calendar privacy | Only threads the service started are read and stored; only calendar events with an enrolled attendee, and only their id, time and the matched attendee; inbound bodies only with `store_inbound_bodies` (section 9.1). |
-| Google OAuth | The project's own client; refresh tokens encrypted per connection; `state` signed and short-lived; disconnect revokes at Google; `@opensequence/auth` is the only code that touches tokens, and it has its own test suite and security review. |
+| Mailbox privacy | Only the inbox is read, and only messages that answer an email the service sent are stored, without their bodies (section 9.1). |
+| Mailbox passwords | Checked by signing in before they are stored; encrypted per connection; deleted with the email channel; `@opensequence/auth` and the mail adapter are the only code that reads them, and the auth module has its own test suite and security review. |
 | Do not contact | Suppressions from the client (events endpoint), from opt-out clicks and STOP texts, and from bounces. Checked at **enrollment and again at execution**. |
 | SMS | `contacts.sms_consent` default false, settable only with `admin`, with `source` and `at`; an automated test proves no SMS can leave for a contact without it, without a known recipient time zone, or outside 8:00 to 21:00 recipient-local. Country allow-list (`sms_countries`, default `["US"]`). |
 | Opt-out | Always exits the sequence (not configurable) and suppresses the channel. Emails carry `List-Unsubscribe` headers. |
@@ -1757,7 +1742,7 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 | Shutdown | on `SIGTERM`: stop accepting, finish in-flight requests | stop reading queues, finish in-flight work for up to 30 s, exit; leftovers reappear when their visibility timeout expires |
 | Deploy | the two roles normally deploy together; either can be rolled back alone (section 15.4) | |
 
-For local development: `docker compose up` starts Postgres and one container with `SEQ_ROLES=all`, `SEQ_DEV_MOCK_PROVIDERS=1` and a development `SEQ_ADMIN_TOKEN`; sends land in `messages` and show in `GET /v1/contacts/{id}/timeline`, and `POST /hooks/mock/{project}` simulates replies, bounces, bookings and calls. Production turns the mock off and registers the Google client, the Allo key and the Attio key.
+For local development: `docker compose up` starts Postgres and one container with `SEQ_ROLES=all`, `SEQ_DEV_MOCK_PROVIDERS=1` and a development `SEQ_ADMIN_TOKEN`; sends land in `messages` and show in `GET /v1/contacts/{id}/timeline`, and `POST /hooks/mock/{project}` simulates replies, bounces and calls. Production turns the mock off, saves each sender's mailbox, and registers the Allo key and the Attio key.
 
 **The `oseq` CLI** (in the image and on npm): `oseq migrate` (both the `seq` and the `seq_auth` schemas), `oseq projects create <slug> | list`, `oseq api-keys create <project> --scopes`, `oseq secrets rotate`, `oseq health`, `oseq webhooks replay <delivery>`, `oseq queue dead list | replay`. Every command is a thin wrapper over the operator and project endpoints, so the docs for the API are the docs for the CLI.
 
@@ -1770,7 +1755,7 @@ For local development: `docker compose up` starts Postgres and one container wit
 | `SEQ_REDIS_DSN` | with `redis` | Redis connection; enable persistence. |
 | `SEQ_ENCRYPTION_KEYS` | yes | `id:base64key[,id:base64key…]`; the first is current. Generate with `oseq secrets new-key` (32 random bytes). Every stored secret is encrypted under it and is write-only; **without this key the stored secrets are unreadable and must be re-entered**, so back it up with the database. |
 | `SEQ_ADMIN_TOKEN` | yes for `api` | the operator token (section 10.1). |
-| `SEQ_PUBLIC_URL` | yes for `api` | base URL for provider callbacks, the OAuth return and opt-out links. |
+| `SEQ_PUBLIC_URL` | yes for `api` | base URL for provider webhooks and opt-out links. |
 | `SEQ_ROLES` | no, default `all` | `api`, `worker`, `all`. |
 | `SEQ_PORT` | no, default 8080 | HTTP port (API, or health only for `worker`). |
 | `SEQ_RUN_MIGRATIONS` | no | apply migrations on boot, behind the row lock. |
@@ -1818,7 +1803,7 @@ Estimates, to validate with a load test: 30 sequences with about 500 active cont
 | Queue message lost (redis, memory) | The reaper re-enqueues runs and deliveries recorded but not queued; the planner and signal sweep rediscover due work | queues are hints, tables are truth |
 | Provider down | Circuit breaker pauses that queue; nothing is dropped | work resumes when it closes |
 | Inbox over its limit | Runs `deferred`, enrollment `waiting_limit`, visible through the API and `run.skipped` is not sent (it is a defer, not a skip) | caps checked at execution |
-| A Google refresh token is revoked or expires | The connection goes `credentials_needed`, that sender's email steps pause and calendar polling stops, `sender.channel_status` is delivered, readiness says "reconnect Google" | the auth module's `invalid_grant` handling |
+| A mailbox password is changed or revoked | The health check or the next send gets a refused login, the email channel goes `credentials_needed`, that sender's email steps pause and the inbox is not polled, readiness says `email_credentials_needed` | the SMTP adapter's login handling |
 | Attio is down or slow during a condition | The `crm.*` fact is recorded as `null` with the error; the rule does not match; the contact takes `no` and the run says why | missing data never matches |
 | Allo's call webhook never arrives | The `poll` job reads the sender's dialing queue state and completes the task from `call_status`; failing that, the task waits until `expires_at` and takes `no_answer`; the client can still complete it by hand | queue poll, task expiry |
 | A contact has no usable time zone for SMS | The SMS step is skipped with `no_timezone`; the flow continues | gate at execution |
@@ -1833,7 +1818,7 @@ Estimates, to validate with a load test: 30 sequences with about 500 active cont
 
 - **Pure core**: unit tests for `interpret` (every node type, every branch, timing across weekends, windows and time zones), the condition evaluator (every operator, missing data), templating (fallbacks, escaping, missing required values), duration parsing, definition validation (every error code), and the adapters (a property test: `flowToDefinition(definitionToFlow(d)) = d`).
 - **Engine integration** (real Postgres, the `mock` provider): enroll, plan, execute, signal, exit; concurrency (two planners, two executors, a reply racing a send); the planner cannot see an owned enrollment; idempotency (replayed webhook, retried executor, `findSent`); the unique one-active index under a race; throttle deferral; kill switches; dry-run; re-enrollment rule; each queue backend against the same suite.
-- **Provider adapters**: contract tests with recorded Google, Allo and Attio responses (send, `findSent`, history and calendar polling, token refresh and `invalid_grant`, webhook verification, schema and lookup) so a vendor change is caught; the mailbox and calendar privacy rules (nothing outside service threads or without an enrolled attendee is stored).
+- **Provider adapters**: the SMTP and IMAP adapter against GreenMail (send, Sent copy, `findSent`, inbox polling, bounces, auto-replies, refused logins) and contract tests with recorded Allo and Attio responses (webhook verification, schema and lookup) so a vendor change is caught; the mailbox privacy rule (nothing that does not answer a service email is stored).
 - **Auth module**: refresh on expiry, serialized refresh per connection, `invalid_grant` to `credentials_needed`, watch renewal, revoke on disconnect, `state` tampering rejected.
 - **Outbound webhooks**: signature, ordering per enrollment, retry schedule, disable and recover, SSRF rejection, replay.
 - **API**: Zod validation, the scope matrix per route (`read`, `enroll`, `admin`, operator), the cross-tenant suite (another project's key and ids always 404), error shapes including `ALREADY_IN_SEQUENCE`, `Idempotency-Key` behavior, the OpenAPI file matching the routes.
@@ -1848,16 +1833,15 @@ Estimates, to validate with a load test: 30 sequences with about 500 active cont
 Each phase ends with an acceptance test an agent can run; a phase is not done until it passes.
 
 0. **Scaffold**: both repositories (`opensequence` with the packages and `apps/sequences`, Dockerfile and `docker-compose.yml`; `auth` with its schema, migrations and the `mock` provider), env schema, health, migrations runner for both schemas, queue interface with `postgres` and `memory`, the `oseq` CLI, CI in both repositories. Deploy it empty. *Done when:* `docker compose up` answers `/readyz`, `oseq migrate` is idempotent twice in a row, `oseq projects create` prints a key, and CI runs lint, typecheck and an empty test suite.
-1. **Engine core**: schema, definition, templating and validation, versions, senders, connections and contacts, **`@opensequence/auth` with Google** (consent, refresh, `invalid_grant`, revoke, key rotation) released from its repository, the Google adapter (Gmail send, history polling, Pub/Sub push, bounces), the `mock` adapter, enrollment with the one-sequence rule and re-enrollment, planner, `advance` with ownership, email executor, hosted opt-out, logic nodes, `task` node, signal processor for reply, bounce, opt-out, task completion and client events, reaper, flags, dry-run. *Done when:* the quickstart of section 1.2 runs end to end against the mock, a simulated reply exits the enrollment, the same flow passes against a real Google Workspace account in a nightly job, the "guards that must never regress" tests of section 17 pass, and two worker replicas under the concurrency tests never double-send.
+1. **Engine core**: schema, definition, templating and validation, versions, senders, connections and contacts, **`@opensequence/auth`** (credentials, mailbox connections, revoke, key rotation) released from its repository, the SMTP and IMAP adapter (send, Sent copy, inbox polling, bounces), the `mock` adapter, enrollment with the one-sequence rule and re-enrollment, planner, `advance` with ownership, email executor, hosted opt-out, logic nodes, `task` node, signal processor for reply, bounce, opt-out, task completion and client events, reaper, flags, dry-run. *Done when:* the quickstart of section 1.2 runs end to end against the mock, a simulated reply exits the enrollment, the SMTP adapter passes against GreenMail, the "guards that must never regress" tests of section 17 pass, and two worker replicas under the concurrency tests never double-send.
 2. **Public API and webhooks**: every endpoint in section 10 with the OpenAPI file and `sequences-sdk`; outbound webhooks with the full delivery contract (section 9.2); analytics endpoints; the **docs site** (section 19). *Done when:* the OpenAPI file matches the routes in CI, the SDK is generated from it, the webhook suite (signature, retry schedule, disable, recover, ordering) passes against a stub receiver, the cross-tenant suite passes, and a new reader reaches a first enrollment from the docs quickstart in under fifteen minutes. From here a client can integrate end to end.
-3. **Allo, Attio and Calendar**: the Allo adapter (SMS with consent and time-zone gates, STOP handling, dialer push, `call.completed` auto-completing call tasks), the Attio adapter (schema, lookup, `crm.*` conditions), Google Calendar `meeting_booked` detection. *Done when:* the SMS guard tests pass, a call placed through Allo to a test number completes the task with the mapped outcome, a condition on `crm.deal.stage` branches on a real Attio workspace, and a calendar event with the contact as attendee exits the enrollment with `meeting_booked`.
+3. **Allo and Attio**: the Allo adapter (SMS with consent and time-zone gates, STOP handling, dialer push, `call.completed` auto-completing call tasks), the Attio adapter (schema, lookup, `crm.*` conditions). *Done when:* the SMS guard tests pass, a call placed through Allo to a test number completes the task with the mapped outcome, and a condition on `crm.deal.stage` branches on a real Attio workspace.
 4. **First client integration**: Harpoon's BFF on `@opensequence/sdk`, canvas, people table, enroll dialog and journey in Harpoon. *Done when:* a Harpoon rep enrolls a person from the UI, sees the sent email in the person's timeline, a call task shows up in their Allo queue and completes after the call, and the journey modal shows the path.
 6. **Redis queue backend**, load test, the analytics rollup if needed. *Done when:* the engine integration suite passes on `SEQ_QUEUE=redis`, and 10,000 active enrollments keep due lag under 2 minutes.
 7. Later, each as a module per section 20: more adapters behind the same ports (`smtp_imap`, `twilio`, `hubspot`, `agentmail`), the `crm_action` and `webhook` nodes, `split` and experiments, auto-enroll rules, a minimal built-in admin page, holidays in business-day math, AI drafting.
 
 **Open items.**
 - The name: **OpenSequence**, GitHub organization **`open-sequence`** with two repositories, `opensequence` and `auth` (decided). Checked on 2026-10-13: the npm scope `@opensequence` and the packages `opensequence` and `oseq` are free; Docker Hub `opensequence` is free; `opensequence.dev`, `opensequence.io` and `oseq.dev` are unregistered; `opensequence.com` and `.org` are taken; PyPI `opensequence` is free (`oseq` is taken, so the Python SDK is `opensequence`); the GitHub user `opensequence` is held by a dormant personal account (use `open-sequence`, or ask GitHub to release it). Register the npm scope, the Docker namespace and `opensequence.dev` before the first public commit.
-- Google OAuth: each project registers its own client (decided). The docs must walk through creating one in Google Cloud Console, the three scopes, and when Google's review applies.
 - Allo is verified (section 9.1b); three small items remain for the first real traffic. Attio: rate limits and how deals link to people and companies in the first client's workspace.
 - Harpoon: the shared inbox limit and the stage-machine reactions to `run.done` and `signal.received` (section 13.2); DACH policy.
 - Hosting: the service's own Qovery project (or any host); internal address between Harpoon's API and the service.
@@ -1867,7 +1851,7 @@ Each phase ends with an acceptance test an agent can run; a phase is not done un
 | Item | State in this design |
 |---|---|
 | Own repositories, no client knowledge | `open-sequence/opensequence` and `open-sequence/auth`; import-lint; the only client-specific text is section 13 |
-| Providers | Google (own OAuth client; Gmail and Calendar), Allo (SMS and calls), Attio (CRM), a `mock` for CI; ports stay open for SMTP+IMAP, Twilio, HubSpot and others |
+| Providers | SMTP and IMAP (any mailbox with password sign-in, Gmail included), Allo (SMS and calls), Attio (CRM), a `mock` for CI; ports stay open for Microsoft 365, Twilio, HubSpot and others |
 | Own database, own migrations, own queue | `seq` schema, Postgres 14+, `postgres` queue default, Redis optional |
 | One image, one compose file, one CLI | `opensequence/server`, `docker-compose.yml`, `oseq` |
 | Operator bootstrap without a UI | `SEQ_ADMIN_TOKEN`, `oseq projects create` |
@@ -1886,17 +1870,15 @@ The first implementation (phase 1 and most of phase 2) follows this document; th
 | Topic | This document says | The code does | Why |
 |---|---|---|---|
 | Encrypted columns | `secret_enc bytea` | `secret_enc text` holding `base64(iv ‖ ciphertext ‖ tag)` with `key_id` beside it, in both `auth.*` and `seq.webhook_endpoints` | one cipher (`AesGcmCipher` in `@opensequence/auth`) for every secret; text travels through Drizzle and JSON without a Buffer dance |
-| OAuth return URL | `GET /v1/oauth/google/callback` | the same path, but the auth package defaults to `/v1/connections/google/callback` and the server overrides it with `googleCallbackPath` | the package is reusable on its own; the service keeps the documented URL |
-| Google scopes | `gmail.send`, `gmail.readonly`, `calendar.readonly` | the three above plus `openid email` (`userinfo.email`) | the callback needs the account address to check it against `senders.email`; `connections.account` is nullable until Google returns it |
 | Allo `findSent` | "filters by contact number, type, direction, dates and a keyword" | `POST /v2/api/conversations/items/search` with `{ contact_number, allo_number, type: 'SMS', direction: 'OUTBOUND', date: { from, to }, sort: 'DATE_DESC', size: 100 }` and a body match on our side | the real `ItemSearchRequest` shape (verified against Allo's OpenAPI on 2026-10-13); there is no keyword filter |
 | Routes with a colon | `/v1/contacts:batch`, `/v1/sequences:validate`, … | registered as `/v1/contacts::batch` etc. in Fastify (a single colon starts a path parameter); the public URL is unchanged | Fastify syntax, visible only in the route files |
-| Empty JSON bodies | not specified | a `POST` with `content-type: application/json` and no body is accepted as "no body" (optional Zod bodies get `undefined`); malformed JSON is a `400` | curl and most SDKs send exactly that for body-less calls such as `connections/google` and `publish` |
+| Empty JSON bodies | not specified | a `POST` with `content-type: application/json` and no body is accepted as "no body" (optional Zod bodies get `undefined`); malformed JSON is a `400` | curl and most SDKs send exactly that for body-less calls such as `publish` |
 | Migrations | Drizzle's migrator | Drizzle generates the SQL; a small custom migrator applies it under a row lock (`seq.migration_lock`, `seq_auth.migration_lock`) and records `seq.migrations` / `seq_auth.migrations` | Drizzle's `migrate()` cannot run inside a transaction with postgres.js, and two replicas booting at once must not race |
 | Undecryptable webhook secret | not specified | the delivery is marked `disabled`, the endpoint goes `disabled` with the reason, `endpoint.disabled` is raised; `rotate-secret` then `enable` recovers it | an operator who dropped a key from `SEQ_ENCRYPTION_KEYS` must see it, not watch retries forever |
 | Field casing | request bodies `snake_case` | request bodies are `snake_case`; the entity objects in `data` are returned as stored, `camelCase` (`currentNodeId`, `exitReason`, `nextRunAt`) | an inconsistency to settle before the API is public: either response DTOs in `snake_case`, or a documented rule. Tracked as an open item below |
 | Response schemas | OpenAPI "generated from the same Zod types" | request schemas are generated; every response is the envelope with `data: unknown`, so the SDK hand-writes its response types | response DTOs are the next step; until then `openapi.json` describes inputs, not outputs |
 
-Open items added by the implementation: response DTOs (and the casing decision above); Gmail `users.watch` push is accepted at `/hooks/google/{slug}` as a nudge only, polling does the reading; the SMS executor and the Allo dialer run against recorded fixtures, not yet against a live Allo workspace.
+Open items added by the implementation: response DTOs (and the casing decision above); the SMS executor and the Allo dialer run against recorded fixtures, not yet against a live Allo workspace.
 
 ## 19. Documentation: the `docs` package
 
@@ -1947,7 +1929,7 @@ Docs
     comparison               How it differs from Outreach, Apollo, HubSpot sequences, Customer.io, Temporal, and from Svix (what we copied)
   Senders
     senders                  Register senders, time zones, limits, readiness, disabling
-    connect-google           Create your Google OAuth client, the three scopes, the consent flow, token renewal, Pub/Sub push (optional), what the service reads and never reads
+    email-smtp               Connect a mailbox over SMTP and IMAP (Gmail with an app password, other providers), what the service reads and never reads
     connect-allo             The Allo API key, mapping users and numbers to senders, the webhook, the dialer, call outcomes
     connect-attio            The Attio API key, the schema endpoint, deal selection, what crm.* conditions can read
   Contacts
@@ -1978,7 +1960,7 @@ Docs
     polling                  updated_since cursors for clients without an endpoint
     recipes                  Move a deal on reply, log sent emails in your timeline, show tasks in your CRM, alert Slack on a call task
   Analytics
-    outcomes                 Replies and meetings (from Google Calendar or reported), attribution (direct, assisted), the 14-day window, counted once per enrollment
+    outcomes                 Replies and reported meetings, attribution (direct, assisted), the 14-day window, counted once per enrollment
     endpoints                Summary, exits, nodes, channels, cross-sequence; what each number means
     honest-comparisons       Why email vs SMS charts mislead, touch numbers, and the split node
   Self-hosting
@@ -2016,7 +1998,7 @@ API reference                (generated from openapi.json; one page per endpoint
 
 SDKs and CLI
   typescript                 Install, configure, every resource with examples, verify() for webhooks
-  auth-package               Using @opensequence/auth on its own: connect Google with your client id, getAccessToken, rotation (for people who only want that)
+  auth-package               Using @opensequence/auth on its own: API keys and mailbox passwords stored encrypted, rotation (for people who only want that)
   python, go                 Generated from OpenAPI (same page structure); marked "community" until maintained
   cli                        oseq: projects, api-keys, secrets rotate, migrate, health, replay (generated)
 
@@ -2065,7 +2047,7 @@ A WhatsApp channel is the kind of module that would be added after v1, so it is 
 
 | To add | Where it goes | What already handles the rest |
 |---|---|---|
-| **A provider for an existing port** (a second SMS vendor, a second CRM) | one package in `sequences-providers` implementing the port (`SmsProvider`, `CrmProvider`, …), registered with `registerProvider(name, factory)`; a credential method in `@opensequence/auth` (`api_key` or `oauth2` with scopes); contract tests with recorded fixtures; one docs page | credentials and tokens (auth), pickers (`/providers/{name}/…` is generic), the executor, readiness, health, the kill switch |
+| **A provider for an existing port** (a second SMS vendor, a second CRM) | one package in `sequences-providers` implementing the port (`SmsProvider`, `CrmProvider`, …), registered with `registerProvider(name, factory)`; a credential in `@opensequence/auth` (a project API key, or a per-sender password connection); contract tests with recorded fixtures; one docs page | credentials and tokens (auth), pickers (`/providers/{name}/…` is generic), the executor, readiness, health, the kill switch |
 | **A channel** (WhatsApp, a second SMS route) | `registerChannel({ name, actions, paramsSchema, validate, gates, throttle, port })` in one module: the Zod schema of its outreach actions and params (core), the validator rules (core), the executor's gates and throttle (engine), and the port it needs (providers). A migration extends the `sender_channels.channel` check constraint and, if needed, the `signal_kind` enum. | the interpreter (an `outreach` node is routed to queue `seq_<channel>` by convention), the queue table (any queue name), `SEQ_ROLES=worker` (consumes every registered queue), the flags (`channel:<name>` exists as soon as the channel does), readiness (asks the registry which channels a sender has), the schema endpoints (generated from the registry), the docs (generated) |
 | **A node type** (a logic step) | `registerNode({ type, paramsSchema, transitions, validate, interpret })` in core: `interpret` returns effects from the existing set (`record`, `goto`, `wait`, `enqueue`, `create_task`, `exit`, `complete`) | `advance` (applies effects and never looks at node types), the journey, analytics (per `node_id`), the canvas (reads `GET /v1/schema`) |
 | **A fact source** for conditions | `registerFacts({ prefix, fields, loader })` in core plus a loader in engine (SQL) or a port (like the CRM) | the evaluator, the picker, the validator, `result.facts`, the journey |

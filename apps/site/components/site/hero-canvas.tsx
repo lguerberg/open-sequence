@@ -137,7 +137,7 @@ export function HeroCanvas() {
                 icon={Mail}
                 tone="email"
                 title="Intro email"
-                meta="send · Max's Gmail"
+                meta="send · Max's mailbox"
                 selected
               />
               <Wire />

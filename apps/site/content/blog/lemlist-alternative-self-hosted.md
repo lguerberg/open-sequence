@@ -1,15 +1,15 @@
 ---
 title: "lemlist alternative for self-hosted cold email sequences"
 h1: "A self-hosted lemlist alternative, and the teams that should stay on lemlist"
-description: "lemlist's Email plan is $55 a month flat and Multichannel is $87 per user. When your own Gmail and Postgres sequences beat it, and when they do not."
+description: "lemlist's Email plan is $55 a month flat and Multichannel is $87 per user. When sequences from your own mailboxes and Postgres beat it, and when they do not."
 date: 2026-10-14
-updated: 2026-10-14
+updated: 2026-10-20
 author: Leo Guerberg
 tags: [lemlist, cold-email, self-hosting, pricing]
 keyword: "lemlist alternative"
 ---
 
-A self-hosted lemlist alternative runs the sequencing engine on your own servers. Emails go out from each rep's own Google Workspace mailbox, texts and calls go through Allo, anything else becomes a task a rep does by hand, and every send, reply and bounce becomes a row in a Postgres database you own. We make one, OpenSequence, which is open source under Apache-2.0, so read this page with that in mind.
+A self-hosted lemlist alternative runs the sequencing engine on your own servers. Emails go out from each rep's own mailbox, texts and calls go through Allo, anything else becomes a task a rep does by hand, and every send, reply and bounce becomes a row in a Postgres database you own. We make one, OpenSequence, which is open source under Apache-2.0, so read this page with that in mind.
 
 As of October 2026, lemlist's Email plan costs $55 a month, billed yearly, for unlimited users and 50,000 emails. That is about what hosting your own engine costs. Self-hosting saves money only against lemlist's Multichannel plan, which costs $87 per user per month billed yearly. So the reason to leave lemlist is rarely the email bill. It is where the data lives, who sets the limits, and whether sequencing should run inside your own CRM or product.
 
@@ -39,13 +39,11 @@ lemlist prices the Email plan by volume, with unlimited users and senders. The u
 
 OpenSequence is one Docker image and a Postgres database, version 14 or later. You register senders and contacts, publish sequences as versioned JSON, and enroll people over a REST API, the TypeScript SDK or the MCP server. Signed webhooks tell your app when someone replies, books a meeting or bounces. There is no UI. Your CRM or internal tool is the UI. The [install guide](https://docs.opensequence.dev/docs/self-hosting/install) covers a production setup.
 
-### You bring your own mailboxes, and today they must be Google
+### You bring your own mailboxes, but not Microsoft 365
 
-lemlist also sends through your mailboxes, so the mailbox bill stays the same. What changes is who holds the connection. Each OpenSequence project registers its own Google OAuth client, and each rep consents once to Gmail and Calendar access ([Connect Google](https://docs.opensequence.dev/docs/senders/connect-google)). The Gmail API sends each email as the rep, and follow-ups appear in the same thread as the first email.
+lemlist also sends through your mailboxes, so the mailbox bill stays the same. What changes is who holds the connection. Each rep connects their mailbox once with its SMTP and IMAP settings and an app password ([Email setup](https://docs.opensequence.dev/docs/sending/email-smtp)), and the engine checks both logins before it saves them. Each email leaves from the rep's own mail server, and follow-ups appear in the same thread as the first email.
 
-OpenSequence sends through Gmail only. It does not support Microsoft 365, and SMTP and IMAP adapters are in the "later" phase of the [roadmap](https://docs.opensequence.dev/docs/community/roadmap). If your reps work in Outlook, stop here and stay on lemlist.
-
-Google classifies Gmail scopes as "sensitive". If every sender is in your own Workspace, an internal OAuth app needs no review. If any sender is outside your domain, Google has to verify the app before the consent screen stops showing them a warning.
+Gmail, Google Workspace, Fastmail, Zoho and most company mail servers work. Microsoft 365 does not, because Microsoft turned off password sign-in for SMTP and IMAP. If your reps work in Outlook, stop here and stay on lemlist.
 
 ### You own the sending limits
 
@@ -88,11 +86,11 @@ group by s.name
 order by bounced desc;
 ```
 
-The service reads only the Gmail threads it started, and it stores reply bodies only when the project sets `store_inbound_bodies`. No third party holds a copy of your prospect list or your reps' replies.
+The service reads only replies to the emails it sent, and it does not store reply bodies. No third party holds a copy of your prospect list or your reps' replies.
 
 ## Cost for 3, 10 and 25 senders
 
-A sender here is one rep with one Google Workspace mailbox. We assume each rep sends at most 60 emails per working day, so even 25 reps stay under 33,000 emails a month. That fits inside lemlist's smallest Email tier. Prices are per month, billed yearly where the vendor offers it, as of October 2026.
+A sender here is one rep with one Google Workspace mailbox, the most common setup. We assume each rep sends at most 60 emails per working day, so even 25 reps stay under 33,000 emails a month. That fits inside lemlist's smallest Email tier. Prices are per month, billed yearly where the vendor offers it, as of October 2026.
 
 We sized the hosting ourselves on [Render](https://render.com/pricing). A 2 GB web service at $25 runs the API and the workers in one container, and a 1 GB Postgres costs $19. At 25 senders we move to a 2 GB Postgres at $40. These are estimates, not benchmarks. Mailboxes are Google Workspace Business Starter at its list price of $7 per user per month on an annual commitment ([Google Workspace pricing](https://workspace.google.com/pricing)). You pay for mailboxes with lemlist too.
 
@@ -107,7 +105,7 @@ For email-only outbound, lemlist's Email plan costs about the same as hosting yo
 
 Against Multichannel, the gap at 10 reps is $826 a month, or about $9,900 a year. At 25 reps it is $2,110 a month. If you count mailboxes instead of reps, the gap shrinks. If 5 reps hold 5 mailboxes each, those 25 mailboxes need only 5 Multichannel users, or $435 a month.
 
-The table leaves out engineering time. Someone has to deploy the container, register the Google OAuth client, set up DNS, connect each rep, and build the screens where reps see their tasks and enroll people. At $100 an hour, the $826 gap at 10 reps pays for about 8 hours a month. If your reps already work in a CRM or internal tool you control, that may be enough. If not, budget for building one. SMS and dialer calls go through [Allo](https://withallo.com), which bills separately and is not in the table.
+The table leaves out engineering time. Someone has to deploy the container, set up DNS, connect each rep's mailbox, and build the screens where reps see their tasks and enroll people. At $100 an hour, the $826 gap at 10 reps pays for about 8 hours a month. If your reps already work in a CRM or internal tool you control, that may be enough. If not, budget for building one. SMS and dialer calls go through [Allo](https://withallo.com), which bills separately and is not in the table.
 
 ## What you lose by leaving lemlist
 
@@ -119,7 +117,7 @@ The table leaves out engineering time. Someone has to deploy the container, regi
 - Microsoft 365 and SMTP mailboxes.
 - Social network automation, voice notes and WhatsApp.
 - The lead database, the email finder and enrichment credits.
-- A unified inbox. Replies stay in each rep's Gmail, and OpenSequence only detects them and exits the sequence.
+- A unified inbox. Replies stay in each rep's inbox, and OpenSequence only detects them and exits the sequence.
 
 In return, OpenSequence gives you things lemlist does not. Sequences are versioned JSON behind an API, so your product or an agent can create sequences and enroll contacts from code. Conditions can read a contact's open deal from Attio at decision time. A contact can be in only one active sequence per project. An enroll call that would break that rule fails with a `409` that names the conflict, so two reps never sequence the same person. OpenSequence stores the facts behind every branch decision.
 
@@ -130,17 +128,17 @@ lemlist is the better choice in any of these cases:
 - Your reps send from Outlook or an SMTP server. OpenSequence cannot send through those mailboxes today.
 - Email is your only channel. $55 a month for unlimited users is hard to beat with any server bill.
 - Social network automation brings in a large share of your pipeline, and your reps accept the account risk.
-- Nobody on the team will own a container, a database and an OAuth client.
+- Nobody on the team will own a container and a database.
 - You have no CRM or internal tool to act as the UI.
 - Image personalization or the lead database is the reason you bought lemlist.
 
-Self-hosting fits a narrower team. That team has engineers on staff and Google Workspace mailboxes, triggers sequences from its own CRM or product, and pays for several reps on Multichannel whose social steps could be manual. If that is you, the [migration guide for replacing your sequencing software](/blog/replace-your-sales-sequencing-software) covers the move. If you are weighing writing the engine yourself, read [what it takes to build your own sales sequencer](/blog/build-your-own-sales-sequencer) first. If you also pay Apollo for data, our [Apollo alternatives](/blog/apollo-alternatives) post covers that part.
+Self-hosting fits a narrower team. That team has engineers on staff and mailboxes outside Microsoft 365, triggers sequences from its own CRM or product, and pays for several reps on Multichannel whose social steps could be manual. If that is you, the [migration guide for replacing your sequencing software](/blog/replace-your-sales-sequencing-software) covers the move. If you are weighing writing the engine yourself, read [what it takes to build your own sales sequencer](/blog/build-your-own-sales-sequencer) first. If you also pay Apollo for data, our [Apollo alternatives](/blog/apollo-alternatives) post covers that part.
 
 ## FAQ
 
 ### Is there an open source lemlist alternative?
 
-Yes. OpenSequence is open source under Apache-2.0, and you host it yourself. It covers the sequencing part: multi-step email from each rep's Gmail, SMS and call tasks through Allo, any other step as a manual task, and reply, bounce and opt-out detection. It does not include lead data, warm-up, image personalization or a user interface.
+Yes. OpenSequence is open source under Apache-2.0, and you host it yourself. It covers the sequencing part: multi-step email from each rep's own mailbox, SMS and call tasks through Allo, any other step as a manual task, and reply, bounce and opt-out detection. It does not include lead data, warm-up, image personalization or a user interface.
 
 ### How much does lemlist cost in 2026?
 
@@ -160,4 +158,4 @@ Not by itself. Inbox placement depends on the domain's and the mailbox's reputat
 
 ### Do I need Google Workspace to self-host OpenSequence?
 
-For email, yes. The email channel sends through the Gmail API with each rep's consent, and meeting detection reads Google Calendar. SMTP and IMAP support is on the roadmap for a later phase, with no date.
+No. The email channel works with any mailbox that allows SMTP and IMAP with a password, Google Workspace included. Microsoft 365 is the exception.

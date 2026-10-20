@@ -35,12 +35,11 @@ describe('mock providers', () => {
     expect(await p.sms.findSent({ channel: sms, to: '+15551234567', body: 'Other', since: new Date(0) })).toBeNull();
   });
 
-  it('delivers pushed events through poll, split by channel, and bookings through the calendar', async () => {
+  it('delivers pushed events through poll, split by channel', async () => {
     const p = createMockProviders();
     const at = new Date('2026-10-13T11:00:00Z');
     p.mock.push('prj_1', { kind: 'reply', channel: 'email', externalId: 'e1', occurredAt: at, from: 'ada@acme.com', to: 'rep@example.com', body: 'Sure' });
     p.mock.push('prj_1', { kind: 'opt_out', channel: 'sms', externalId: 'e2', occurredAt: at, from: '+15551234567' });
-    p.mock.push('prj_1', { kind: 'meeting_booked', externalId: 'e3', occurredAt: at, attendee: 'ada@acme.com', startsAt: at });
     p.mock.push('prj_2', { kind: 'bounce', channel: 'email', externalId: 'e4', occurredAt: at, address: 'x@y.z', hard: true });
 
     const emails = await p.email.poll!({ channel: channel(), cursor: null, threadRefs: [], messageIds: [] });
@@ -49,8 +48,6 @@ describe('mock providers', () => {
     const texts = await p.sms.poll({ channel: channel({ channelId: 'chn_sms' }), cursor: '1', threadRefs: [], messageIds: [] });
     expect(texts.events.map((e) => e.externalId)).toEqual(['e2']);
     expect(texts.cursor).toBe('2');
-    const cal = await p.calendar.poll({ connectionId: 'con_1', projectId: 'prj_1', cursor: null });
-    expect(cal.events.map((e) => e.externalId)).toEqual(['e3']);
     // Drained: a second poll is empty; the other project's event is untouched.
     expect((await p.email.poll!({ channel: channel(), cursor: '1', threadRefs: [], messageIds: [] })).events).toEqual([]);
     expect(p.mock.pending('prj_2')).toHaveLength(1);

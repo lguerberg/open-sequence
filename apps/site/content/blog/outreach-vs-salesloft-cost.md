@@ -3,7 +3,7 @@ title: "Outreach vs Salesloft pricing in 2026 for a 15-rep team"
 h1: "Outreach vs Salesloft pricing in 2026, and what a self-hosted sequencer costs instead"
 description: "Outreach vs Salesloft pricing for 15 reps in 2026. Year one is $36,000 to $40,000 on Outreach, $18,000 to $35,000 on Salesloft and about $16,200 self-hosted."
 date: 2026-10-14
-updated: 2026-10-14
+updated: 2026-10-20
 author: Leo Guerberg
 tags: [outreach, salesloft, pricing, self-hosting]
 keyword: "Outreach vs Salesloft pricing"
@@ -86,9 +86,9 @@ That is $864 a year. On [Fly.io](https://docs.fly.io/about/pricing), a shared-cp
 
 ### Mailboxes
 
-OpenSequence sends each email through the rep's own Gmail account with the Gmail API. Outreach and Salesloft also send from the rep's mailbox, so this cost is the same in every column. [Google Workspace](https://workspace.google.com/pricing) Business Standard is $14 per user per month on an annual plan, so 15 × $14 × 12 = $2,520.
+OpenSequence sends each email through the rep's own mailbox over SMTP. Outreach and Salesloft also send from the rep's mailbox, so this cost is the same in every column. [Google Workspace](https://workspace.google.com/pricing) Business Standard is $14 per user per month on an annual plan, so 15 × $14 × 12 = $2,520.
 
-If every rep is in your own Workspace, you can make the OAuth client an Internal app. Google says [Internal apps do not need verification](https://support.google.com/cloud/answer/10311615), so you skip the review that Gmail's sensitive scopes trigger for outside users. The [Google connection guide](https://docs.opensequence.dev/docs/senders/connect-google) lists the four scopes.
+Each rep creates a Workspace app password once, and the engine checks the login before it saves it. The [email setup guide](https://docs.opensequence.dev/docs/sending/email-smtp) lists the settings.
 
 ### SMS and calls
 
@@ -103,7 +103,7 @@ This is the largest cost, and you should replace our assumptions with yours. We 
 | Task | Hours |
 |---|---|
 | Deploy, secrets, TLS, backups | 8 |
-| Google OAuth client and rep connections | 8 |
+| Rep mailbox connections | 8 |
 | Webhooks into your CRM | 16 |
 | Enroll button and task list in your CRM | 40 |
 | First sequences written as code | 8 |
@@ -138,10 +138,10 @@ OpenSequence does none of the following:
 - It does not record, transcribe or score calls. Allo records the calls it dials.
 - It has no coaching, forecasting or deal management.
 - It has no contact database and no mailbox warm-up.
-- It sends email through Gmail only. SMTP and IMAP are on the roadmap, so Microsoft 365 teams cannot use it today.
+- It sends email over SMTP and IMAP, so Microsoft 365 teams, whose mailboxes no longer allow password sign-in, cannot use it today.
 - Steps outside email, SMS and calls are tasks a rep performs by hand.
 
-OpenSequence does the sequencing. It sends from each rep's Gmail and threads follow-ups. It applies daily caps per sender, send windows in the contact's time zone, and an 08:00 to 21:00 window for texts. It detects replies, bounces, opt-outs and meetings booked in Google Calendar, then exits the enrollment and sends a signed webhook to your app. [How it works](https://docs.opensequence.dev/docs/get-started/how-it-works) follows one contact through every step. The project is pre-1.0, and the SDK and MCP packages are not on npm yet.
+OpenSequence does the sequencing. It sends from each rep's own mailbox and threads follow-ups. It applies daily caps per sender, send windows in the contact's time zone, and an 08:00 to 21:00 window for texts. It detects replies, bounces and opt-outs, takes booked meetings your app reports, then exits the enrollment and sends a signed webhook to your app. [How it works](https://docs.opensequence.dev/docs/get-started/how-it-works) follows one contact through every step. The project is pre-1.0, and the SDK and MCP packages are not on npm yet.
 
 ## When Outreach or Salesloft is the better buy
 

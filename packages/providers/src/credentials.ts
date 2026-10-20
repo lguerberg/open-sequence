@@ -11,7 +11,7 @@ export interface CredentialSource {
 /**
  * How an adapter gets an owner's password-based connection (SMTP and IMAP settings). The auth
  * module implements this over its encrypted `seq_auth.connections` table: `config` is the non-secret
- * half of the row, `secrets` the decrypted half. OAuth providers use TokenSource instead.
+ * half of the row, `secrets` the decrypted half.
  */
 export interface ConnectionSecretSource {
   connectionSecrets(connectionId: string): Promise<{ account: string | null; config: Record<string, unknown>; secrets: Record<string, string> }>;

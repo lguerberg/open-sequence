@@ -1,7 +1,7 @@
 /**
  * `PUT /v1/senders/{id}/channels/email` through the real HTTP app with mock providers: the
  * mailbox probe decides, passwords never come back, readiness follows, and removing the channel
- * or disconnecting Google does what it says. The SMTP adapter itself is proven against GreenMail
+ * deletes the passwords. The SMTP adapter itself is proven against GreenMail
  * in packages/providers. Needs the throwaway Postgres from scripts/test-db.sh (or SEQ_TEST_DB_DSN).
  */
 import pino from 'pino';
@@ -187,19 +187,18 @@ describe('SMTP email channel through the HTTP app', () => {
       (
         await call('PUT', '/v1/senders/max/channels/email', {
           key,
-          body: { ...body(), provider: 'google' },
+          body: { ...body(), provider: 'gmail' },
         })
       ).status
     ).toBe(400);
   });
 
-  it('disconnecting Google leaves an SMTP channel alone; removing the email channel deletes the passwords', async () => {
+  it('removing the email channel deletes the passwords', async () => {
     answer = { ok: true };
     await call('PUT', '/v1/senders/lee', { key, body: { name: 'Lee', email: 'lee@acme.com' } });
     const put = await call('PUT', '/v1/senders/lee/channels/email', { key, body: body() });
     const connectionId = put.json.data.connectionId as string;
 
-    expect((await call('DELETE', '/v1/senders/lee/connections/google', { key })).status).toBe(200);
     expect((await call('GET', '/v1/senders/lee/readiness', { key })).json.data.email).toEqual({
       ok: true,
     });
@@ -213,14 +212,6 @@ describe('SMTP email channel through the HTTP app', () => {
     ]);
     await expect(rt.auth.connectionSecrets(connectionId)).rejects.toMatchObject({
       code: 'CREDENTIALS_NEEDED',
-    });
-  });
-
-  it('connecting Google afterwards moves the channel back to Gmail', async () => {
-    const connected = await call('POST', '/v1/senders/max/connections/google', { key, body: {} });
-    expect(connected.json.data.channel).toMatchObject({
-      address: 'max@acme.com',
-      config: { provider: 'google' },
     });
   });
 });

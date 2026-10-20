@@ -6,7 +6,7 @@ export const dynamic = 'force-static';
 /** The site in llms.txt format: what OpenSequence is, where the docs and source live, and the blog. */
 const intro = `# OpenSequence
 
-> Open source, self-hosted sales sequencing for any CRM. Multi-step email, SMS and call-task sequences, sent through each rep's own Gmail, with replies, exits, webhooks and analytics behind an API, a TypeScript SDK and an MCP server. Apache-2.0.
+> Open source, self-hosted sales sequencing for any CRM. Multi-step email, SMS and call-task sequences, sent through each rep's own mailbox, with replies, exits, webhooks and analytics behind an API, a TypeScript SDK and an MCP server. Apache-2.0.
 
 OpenSequence is an alternative to the sequencing part of Outreach, Salesloft, Apollo, lemlist and Customer.io. It runs as one Docker image on a Postgres you own; there is no per-seat price.
 

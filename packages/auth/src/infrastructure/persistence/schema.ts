@@ -14,21 +14,21 @@ const ts = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' 
 const created = () => ts('created_at').notNull().defaultNow();
 const updated = () => ts('updated_at').notNull().defaultNow();
 
-/** Tenant-level: the Google OAuth client, the Allo API key, the Attio API key. */
+/** Tenant-level: the Allo API key, the Attio API key. */
 export const credentials = auth.table(
   'credentials',
   {
     id: text('id').primaryKey(),
     tenantId: text('tenant_id').notNull(),
     provider: varchar('provider', { length: 24 }).notNull(),
-    /** oauth2 (the secret is a client secret) | api_key (the secret is a workspace key). */
+    /** api_key: the secret is a workspace key. */
     method: varchar('method', { length: 12 }).notNull(),
     status: varchar('status', { length: 12 }).notNull().default('active'),
     secretEnc: text('secret_enc').notNull(),
     keyId: varchar('key_id', { length: 16 }).notNull(),
     /** Verifies inbound webhooks for this tenant, when the provider signs them. */
     webhookSecretEnc: text('webhook_secret_enc'),
-    /** Non-secret settings: client_id, pubsub_topic, the scopes a probe reported. */
+    /** Non-secret settings, such as the scopes a probe reported. */
     config: jsonb('config').$type<Record<string, unknown>>().notNull().default({}),
     createdAt: created(),
     updatedAt: updated(),
@@ -36,7 +36,7 @@ export const credentials = auth.table(
   (t) => [uniqueIndex('credentials_tenant_provider_idx').on(t.tenantId, t.provider)]
 );
 
-/** Owner-level, OAuth providers only: one authorized account (a Gmail address) per owner and provider. */
+/** Owner-level: one mailbox (SMTP and IMAP settings, passwords encrypted) per owner and provider. */
 export const connections = auth.table(
   'connections',
   {
@@ -45,14 +45,14 @@ export const connections = auth.table(
     /** Opaque to auth (a sender id for sequences, a user id elsewhere). */
     ownerId: text('owner_id').notNull(),
     provider: varchar('provider', { length: 24 }).notNull(),
-    /** The account at the provider; null until consent completes. */
+    /** The mailbox address the connection acts as. */
     account: text('account'),
     scopes: text('scopes').array().notNull().default([]),
-    /** The refresh token; null while pending and after disconnect. */
+    /** The passwords, encrypted as one JSON object; null after disconnect. */
     secretEnc: text('secret_enc'),
     keyId: varchar('key_id', { length: 16 }),
     status: varchar('status', { length: 24 }).notNull().default('pending'),
-    /** Adapter state that belongs with the account: history cursors, sync tokens, watch expiries. */
+    /** Non-secret settings: hosts, ports, user names, TLS. */
     config: jsonb('config').$type<Record<string, unknown>>().notNull().default({}),
     lastOkAt: ts('last_ok_at'),
     lastError: text('last_error'),

@@ -3,7 +3,7 @@ title: "Quickstart"
 description: "Run OpenSequence with Docker Compose, send a first email through the mock mailbox and watch a reply end the sequence, in about ten minutes."
 ---
 
-This page takes you from an empty folder to one contact who gets an email, replies, and leaves the sequence. It runs on your laptop with Docker Compose and mock providers, so you need no Google, Allo or Attio account.
+This page takes you from an empty folder to one contact who gets an email, replies, and leaves the sequence. It runs on your laptop with Docker Compose and mock providers, so you need no mail server, Allo or Attio account.
 
 You need Docker, `curl` and `jq`. Every command below runs as is, in one shell, from top to bottom.
 
@@ -49,15 +49,16 @@ Scopes are ordered `read`, `enroll`, `admin`, and each one can do everything the
 </Step>
 <Step title="Add a sender">
 
-A sender is the person the email comes from. You address it by your own id (`u_42` here). Connecting Google gives the sender an `email` channel. With mock providers the channel is active at once; in production the same call returns a consent URL the sender opens once.
+A sender is the person the email comes from. You address it by your own id (`u_42` here). Their mailbox's SMTP and IMAP settings give them an `email` channel. With mock providers the logins are not checked and the channel is active at once; in production both logins are checked first.
 
 ```bash
 curl -s -X PUT $SEQ/v1/senders/u_42 \
   -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
   -d '{"name":"Max Rivera","email":"max@acme.com","timezone":"America/New_York"}' > /dev/null
 
-curl -s -X POST $SEQ/v1/senders/u_42/connections/google \
-  -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" | jq .data.status
+curl -s -X PUT $SEQ/v1/senders/u_42/channels/email \
+  -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"provider":"smtp","smtp":{"host":"smtp.gmail.com","port":465,"secure":true,"user":"max@acme.com","password":"app-password"},"imap":{"host":"imap.gmail.com","port":993,"secure":true,"user":"max@acme.com","password":"app-password"}}' | jq .data.status
 # "active"
 ```
 
@@ -158,7 +159,7 @@ curl -s $SEQ/v1/contacts/p_7/timeline -H "Authorization: Bearer $APP_KEY" \
 </Step>
 <Step title="Simulate a reply">
 
-With mock providers on, `POST /hooks/mock/{project slug}` accepts an inbound event as if Gmail had reported it. Reply in the thread of the email that went out:
+With mock providers on, `POST /hooks/mock/{project slug}` accepts an inbound event as if the mailbox had reported it. Reply in the thread of the email that went out:
 
 ```bash
 THREAD=$(curl -s $SEQ/v1/enrollments/$ENR_ID -H "Authorization: Bearer $APP_KEY" | jq -r '.data.messages[0].threadRef')
@@ -201,7 +202,8 @@ const appKey = await admin.project.apiKeys.create({ name: 'crm-backend', scopes:
 const app = new OpenSequence({ baseUrl, apiKey: appKey.api_key });
 
 await admin.senders.upsert('u_42', { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' });
-await admin.senders.connectGoogle('u_42');
+const mailbox = (host: string, port: number) => ({ host, port, secure: true, user: 'max@acme.com', password: 'app-password' });
+await admin.senders.setSmtp('u_42', { provider: 'smtp', smtp: mailbox('smtp.gmail.com', 465), imap: mailbox('imap.gmail.com', 993) });
 await app.contacts.upsert('p_7', { first_name: 'Dana', email: 'dana@example.com', timezone: 'Europe/London', attrs: { plan: 'trial' } });
 
 const { sequence, version } = await admin.sequences.create({ name: 'Trial intro' });
@@ -229,6 +231,6 @@ docker compose down -v
 <Cards>
   <Card title="Concepts" href="/docs/get-started/concepts">The objects you just touched, and how they relate.</Card>
   <Card title="How it works" href="/docs/get-started/how-it-works">What happened between enroll and exit, step by step.</Card>
-  <Card title="Docker Compose" href="/docs/self-hosting/docker-compose">Turn the mocks off and connect real Gmail, SMTP or Allo.</Card>
+  <Card title="Docker Compose" href="/docs/self-hosting/docker-compose">Turn the mocks off and connect a real mailbox or Allo.</Card>
   <Card title="Receiving webhooks" href="/docs/webhooks/overview">Get told about replies and exits instead of polling the journey.</Card>
 </Cards>

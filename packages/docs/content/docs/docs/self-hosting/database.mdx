@@ -24,7 +24,7 @@ The service creates and owns two schemas. Give it its own database.
 | Schema | Owner | Tables |
 |---|---|---|
 | `seq` | the engine | `projects`, `api_keys`, `webhook_endpoints`, `webhook_deliveries`, `idempotency_keys`, `senders`, `sender_channels`, `contacts`, `suppressions`, `sequences`, `versions`, `enrollments`, `runs`, `messages`, `tasks`, `signals`, `signal_effects`, `flags`, `job_locks`, `queue_messages`, `queue_dead`, plus `migrations` and `migration_lock` |
-| `seq_auth` | the auth module | `credentials` (a project's provider secrets), `connections` (a sender's OAuth tokens), plus `migrations` and `migration_lock` |
+| `seq_auth` | the auth module | `credentials` (a project's provider secrets), `connections` (a sender's SMTP and IMAP passwords), plus `migrations` and `migration_lock` |
 
 Every tenant-owned table carries `project_id`. Secrets are AES-256-GCM ciphertext under `SEQ_ENCRYPTION_KEYS`, and each row records the id of the key that encrypted it. They live in `auth.credentials`, `auth.connections` and `seq.webhook_endpoints`.
 
@@ -57,7 +57,7 @@ pg_dump --format=custom --schema=seq --schema=auth "$SEQ_DB_DSN" > oseq.dump
 pg_restore --dbname="$NEW_DSN" oseq.dump
 ```
 
-Back up the database and `SEQ_ENCRYPTION_KEYS` together. A database restored without the key that encrypted its secrets has unreadable credentials: every Google client secret, refresh token, Allo and Attio key and webhook secret must be entered again, and senders must reconnect Google.
+Back up the database and `SEQ_ENCRYPTION_KEYS` together. A database restored without the key that encrypted its secrets has unreadable credentials: every mailbox password, Allo and Attio key and webhook secret must be entered again.
 
 There is no state outside the database, except queue messages when `SEQ_QUEUE=redis`. Losing those costs only a delay: the reaper rebuilds the work from the tables. See [Queues](/docs/self-hosting/queues).
 

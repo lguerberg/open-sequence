@@ -11,15 +11,15 @@ sequenceDiagram
   participant API as OpenSequence API
   participant Plan as Planner
   participant Mail as Email worker
-  participant Gmail
+  participant Box as Mailbox
   participant Sig as Signal worker
   App->>API: POST /v1/sequences/{id}/enrollments
   API-->>App: 201, enrollment active
   Plan->>Plan: due? run start, queue the email
   Mail->>Mail: checks: suppression, channel, limits, window
-  Mail->>Gmail: send as the sender
+  Mail->>Box: send as the sender (SMTP)
   Mail->>Mail: sent, advance to wait_for
-  Gmail-->>Sig: poll finds Dana's reply
+  Box-->>Sig: IMAP poll finds Dana's reply
   Sig->>Sig: credit the email, exit the enrollment
   Sig-->>App: webhook enrollment.exited
 ```
@@ -72,7 +72,7 @@ If three days pass with no reply, the planner finds the enrollment due again and
 
 ## 5. Dana replies
 
-Every minute, the poll job reads each active Gmail mailbox from where it last stopped, looking only at threads the service started in the last 30 days. It finds Dana's reply in the thread of the email that went out and stores it as a `reply` **signal**. A Calendar booking would become a `meeting_booked` signal the same way, and Allo sends call and text events to the service as webhooks.
+Every minute, the poll job reads each active inbox over IMAP from where it last stopped, keeping only replies to emails the service sent in the last 30 days. It finds Dana's reply to the email that went out and stores it as a `reply` **signal**. Allo sends call and text events to the service as webhooks, and your app can report a booked meeting as a `meeting_booked` signal.
 
 The signal worker then:
 
@@ -104,7 +104,7 @@ You can also read the whole story at any time with `GET /v1/enrollments/{id}` (t
 
 ## What you never have to do
 
-Your app never calls Gmail or Allo, never runs a timer, never retries a send and never reads the service's database. It upserts contacts, enrolls them, and listens.
+Your app never calls the mail server or Allo, never runs a timer, never retries a send and never reads the service's database. It upserts contacts, enrolls them, and listens.
 
 <Cards>
   <Card title="Architecture" href="/docs/get-started/architecture">The jobs, queues and workers that run each of these steps.</Card>

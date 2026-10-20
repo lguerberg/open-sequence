@@ -68,7 +68,6 @@ export function stubProviders(overrides: Partial<ProviderSet> = {}): ProviderSet
     email: { send: unexpected('email.send'), findSent: async () => null, health: async () => 'active', ...overrides.email },
     sms: { send: unexpected('sms.send'), findSent: async () => null, verifyWebhook: async () => [], listNumbers: async () => [], listUsers: async () => [], health: async () => 'active', ...overrides.sms },
     dialer: { pushNumbers: async () => ({ added: 0, skipped: [] }), ...overrides.dialer },
-    calendar: { poll: async () => ({ events: [], cursor: null }), ...overrides.calendar },
     crm: { schema: async () => ({ objects: [] }), lookup: async () => ({ person: null, company: null, deal: null, openDeals: 0 }), ...overrides.crm },
   };
 }

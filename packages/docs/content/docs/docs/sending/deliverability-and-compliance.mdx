@@ -9,7 +9,7 @@ OpenSequence sends from each sender's own mailbox and number, so there is no sha
 
 ## Email authentication
 
-The service hands each email to the sender's mailbox (Gmail's API or the sender's SMTP server), so the mailbox provider signs and sends it. There is no DNS record to add for OpenSequence. Check the sending domain itself:
+The service hands each email to the sender's SMTP server, so the mailbox provider signs and sends it. There is no DNS record to add for OpenSequence. Check the sending domain itself:
 
 | Record | What to check |
 |---|---|
@@ -54,13 +54,13 @@ Over the cap, a step waits an hour and tries again, and the enrollment shows `wa
 
 ## Bounces, complaints and suppressions
 
-The poll job reads bounces from the sender's inbox ([Gmail](/docs/sending/email-gmail#what-the-service-reads), [SMTP and IMAP](/docs/sending/email-smtp#replies-auto-replies-and-bounces)):
+The poll job reads bounces from the sender's inbox over IMAP ([how](/docs/sending/email-smtp#replies-auto-replies-and-bounces)):
 
 | Event | Effect |
 |---|---|
 | Hard bounce (any status other than 4.x.x) | an `email` suppression with reason `hard_bounce`, and every enrollment of the contact exits with `bounced` |
 | Soft bounce (4.x.x) | nothing is suppressed and the sequence carries on |
-| Spam complaint | not visible: neither Gmail nor IMAP tells a sender who marked them as spam. Watch Google Postmaster Tools for your domain |
+| Spam complaint | not visible: IMAP does not tell a sender who marked them as spam. Watch Google Postmaster Tools for your domain |
 
 A suppression is `email`, `sms` or `all`. Every send checks it just before sending. Enrolling skips only contacts suppressed for `all`. Report what you know and the service cannot see, such as a do-not-contact flag in your CRM, as a `suppressed` [contact event](/docs/contacts/events) ([Consent and suppressions](/docs/contacts/consent-and-suppressions)).
 

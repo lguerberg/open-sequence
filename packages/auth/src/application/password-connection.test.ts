@@ -1,22 +1,19 @@
 /**
  * Password connections (SMTP and IMAP): saved encrypted, read back only through
- * connectionSecrets, replaced in place, and disconnected without calling Google.
+ * connectionSecrets, replaced in place, and disconnected.
  */
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAuth } from '../index.js';
 import { connections } from '../infrastructure/persistence/schema.js';
 import { closeTestDb, KEY_B, migrateTestDb, testDb, uniq } from '../test/db.js';
-import { fakeGoogle } from '../test/fake-google.js';
 
 describe('password connections', () => {
   beforeAll(migrateTestDb);
   afterAll(closeTestDb);
 
   // KEY_B: the rotation suite counts rows under KEY_A, so these rows stay out of its way.
-  const google = fakeGoogle();
-  const auth = () =>
-    createAuth({ db: testDb(), encryptionKeys: KEY_B, publicUrl: 'http://localhost:8080', google });
+  const auth = () => createAuth({ db: testDb(), encryptionKeys: KEY_B });
   const config = {
     smtp: { host: 'smtp.example.com', port: 465, secure: true, user: 'rep@example.com' },
     imap: { host: 'imap.example.com', port: 993, secure: true, user: 'rep@example.com' },
@@ -84,7 +81,7 @@ describe('password connections', () => {
     });
   });
 
-  it('revoke deletes the passwords without calling Google; the adapter then gets credentials_needed', async () => {
+  it('revoke deletes the passwords; the adapter then gets credentials_needed', async () => {
     const a = auth();
     const view = await a.savePasswordConnection({
       tenantId: uniq('prj'),
@@ -94,10 +91,8 @@ describe('password connections', () => {
       config,
       secrets: { smtp_password: 'x', imap_password: 'y' },
     });
-    const revokedBefore = google.calls.revoke.length;
     const revoked = await a.revoke(view.id);
     expect(revoked.status).toBe('disconnected');
-    expect(google.calls.revoke.length).toBe(revokedBefore);
     const row = (await testDb().select().from(connections).where(eq(connections.id, view.id)))[0]!;
     expect(row.secretEnc).toBeNull();
     await expect(a.connectionSecrets(view.id)).rejects.toMatchObject({
@@ -107,17 +102,4 @@ describe('password connections', () => {
     expect(await a.health(view.id)).toMatchObject({ ok: false, status: 'disconnected' });
   });
 
-  it('refuses a Google connection either way', async () => {
-    const a = auth();
-    await expect(
-      a.savePasswordConnection({
-        tenantId: uniq('prj'),
-        ownerId: uniq('snd'),
-        provider: 'google',
-        account: 'x@example.com',
-        config: {},
-        secrets: { p: 'x' },
-      })
-    ).rejects.toMatchObject({ code: 'WRONG_FLOW' });
-  });
 });

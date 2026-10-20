@@ -22,7 +22,7 @@ describe('processSignal', () => {
     const wait = await seedWait(deps, e, { reply: 'end_replied', call_connected: 'end_replied' }, 'call_1');
 
     const { signal, created } = await deps.uow.transaction((scope) =>
-      recordSignal(deps, scope, { projectId: w.projectId, contactId: w.contact.id, kind: 'reply', channel: 'email', source: 'google', externalId: `msg-${e.id}`, occurredAt: now })
+      recordSignal(deps, scope, { projectId: w.projectId, contactId: w.contact.id, kind: 'reply', channel: 'email', source: 'smtp', externalId: `msg-${e.id}`, occurredAt: now })
     );
     expect(created).toBe(true);
     expect(deps.queue.sent).toContainEqual({ queue: SIGNAL_QUEUE, payload: { v: 1, signal_id: signal.id } });
@@ -55,7 +55,7 @@ describe('processSignal', () => {
     const wait = await seedWait(deps, e, { reply: 'end_replied', call_connected: 'end_replied' }, 'call_1');
 
     const { signal } = await deps.uow.transaction((scope) =>
-      recordSignal(deps, scope, { projectId: w.projectId, contactId: w.contact.id, kind: 'reply', channel: 'email', source: 'google', externalId: `msg-${e.id}`, occurredAt: now })
+      recordSignal(deps, scope, { projectId: w.projectId, contactId: w.contact.id, kind: 'reply', channel: 'email', source: 'smtp', externalId: `msg-${e.id}`, occurredAt: now })
     );
     await processSignal(deps, signal.id);
 
@@ -131,7 +131,7 @@ describe('processSignal', () => {
     await seedWait(deps, e, { reply: 'end_replied' }, 'call_1');
     const until = new Date(now.getTime() + 3 * DAY);
     const { signal } = await deps.uow.transaction((scope) =>
-      recordSignal(deps, scope, { projectId: w.projectId, contactId: w.contact.id, kind: 'ooo', channel: 'email', source: 'google', externalId: `ooo-${e.id}`, occurredAt: now, payload: { until: until.toISOString() } })
+      recordSignal(deps, scope, { projectId: w.projectId, contactId: w.contact.id, kind: 'ooo', channel: 'email', source: 'smtp', externalId: `ooo-${e.id}`, occurredAt: now, payload: { until: until.toISOString() } })
     );
     await processSignal(deps, signal.id);
     const after = (await repos.enrollments.byId(e.id))!;

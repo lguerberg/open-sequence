@@ -30,7 +30,6 @@ await oseq.project.updateSettings({ store_inbound_bodies: false });
 | Contacts, senders | what you send, `attrs` included | to address and personalize messages |
 | Outbound messages | subject and body as rendered, addresses, provider ids, thread reference | to match replies and show the timeline |
 | Inbound replies | addresses, subject, thread reference, provider id. The body only when `store_inbound_bodies` is on (default off) | to stop the sequence and attribute the reply |
-| Calendar bookings | event id, start time, the matched attendee's email. Never the title, description or other attendees | to detect meetings |
 | Runs | node, status, branch, the facts a condition read, the values a template rendered, provider references | the journey of each enrollment |
 | Signals | kind, channel, source, external id, attribution, a small payload | replies, bounces, opt-outs, calls, meetings |
 | Tasks | title, body and link as rendered, outcome, note (an Allo call summary when completed automatically) | the reps' task inbox |

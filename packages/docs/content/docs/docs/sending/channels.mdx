@@ -1,36 +1,34 @@
 ---
 title: "Channels"
-description: "Compare the ways a sequence reaches a contact: email via Gmail or SMTP and IMAP, SMS and calls via Allo, and plain tasks for people."
+description: "Compare the ways a sequence reaches a contact: email over SMTP and IMAP, SMS and calls via Allo, and plain tasks for people."
 ---
 
 A sequence step reaches a contact by email, by text, or by handing the work to a person as a task. Read this page to pick the right step for each touch; the definition names the channel, and the provider behind it is a property of the sender.
 
 ```mermaid
 flowchart LR
-  E["outreach email"] --> G["Gmail"]
-  E --> S["SMTP server"]
+  E["outreach email"] --> S["SMTP server"]
   T["outreach sms"] --> A["Allo number"]
   K["task node"] --> I["your task inbox"]
-  G -.->|"poll every minute"| R["replies and bounces"]
-  S -.->|"IMAP poll"| R
+  S -.->|"IMAP poll every minute"| R["replies and bounces"]
   A -.->|"webhook"| R
   I -.->|"complete, or Allo call.completed"| R
 ```
 
 ## The comparison
 
-| | Email via Gmail | Email via SMTP and IMAP | SMS via Allo | Call task | Plain task |
-|---|---|---|---|---|---|
-| Step | `outreach`, `channel: "email"` | the same step | `outreach`, `channel: "sms"` | `task`, `kind: "call"` | `task`, any `kind` |
-| Set up with | the project's Google OAuth client, then one consent per sender | `PUT /v1/senders/{id}/channels/email` with the mailbox settings | the project's Allo key, then `PUT /v1/senders/{id}/channels/sms` | the sender's `sms` channel | nothing |
-| Who sends | the sender's Gmail account | the sender's mail server | the sender's Allo number | the sender, from Allo | the sender, by hand |
-| Replies found by | reading Gmail history every minute, only in threads the service started | reading the IMAP inbox every minute, the same way | Allo's `sms.received` webhook, matched by the two numbers | Allo's `call.completed` for an outbound call to the contact completes the task | your app completes the task |
-| Bounces | read from the mailbox; a hard bounce suppresses email and exits | the same | none | none | none |
-| Opt-out | `{{ unsubscribe_url }}` and `List-Unsubscribe` headers | the same | a reply made only of `STOP` or a similar word | none | none |
-| Meetings | Google Calendar events with the contact as attendee | none: report them with [contact events](/docs/contacts/events) | none | none | none |
-| Default caps | 30 a day, 60 s apart | 30 a day, 60 s apart | 100 a day | none | none |
-| A retry never sends twice because | the service sets the `Message-ID` and looks for it first | the same, in the Sent folder, then the inbox | it searches recent texts, then stops for review | the task id | the task id |
-| Counts as a touch | yes | yes | yes | no | no |
+| | Email | SMS via Allo | Call task | Plain task |
+|---|---|---|---|---|
+| Step | `outreach`, `channel: "email"` | `outreach`, `channel: "sms"` | `task`, `kind: "call"` | `task`, any `kind` |
+| Set up with | `PUT /v1/senders/{id}/channels/email` with the mailbox's SMTP and IMAP settings | the project's Allo key, then `PUT /v1/senders/{id}/channels/sms` | the sender's `sms` channel | nothing |
+| Who sends | the sender's mail server (Gmail, Google Workspace or any other) | the sender's Allo number | the sender, from Allo | the sender, by hand |
+| Replies found by | reading the IMAP inbox every minute, only replies to emails the service sent | Allo's `sms.received` webhook, matched by the two numbers | Allo's `call.completed` for an outbound call to the contact completes the task | your app completes the task |
+| Bounces | read from the inbox; a hard bounce suppresses email and exits | none | none | none |
+| Opt-out | `{{ unsubscribe_url }}` and `List-Unsubscribe` headers | a reply made only of `STOP` or a similar word | none | none |
+| Meetings | none: report them with [contact events](/docs/contacts/events) | none | none | none |
+| Default caps | 30 a day, 60 s apart | 100 a day | none | none |
+| A retry never sends twice because | the service sets the `Message-ID` and looks for it in the Sent folder, then the inbox | it searches recent texts, then stops for review | the task id | the task id |
+| Counts as a touch | yes | yes | no | no |
 
 ## Gates every send passes
 
@@ -62,8 +60,7 @@ The SMS gates are legal requirements in most places texts are sent, so they cann
 ## Next
 
 <Cards>
-  <Card title="Email via Gmail" href="/docs/sending/email-gmail">Connect Google Workspace or Gmail senders with OAuth.</Card>
-  <Card title="Email via SMTP and IMAP" href="/docs/sending/email-smtp">Connect any other mailbox with its server settings.</Card>
+  <Card title="Email via SMTP and IMAP" href="/docs/sending/email-smtp">Connect any mailbox, Gmail included, with its server settings.</Card>
   <Card title="SMS and calls via Allo" href="/docs/sending/sms-and-calls-allo">One Allo key, then a number per sender.</Card>
   <Card title="Call tasks and the task inbox" href="/docs/sending/call-tasks">Task steps, outcomes and building an inbox.</Card>
 </Cards>

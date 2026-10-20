@@ -29,7 +29,7 @@ In one sentence: a **project** has **senders** and **contacts**; an **enrollment
 
 ### Project
 
-A project is one tenant (`prj_`). Everything else belongs to exactly one project, and a key from one project never sees another project's data. The operator creates projects with the `SEQ_ADMIN_TOKEN`. A project holds its API keys, its provider credentials (a Google OAuth client, an Allo key, an Attio key, all write-only) and its settings, such as the countries texts may go to.
+A project is one tenant (`prj_`). Everything else belongs to exactly one project, and a key from one project never sees another project's data. The operator creates projects with the `SEQ_ADMIN_TOKEN`. A project holds its API keys, its provider credentials (an Allo key and an Attio key, both write-only) and its settings, such as the countries texts may go to.
 
 API keys have one of three scopes, each including the ones before it:
 
@@ -47,7 +47,7 @@ A sender sends through **channels** (`chn_`), at most one per kind:
 
 | Channel | Comes from | Default limits |
 |---|---|---|
-| `email` | A Gmail account connected with OAuth ([Email via Gmail](/docs/sending/email-gmail)), or a mailbox reached over SMTP and IMAP ([Email via SMTP and IMAP](/docs/sending/email-smtp)) | 30 a day, 60 seconds apart |
+| `email` | A mailbox reached over SMTP and IMAP, Gmail included ([Email via SMTP and IMAP](/docs/sending/email-smtp)) | 30 a day, 60 seconds apart |
 | `sms` | An Allo number and the sender's Allo user ([SMS and calls via Allo](/docs/sending/sms-and-calls-allo)) | 100 a day |
 
 A channel has a status. Only an `active` channel sends; the others are `pending`, `paused`, `credentials_needed` (the sender must reconnect), `restricted` and `disconnected`.
@@ -96,7 +96,7 @@ A task (`tsk_`) is a step for a human, such as a call. A `task` node creates it 
 
 ### Signal
 
-A signal (`sig_`) is a fact from outside the flow: a `reply`, a `bounce`, a `complaint`, an `opt_out`, an out-of-office (`ooo`), a `meeting_booked`, a `call_connected`, a `task_completed`. Signals come from mailbox and calendar polling, Allo webhooks, task completions and the events you report with `POST /v1/contacts/{id}/events`.
+A signal (`sig_`) is a fact from outside the flow: a `reply`, a `bounce`, a `complaint`, an `opt_out`, an out-of-office (`ooo`), a `meeting_booked`, a `call_connected`, a `task_completed`. Signals come from mailbox polling, Allo webhooks, task completions and the events you report with `POST /v1/contacts/{id}/events`.
 
 Each signal is stored once per source and external id, so the same webhook twice changes nothing. It is credited to the step that earned it, then applied to the contact's enrollments: it can exit them (opt-out, bounce, or a reply when the definition says so), pause them (out of office) or wake a step that waits for it.
 

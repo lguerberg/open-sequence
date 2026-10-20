@@ -1,10 +1,6 @@
 import type { EmailSendRequest } from '@opensequence/core';
 
-/** Builds the RFC 2822 message Gmail's `messages.send` takes as `raw`, and encodes it base64url. */
-export function buildRawMessage(req: EmailSendRequest, now: Date = new Date()): string {
-  return base64url(Buffer.from(buildRfc2822(req, now), 'utf8'));
-}
-
+/** Builds the RFC 2822 message the SMTP adapter sends and files in the Sent folder. */
 export function buildRfc2822(req: EmailSendRequest, now: Date = new Date()): string {
   const headers: Array<[string, string]> = [
     ['From', req.channel.address],
@@ -83,12 +79,4 @@ function encodeQpLine(line: string): string {
     column += token.length;
   }
   return out;
-}
-
-export function base64url(buf: Buffer): string {
-  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-export function decodeBase64url(data: string): string {
-  return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
 }

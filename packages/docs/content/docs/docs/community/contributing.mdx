@@ -25,7 +25,7 @@ Node 22 and pnpm 10. The repository is a pnpm workspace; `docs/ARCHITECTURE.md` 
 | `packages/core` | the pure domain: the definition schema, validation, templates, conditions, timing, the interpreter and every port interface. No I/O, no package imports |
 | `packages/engine` | entities, use cases (one file each) and the Drizzle persistence of the `seq` schema |
 | `packages/queue` | the queue port: `postgres`, `redis`, `memory` |
-| `packages/providers` | `google`, `allo`, `attio` and `mock`, registered by name |
+| `packages/providers` | `smtp`, `allo`, `attio` and `mock`, registered by name |
 | `packages/auth` | provider credentials and the token lifecycle (the `seq_auth` schema); destined for its own repository |
 | `packages/sdk` | `@opensequence/sdk`, types generated from the OpenAPI file |
 | `packages/mcp` | `@opensequence/mcp`, the MCP server over the SDK ([MCP server](/sdks/mcp)) |

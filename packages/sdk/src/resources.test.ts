@@ -30,10 +30,7 @@ describe('senders', () => {
   test('get', () => hits((o) => o.senders.get('u_42'), { method: 'GET', url: '/v1/senders/u_42' }));
   test('list', () => hits((o) => o.senders.list({ limit: 10 }), { method: 'GET', url: '/v1/senders?limit=10' }, []));
   test('readiness', () => hits((o) => o.senders.readiness('u_42'), { method: 'GET', url: '/v1/senders/u_42/readiness' }));
-  test('connectGoogle sends an empty object by default', () => hits((o) => o.senders.connectGoogle('u_42'), { method: 'POST', url: '/v1/senders/u_42/connections/google', body: {} }));
-  test('connectGoogle with a return url', () => hits((o) => o.senders.connectGoogle('u_42', { return_url: 'https://acme.com/done' }), { method: 'POST', url: '/v1/senders/u_42/connections/google', body: { return_url: 'https://acme.com/done' } }));
   test('connections', () => hits((o) => o.senders.connections('u_42'), { method: 'GET', url: '/v1/senders/u_42/connections' }, []));
-  test('disconnectGoogle', () => hits((o) => o.senders.disconnectGoogle('u_42'), { method: 'DELETE', url: '/v1/senders/u_42/connections/google' }));
   test('setSms', () => hits((o) => o.senders.setSms('u_42', { allo_user_id: 'usr-1', number: '+14155551234' }), { method: 'PUT', url: '/v1/senders/u_42/channels/sms', body: { allo_user_id: 'usr-1', number: '+14155551234' } }));
   test('patchChannel', () => hits((o) => o.senders.patchChannel('u_42', 'email', { daily_limit: 20, status: 'paused' }), { method: 'PATCH', url: '/v1/senders/u_42/channels/email', body: { daily_limit: 20, status: 'paused' } }));
   test('setSmtp', () => {

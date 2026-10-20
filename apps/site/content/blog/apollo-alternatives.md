@@ -3,7 +3,7 @@ title: "Apollo.io alternatives for sequences (October 2026)"
 h1: "Apollo.io alternatives for teams that mostly use it to send sequences"
 description: "Apollo.io alternatives for sequencing: OpenSequence, Outreach, Salesloft, HubSpot, lemlist, Instantly and Reply.io, with prices checked in October 2026."
 date: 2026-10-14
-updated: 2026-10-14
+updated: 2026-10-20
 author: Leo Guerberg
 tags: [apollo, alternatives, sales-engagement, open-source]
 keyword: "Apollo.io alternatives"
@@ -44,11 +44,11 @@ curl -X POST $SEQ/v1/sequences/$SEQ_ID/enrollments -H "Authorization: Bearer $KE
 
 ### OpenSequence (ours)
 
-OpenSequence is an open source sequencing engine, licensed Apache-2.0, that you run yourself. It ships as one Docker image and runs on a Postgres database you own. You define sequences as versioned JSON through a REST API, a TypeScript SDK or an MCP server, and you enroll contacts as a given rep. OpenSequence sends you a signed webhook when someone replies, books a meeting, bounces or opts out. Email goes out from each rep's own Gmail account, and follow-ups can reply in the same thread. Texts and calls go through Allo. Any step a person has to do by hand becomes a task for the rep. The [how it works page](https://docs.opensequence.dev/docs/get-started/how-it-works) follows one contact from enrollment to exit.
+OpenSequence is an open source sequencing engine, licensed Apache-2.0, that you run yourself. It ships as one Docker image and runs on a Postgres database you own. You define sequences as versioned JSON through a REST API, a TypeScript SDK or an MCP server, and you enroll contacts as a given rep. OpenSequence sends you a signed webhook when someone replies, books a meeting, bounces or opts out. Email goes out from each rep's own mailbox over SMTP, and follow-ups can reply in the same thread. Texts and calls go through Allo. Any step a person has to do by hand becomes a task for the rep. The [how it works page](https://docs.opensequence.dev/docs/get-started/how-it-works) follows one contact from enrollment to exit.
 
 It fits a team with an engineer and a CRM or internal tool where reps already work. There is no per-seat price. You pay for the container and the database.
 
-It differs from Apollo in what it leaves out. It has no contact database, no warmup and no user interface, so your CRM or an internal tool is the UI. Email works only through Google Workspace today. SMTP and IMAP adapters are on the [roadmap](https://docs.opensequence.dev/docs/community/roadmap) under "later", so a Microsoft 365 team cannot use it yet. It is pre-1.0, and the SDK and MCP packages are not on npm yet. We are still verifying the Allo and Attio adapters against real accounts. Each sender gets a default cap of 30 emails per day and 60 seconds between sends, and you can change both per channel ([senders and limits](https://docs.opensequence.dev/docs/senders/senders)).
+It differs from Apollo in what it leaves out. It has no contact database, no warmup and no user interface, so your CRM or an internal tool is the UI. Email works through any mailbox that allows SMTP and IMAP with a password, Gmail and Google Workspace included. Microsoft 365 has turned password sign-in off for both, so a Microsoft 365 team cannot use it yet. It is pre-1.0, and the SDK and MCP packages are not on npm yet. We are still verifying the Allo and Attio adapters against real accounts. Each sender gets a default cap of 30 emails per day and 60 seconds between sends, and you can change both per channel ([senders and limits](https://docs.opensequence.dev/docs/senders/senders)).
 
 ### Outreach or Salesloft
 
@@ -97,7 +97,7 @@ Prices are for the lowest plan that includes sequences, billed annually, as of O
 | Tool | Entry price | Pricing model | Contact data | Channels | Hosting |
 |---|---|---|---|---|---|
 | Apollo | $49 per seat per month | Per seat plus credits | Yes, on credits | Email, dialer, tasks | Vendor cloud |
-| OpenSequence | $0 license fee | Your infrastructure | No | Email (Gmail), SMS, calls, manual tasks | Self-hosted |
+| OpenSequence | $0 license fee | Your infrastructure | No | Email (SMTP and IMAP), SMS, calls, manual tasks | Self-hosted |
 | Outreach | Not published | Per seat, annual | No | Email, dialer, tasks | Vendor cloud |
 | Salesloft | Not published | Per seat, annual | No | Email, dialer, tasks | Vendor cloud |
 | HubSpot | $90 per seat per month plus $1,500 onboarding | Per seat | Limited | Email, calls, tasks | Vendor cloud |
@@ -118,7 +118,7 @@ Three questions decide most cases: how many reps send, what you can spend per re
 | 30 or more reps, Salesforce, RevOps team | Outreach or Salesloft |
 | 5 to 50 reps, an engineer, your own CRM or tool | OpenSequence |
 
-The engineer question decides whether OpenSequence is on the list at all. Someone has to run Postgres and a container, register a Google OAuth client, and build or connect the screens reps use. The [install guide](https://docs.opensequence.dev/docs/self-hosting/install) lists every step. If nobody on the team wants that job, pick a hosted tool. If you are considering building your own, our [guide to building your own sales sequencer](/blog/build-your-own-sales-sequencer) lists the parts that take longer than expected. The [migration guide](/blog/replace-your-sales-sequencing-software) covers moving live sequences without double-sending.
+The engineer question decides whether OpenSequence is on the list at all. Someone has to run Postgres and a container, collect each rep's mailbox settings, and build or connect the screens reps use. The [install guide](https://docs.opensequence.dev/docs/self-hosting/install) lists every step. If nobody on the team wants that job, pick a hosted tool. If you are considering building your own, our [guide to building your own sales sequencer](/blog/build-your-own-sales-sequencer) lists the parts that take longer than expected. The [migration guide](/blog/replace-your-sales-sequencing-software) covers moving live sequences without double-sending.
 
 ## When to stay on Apollo
 
@@ -126,7 +126,7 @@ Stay if your reps prospect and send in the same session. Searching, enriching an
 
 Stay if you have fewer than about ten reps and use most of your credits. At $79 per seat you get data, a dialer, warmup and sequencing on one bill. A separate data tool plus a separate sequencer often costs more.
 
-Stay if your team is on Microsoft 365 and you were considering OpenSequence, since it sends only through Gmail today.
+Stay if your team is on Microsoft 365 and you were considering OpenSequence, since it cannot sign in to Microsoft 365 mailboxes today.
 
 Stay if your problem is deliverability and you have not set a custom tracking subdomain, authenticated your domains and cleaned your lists. Those fixes are free and apply to every tool on this page.
 

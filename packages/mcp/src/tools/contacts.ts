@@ -163,7 +163,7 @@ export const reportContactEvent = defineTool({
   name: 'report_contact_event',
   title: 'Report a contact event',
   description:
-    'Tells OpenSequence something it cannot see for itself, so the contact\'s sequence reacts: meeting_booked (a meeting booked outside the connected calendar), opt_out (per channel, or "all"), suppressed (do not contact; give a reason such as do_not_contact, bad_number, invalid_email, left_company) or reply (a reply seen in another tool; give the channel). It applies to every active enrollment of the contact, and the sequence\'s exit rules decide whether it ends. Idempotent by `id`.',
+    'Tells OpenSequence something it cannot see for itself, so the contact\'s sequence reacts: meeting_booked (a meeting booked in your calendar or booking tool), opt_out (per channel, or "all"), suppressed (do not contact; give a reason such as do_not_contact, bad_number, invalid_email, left_company) or reply (a reply seen in another tool; give the channel). It applies to every active enrollment of the contact, and the sequence\'s exit rules decide whether it ends. Idempotent by `id`.',
   scope: 'enroll',
   input: {
     contact: ref('contact', 'ctc_01J9…', 'p_7'),

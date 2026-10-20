@@ -9,7 +9,7 @@ import type { AppContext } from '../context.js';
 import { ok } from '../envelope.js';
 import { idParam, responses } from '../schemas.js';
 
-const providerParam = z.object({ provider: z.enum(['google', 'allo', 'attio', 'mock']) });
+const providerParam = z.object({ provider: z.enum(['allo', 'attio', 'mock']) });
 
 export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -27,8 +27,7 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
       return ok(reply, {
         project,
         credentials,
-        webhook_urls: { allo: `${base}/hooks/allo/${project?.slug}`, google: `${base}/hooks/google/${project?.slug}`, mock: ctx.mock ? `${base}/hooks/mock/${project?.slug}` : undefined },
-        google_redirect_uri: ctx.auth.googleRedirectUri,
+        webhook_urls: { allo: `${base}/hooks/allo/${project?.slug}`, mock: ctx.mock ? `${base}/hooks/mock/${project?.slug}` : undefined },
       });
     },
   });
@@ -43,7 +42,7 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
     preHandler: admin,
     schema: {
       tags: ['Project'],
-      summary: 'Store or rotate a provider credential (write-only). Google: client_id, client_secret; Allo: api_key, webhook_secret?; Attio: api_key.',
+      summary: 'Store or rotate a provider credential (write-only). Allo: api_key, webhook_secret?; Attio: api_key.',
       params: providerParam,
       body: z.record(z.string(), z.string()),
       response: responses,
@@ -51,7 +50,6 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
     handler: async (req, reply) => {
       const projectId = projectOf(req);
       const { provider } = req.params;
-      const method = provider === 'google' ? 'oauth2' : 'api_key';
       const probe = provider === 'allo' ? (s: Record<string, string>) => alloProbe(s['api_key'] ?? '') : provider === 'attio' ? (s: Record<string, string>) => attioProbe(s['api_key'] ?? '') : undefined;
       let secrets = req.body;
       // Allo: register our own webhook endpoint at the provider and keep its signing secret.
@@ -60,7 +58,7 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
         const registered = await alloRegisterWebhook(secrets['api_key'] ?? '', `${ctx.env.SEQ_PUBLIC_URL}/hooks/allo/${project?.slug}`, ['sms.received', 'sms.sent', 'call.completed']);
         secrets = { ...secrets, webhook_secret: registered.signingSecret, webhook_id: registered.id };
       }
-      const view = await ctx.auth.registerCredential({ tenantId: projectId, provider, method, secrets, probe });
+      const view = await ctx.auth.registerCredential({ tenantId: projectId, provider, method: 'api_key', secrets, probe });
       return ok(reply, view);
     },
   });

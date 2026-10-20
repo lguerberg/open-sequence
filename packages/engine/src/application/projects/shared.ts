@@ -14,7 +14,6 @@ export const projectSettingsSchema = z
     retention_days: z.number().int().min(7).max(3650).optional(),
     store_inbound_bodies: z.boolean().optional(),
     match_replies_outside_thread: z.boolean().optional(),
-    meeting_detection: z.enum(['calendar', 'client', 'both']).optional(),
     crm: z.object({ deal_selection: z.enum(['newest_open', 'highest_value', 'any_open']).optional() }).optional(),
     allo: z.object({ outcome_map: z.record(z.string(), z.string()).optional() }).optional(),
     max_steps_per_tick: z.number().int().min(1).max(10_000).optional(),
@@ -44,7 +43,7 @@ export function requireScope(auth: AuthenticatedKey, scope: Scope): void {
 }
 
 export type EffectiveSettings = ProjectSettings &
-  Required<Pick<ProjectSettings, 'attribution_days' | 'sms_countries' | 'retention_days' | 'store_inbound_bodies' | 'match_replies_outside_thread' | 'meeting_detection' | 'max_steps_per_tick'>>;
+  Required<Pick<ProjectSettings, 'attribution_days' | 'sms_countries' | 'retention_days' | 'store_inbound_bodies' | 'match_replies_outside_thread' | 'max_steps_per_tick'>>;
 
 /** Settings with defaults applied, for the engine. */
 export function effectiveSettings(p: Project): EffectiveSettings {
@@ -54,7 +53,6 @@ export function effectiveSettings(p: Project): EffectiveSettings {
     retention_days: 365,
     store_inbound_bodies: false,
     match_replies_outside_thread: false,
-    meeting_detection: 'calendar',
     max_steps_per_tick: 500,
     ...p.settings,
   };

@@ -1,7 +1,6 @@
 /**
  * The public view of a credential: enough to show "Allo key ending in 7f3a, active, encrypted under
- * k2" and never the secret itself. The last four come from the key for api_key and from the client
- * id for oauth2 (the client id is not a secret).
+ * k2" and never the secret itself.
  */
 import type { Credential, CredentialMethod, CredentialStatus } from '../domain/entities.js';
 import { notFound } from '../domain/errors.js';
@@ -16,7 +15,7 @@ export interface CredentialView {
   status: CredentialStatus;
   keyId: string;
   last4: string;
-  /** Non-secret settings (client_id, pubsub_topic, probed scopes). */
+  /** Non-secret settings (probed scopes). */
   config: Record<string, unknown>;
   hasWebhookSecret: boolean;
   createdAt: Date;
@@ -24,7 +23,7 @@ export interface CredentialView {
 }
 
 export function credentialView(cipher: Cipher, c: Credential): CredentialView {
-  const last4 = c.method === 'oauth2' ? String(c.config['client_id'] ?? '').slice(-4) : cipher.decrypt(c.secretEnc, c.keyId).slice(-4);
+  const last4 = cipher.decrypt(c.secretEnc, c.keyId).slice(-4);
   return {
     id: c.id,
     tenantId: c.tenantId,

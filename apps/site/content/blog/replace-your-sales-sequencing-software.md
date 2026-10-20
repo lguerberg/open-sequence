@@ -3,7 +3,7 @@ title: "How to replace your sales engagement platform"
 h1: "How to move off Outreach, Salesloft, Apollo or lemlist without double-sending anyone"
 description: "Replace a sales engagement platform in about six weeks. See what Outreach, Salesloft, Apollo and lemlist export, how to map steps, and how to cut over."
 date: 2026-10-14
-updated: 2026-10-14
+updated: 2026-10-20
 author: Leo Guerberg
 tags: [migration, sales-engagement, outreach, apollo]
 keyword: "replace sales engagement platform"
@@ -17,13 +17,13 @@ We build OpenSequence, an Apache-2.0 open source sequencing engine you run yours
 
 OpenSequence is a headless engine that runs as one container with a Postgres database and an API. It is pre-1.0, and the SDK is not on npm yet. Stay where you are if any of these is true:
 
-- Your reps send from Microsoft 365 or Outlook. OpenSequence sends through the Gmail API only. SMTP and IMAP are on the [roadmap](https://docs.opensequence.dev/docs/community/roadmap), not in the code.
+- Your reps send from Microsoft 365 or Outlook. OpenSequence sends over SMTP and IMAP, and Microsoft turned password sign-in off for both.
 - Nobody on the team writes code. OpenSequence has no UI. Someone has to build the enroll button, the task inbox and the reporting screen on the API.
 - Your managers coach on open rates, click rates or A/B tests of copy. The engine tracks none of these. It counts only replies and meetings booked.
 - You use Apollo mostly for its contact database, or lemlist mostly for lemwarm. OpenSequence is neither a prospect database nor a warm-up service.
 - You need Salesforce or HubSpot sync on day one. The only CRM adapter is for Attio, and it reads from Attio but does not write to it. HubSpot is on the roadmap.
 
-The teams who should move run Google Workspace, have an engineer, and want sequences inside their own CRM or product. If cost is the reason, read [what Outreach and Salesloft cost](/blog/outreach-vs-salesloft-cost) or [the Apollo alternatives compared](/blog/apollo-alternatives) first.
+The teams who should move run Google Workspace or another mailbox that allows SMTP, have an engineer, and want sequences inside their own CRM or product. If cost is the reason, read [what Outreach and Salesloft cost](/blog/outreach-vs-salesloft-cost) or [the Apollo alternatives compared](/blog/apollo-alternatives) first.
 
 ## Inventory the features you use
 
@@ -39,7 +39,7 @@ List the features your team used in the last 90 days. A sequence with no enrollm
 | Call step | `task` with `kind: "call"` | Dialer push works with Allo only |
 | Manual step | `task` with your own `kind` | The rep does it by hand |
 | Task queue | Tasks API | You build the inbox |
-| Connected mailboxes | Senders with Google | Gmail only |
+| Connected mailboxes | Senders with SMTP and IMAP settings | Not Microsoft 365 |
 | Open and click tracking | None | Not in v1 |
 | A/B test | None | A `split` node is planned |
 | CRM activity sync | Webhooks to your code | You write the sync |
@@ -141,11 +141,11 @@ A connected call counts as a reply, so `exit_on: ['reply']` ends the flow when a
 
 ## Mailboxes and warm-up continuity
 
-If your reps connected Google Workspace mailboxes to Outreach or Salesloft, you do not need to re-warm anything. OpenSequence sends through the [same Gmail accounts by OAuth](https://docs.opensequence.dev/docs/senders/connect-google), from the same domain, with the same reputation. You do need your own Google OAuth client. Google classes Gmail scopes as sensitive. If accounts outside your Workspace domain use the app, Google must verify it before the consent screen stops warning users.
+If your reps connected Google Workspace mailboxes to Outreach or Salesloft, you do not need to re-warm anything. OpenSequence sends through the [same accounts over SMTP](https://docs.opensequence.dev/docs/sending/email-smtp), from the same domain, with the same reputation. Each rep creates an app password once, and the engine checks it before it saves it.
 
 The trap is combined volume during the parallel run. OpenSequence's `daily_limit` defaults to 30 emails with a 60 second minimum gap, and it counts only OpenSequence's own sends. It cannot see what Outreach sent from the same mailbox an hour earlier. If a rep sent 50 a day before, split that budget. Put 35 in the old tool and 15 in OpenSequence in week one, then shift the split as the old sequences drain. Google's hard ceiling is [2,000 messages a day per Workspace user](https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace), and a cold outbound mailbox should stay far below it.
 
-Secondary domains that lemwarm or another warm-up service warms are a different case. OpenSequence does not warm anything, so keep the warm-up service on those mailboxes or retire them. Confirm they are Google Workspace mailboxes before you plan around them.
+Secondary domains that lemwarm or another warm-up service warms are a different case. OpenSequence does not warm anything, so keep the warm-up service on those mailboxes or retire them. Confirm they are not on Microsoft 365 before you plan around them.
 
 Google's [sender guidelines](https://support.google.com/a/answer/81126) require SPF, DKIM, DMARC and one-click unsubscribe for senders above 5,000 messages a day to Gmail. They also require a spam rate below 0.30%, with 0.10% as the target. OpenSequence adds `List-Unsubscribe` and `List-Unsubscribe-Post` headers to every email. The rest is DNS work, which [cold email deliverability when you self-host](/blog/cold-email-deliverability-self-hosted) covers.
 
@@ -192,10 +192,10 @@ Each vendor defines "reply rate" its own way, so do not compare dashboards. Befo
 
 ## Cutover checklist
 
-1. Confirm every sending mailbox is Google Workspace.
+1. Confirm no sending mailbox is on Microsoft 365.
 2. Export contacts, sequence states, step content and stats from the old tool.
 3. Export unsubscribes, bounces and complaints, and load them as suppressions.
-4. Deploy OpenSequence, register the Google OAuth client, and connect each sender.
+4. Deploy OpenSequence and connect each sender's mailbox.
 5. Translate the live sequences, validate them, and run one dry-run enrollment each.
 6. Build the webhook handler that writes activity to the CRM.
 7. Build the task inbox for call and manual steps.
@@ -213,7 +213,7 @@ This is our estimate for a team of about 10 reps with one engineer working half 
 
 | Week | Work |
 |---|---|
-| 1 | Inventory, exports, deploy, OAuth client, two pilot senders |
+| 1 | Inventory, exports, deploy, two pilot senders |
 | 2 | Translate sequences, dry runs, suppressions, CRM webhook handler, task inbox |
 | 3 | Pilot with two reps enrolling new contacts in OpenSequence |
 | 4 | All new enrollments move to OpenSequence, and the old tool drains |
@@ -237,7 +237,7 @@ Let them finish in the old tool and enroll only new contacts in the new one. If 
 
 ### Does OpenSequence work with Outlook or Microsoft 365?
 
-No. Email goes through the Gmail API only. SMTP and IMAP adapters are on the roadmap but not in the code.
+No. Email goes over SMTP and IMAP, and Microsoft 365 no longer allows password sign-in for either.
 
 ### Do I lose open and click tracking?
 

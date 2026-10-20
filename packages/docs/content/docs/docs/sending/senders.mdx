@@ -66,11 +66,10 @@ A sender sends through channels. Each one is created by its own call and has its
 
 | Channel | How it is created | Page |
 |---|---|---|
-| `email` | `POST /v1/senders/{id}/connections/google` and the sender's consent | [Email via Gmail](/docs/sending/email-gmail) |
 | `email` | `PUT /v1/senders/{id}/channels/email` with SMTP and IMAP settings | [Email via SMTP and IMAP](/docs/sending/email-smtp) |
 | `sms` | `PUT /v1/senders/{id}/channels/sms` with an Allo user and number | [SMS and calls via Allo](/docs/sending/sms-and-calls-allo) |
 
-A sender has at most one `email` channel, whichever way it was made. An `outreach` step with `channel: "email"` sends through it and never asks which provider is behind it. Calls are not a channel: a `call` [task](/docs/sending/call-tasks) uses the sender's `sms` channel as their Allo identity. [Channels](/docs/sending/channels) compares them.
+A sender has at most one `email` channel. An `outreach` step with `channel: "email"` sends through it. Calls are not a channel: a `call` [task](/docs/sending/call-tasks) uses the sender's `sms` channel as their Allo identity. [Channels](/docs/sending/channels) compares them.
 
 A channel's `status` is `pending`, `active`, `paused`, `credentials_needed`, `restricted` or `disconnected`. Only an `active` channel sends. A step that reaches a channel in any other status is skipped with the reason `sender_channel_<status>` and the flow moves on. A missing channel skips with `no_email_channel` or `no_sms_channel`.
 
@@ -119,11 +118,11 @@ if (!readiness.email.ok) console.log(readiness.email.reason); // no_email_channe
 
 | Reason | Meaning |
 |---|---|
-| `no_email_channel` | The sender has no mailbox connected yet, through Google or SMTP. |
+| `no_email_channel` | The sender has no mailbox connected yet. |
 | `no_allo_number` | The sender has no sms channel. |
 | `<channel>_<status>` | The channel exists but is not active, for example `email_credentials_needed` or `sms_paused`. |
 
-`task` is always `ok`: any sender can be given a manual step. `GET /v1/senders/{id}` returns the sender with its `channels`, `readiness` and `connections` (Google and SMTP, never a secret) in one call.
+`task` is always `ok`: any sender can be given a manual step. `GET /v1/senders/{id}` returns the sender with its `channels`, `readiness` and `connections` (the mailbox, never a secret) in one call.
 
 ## Listing
 
@@ -147,4 +146,4 @@ await oseq.senders.disable('u_42');
 
 <Warning>There is no way to re-enable a disabled sender through the API yet: a later `PUT` updates the profile but keeps the `disabled` status.</Warning>
 
-To remove one channel instead, `DELETE /v1/senders/{id}/channels/sms` or `/channels/email` deletes it, and its steps skip from then on. Removing email also deletes stored SMTP passwords; a Google grant stays until you disconnect Google. `DELETE /v1/senders/{id}/connections/google` revokes the Google token and sets a Gmail email channel `disconnected`; it leaves an SMTP channel alone.
+To remove one channel instead, `DELETE /v1/senders/{id}/channels/sms` or `/channels/email` deletes it, and its steps skip from then on. Removing email also deletes the stored SMTP and IMAP passwords.
