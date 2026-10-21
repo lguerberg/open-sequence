@@ -212,7 +212,7 @@ export async function POST(req: Request) {
 }
 ```
 
-`signal.received` covers replies, bounces, opt-outs, meetings, connected calls and completed tasks, and it carries your id for the contact. `run.done` fires for every sent step if you want each email on the timeline too. `enrollment.exited` and `enrollment.completed` tell you a person left a sequence and why. Deliveries retry for three days and arrive in order per enrollment, but they can arrive twice, which is why the handler upserts by `event.id` ([receiving webhooks](https://docs.opensequence.dev/docs/developers/webhooks/events)).
+`signal.received` covers replies, bounces, opt-outs, meetings, connected calls and completed tasks, and it carries your id for the contact. `run.done` fires for every sent step if you want each email on the timeline too. `enrollment.exited` and `enrollment.completed` tell you a person left a sequence and why. Deliveries retry for three days and arrive in order per enrollment, but they can arrive twice, which is why the handler upserts by `event.id` ([receiving webhooks](https://docs.opensequence.dev/docs/webhooks/events)).
 
 Create the endpoint once with `oseq.webhooks.create({ url, event_types: ['signal.received', 'enrollment.exited', 'task.created', 'task.expired'] })` and store the secret it returns. The call needs an admin-scoped key.
 

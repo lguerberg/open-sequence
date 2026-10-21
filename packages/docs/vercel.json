@@ -114,7 +114,7 @@
     },
     {
       "source": "/docs/tutorials/agent-enrollment",
-      "destination": "/docs/developers/mcp",
+      "destination": "/",
       "permanent": true
     },
     {
@@ -254,12 +254,12 @@
     },
     {
       "source": "/docs/webhooks/polling",
-      "destination": "/docs/developers/webhooks/events",
+      "destination": "/docs/webhooks/events",
       "permanent": true
     },
     {
       "source": "/docs/webhooks/recipes",
-      "destination": "/docs/developers/webhooks",
+      "destination": "/docs/webhooks",
       "permanent": true
     },
     {
@@ -309,7 +309,7 @@
     },
     {
       "source": "/sdks/mcp",
-      "destination": "/docs/developers/mcp",
+      "destination": "/",
       "permanent": true
     },
     {
@@ -374,32 +374,52 @@
     },
     {
       "source": "/docs/webhooks/overview",
-      "destination": "/docs/developers/webhooks/events",
-      "permanent": true
-    },
-    {
-      "source": "/docs/webhooks/verifying",
-      "destination": "/docs/developers/webhooks/verifying",
-      "permanent": true
-    },
-    {
-      "source": "/docs/webhooks/retries-and-recovery",
-      "destination": "/docs/developers/webhooks/retries-and-recovery",
+      "destination": "/docs/webhooks/events",
       "permanent": true
     },
     {
       "source": "/docs/modules/webhooks",
-      "destination": "/docs/developers/webhooks",
+      "destination": "/docs/webhooks",
       "permanent": true
     },
     {
       "source": "/docs/modules/mcp",
-      "destination": "/docs/developers/mcp",
+      "destination": "/",
       "permanent": true
     },
     {
       "source": "/docs/modules/typescript-sdk",
-      "destination": "/docs/developers/typescript-sdk",
+      "destination": "/sdks/typescript",
+      "permanent": true
+    },
+    {
+      "source": "/docs/developers/webhooks/events",
+      "destination": "/docs/webhooks/events",
+      "permanent": true
+    },
+    {
+      "source": "/docs/developers/webhooks/verifying",
+      "destination": "/docs/webhooks/verifying",
+      "permanent": true
+    },
+    {
+      "source": "/docs/developers/webhooks/retries-and-recovery",
+      "destination": "/docs/webhooks/retries-and-recovery",
+      "permanent": true
+    },
+    {
+      "source": "/docs/developers/webhooks",
+      "destination": "/docs/webhooks",
+      "permanent": true
+    },
+    {
+      "source": "/docs/developers/typescript-sdk",
+      "destination": "/sdks/typescript",
+      "permanent": true
+    },
+    {
+      "source": "/docs/developers/mcp",
+      "destination": "/",
       "permanent": true
     }
   ]

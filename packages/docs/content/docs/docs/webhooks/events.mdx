@@ -67,7 +67,7 @@ webhook-signature: v1,K5oZfzN95Z9UVu1EsfQmfVuOm3Q…
 }
 ```
 
-Answer any `2xx` within 10 seconds. Anything else, a timeout or a connection error counts as a failure and the delivery is retried ([Retries and recovery](/docs/developers/webhooks/retries-and-recovery)). Verify the signature before trusting the body ([Verifying](/docs/developers/webhooks/verifying)).
+Answer any `2xx` within 10 seconds. Anything else, a timeout or a connection error counts as a failure and the delivery is retried ([Retries and recovery](/docs/webhooks/retries-and-recovery)). Verify the signature before trusting the body ([Verifying](/docs/webhooks/verifying)).
 
 ## Ordering and idempotency
 
@@ -82,7 +82,7 @@ Answer any `2xx` within 10 seconds. Anything else, a timeout or a connection err
 | `GET /v1/webhooks`, `GET /v1/webhooks/{id}` | list and read (never the secret) |
 | `PATCH /v1/webhooks/{id}` | change `url` or `event_types` |
 | `DELETE /v1/webhooks/{id}` | delete the endpoint and its deliveries |
-| `POST /v1/webhooks/{id}/rotate-secret` | a new secret, shown once; deliveries from this moment are signed with it, there is no overlap window, so accept both secrets while you switch ([how](/docs/developers/webhooks/verifying#rotation)) |
+| `POST /v1/webhooks/{id}/rotate-secret` | a new secret, shown once; deliveries from this moment are signed with it, there is no overlap window, so accept both secrets while you switch ([how](/docs/webhooks/verifying#rotation)) |
 | `POST /v1/webhooks/{id}/enable` | re-enable a disabled endpoint and replay what was held |
 | `POST /v1/webhooks/{id}/recover { since }` | re-send every delivery that failed for good since a time |
 | `GET /v1/webhooks/{id}/deliveries` | the log: status, attempts, last status code and error, the payload |

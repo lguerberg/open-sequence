@@ -159,7 +159,7 @@ await oseq.senders.setSmtp('max', {
     file: 'webhooks.ts',
     meta: 'Standard Webhooks',
     lang: 'typescript',
-    href: '/docs/developers/webhooks/events',
+    href: '/docs/webhooks/events',
     claim: 'Register an endpoint once. Exits, replies and tasks arrive signed.',
     code: `import express from 'express';
 import { OpenSequence, verifyWebhook } from '@opensequence/sdk';

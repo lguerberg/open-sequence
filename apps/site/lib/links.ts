@@ -10,7 +10,7 @@ export const links = {
   configuration: `${DOCS}/docs/self-hosting/configuration`,
   api: `${DOCS}/api/conventions`,
   sdk: `${DOCS}/sdks/typescript`,
-  webhooks: `${DOCS}/docs/developers/webhooks/verifying`,
+  webhooks: `${DOCS}/docs/webhooks/verifying`,
   definition: `${DOCS}/docs/concepts/sequence/definition`,
   extending: `${DOCS}/docs/modules`,
   changelog: `${GITHUB}/blob/main/CHANGELOG.md`,

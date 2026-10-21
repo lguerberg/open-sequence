@@ -710,7 +710,7 @@ async function generateEvents(): Promise<void> {
       GENERATED_NOTE('packages/engine/src/domain/shared/events.ts') +
       `
 
-\`GET /v1/schema/events\` returns the same list. Every delivery body has the shape below, five fields and nothing else; the fields in the table are inside \`data\`. Subscribe to \`"*"\` or to a list of types when you create an endpoint. See [Receiving webhooks](/docs/developers/webhooks/events).
+\`GET /v1/schema/events\` returns the same list. Every delivery body has the shape below, five fields and nothing else; the fields in the table are inside \`data\`. Subscribe to \`"*"\` or to a list of types when you create an endpoint. See [Receiving webhooks](/docs/webhooks/events).
 
 \`\`\`json
 {

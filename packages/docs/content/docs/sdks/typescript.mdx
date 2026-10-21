@@ -205,7 +205,7 @@ await admin.engineHealth();
 
 ## Webhooks
 
-`verifyWebhook({ secret, headers, body })` checks the Standard Webhooks signature and timestamp and returns the parsed event, or throws `WebhookVerificationError`. Pass the raw body, and an array of secrets during a rotation. `signWebhook` signs a test event. Details and framework examples: [Verifying](/docs/developers/webhooks/verifying).
+`verifyWebhook({ secret, headers, body })` checks the Standard Webhooks signature and timestamp and returns the parsed event, or throws `WebhookVerificationError`. Pass the raw body, and an array of secrets during a rotation. `signWebhook` signs a test event. Details and framework examples: [Verifying](/docs/webhooks/verifying).
 
 ```ts
 import { verifyWebhook } from '@opensequence/sdk';

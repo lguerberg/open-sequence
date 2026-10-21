@@ -16,7 +16,8 @@ const intro = `# OpenSequence
 - [Quickstart](${DOCS}/docs/get-started/quickstart): run the server, create a project, connect a mailbox and enroll a first contact
 - [Integrate OpenSequence into your product](${DOCS}/docs/get-started/integrate): the checklist, one call per step
 - [Modules](${DOCS}/docs/modules): what a sequence can use: email (Gmail, Outlook, any SMTP), SMS with Allo, CRM conditions with Attio
-- [Developers](${DOCS}/docs/developers/webhooks): webhooks to your app, the MCP server for AI agents and the TypeScript SDK
+- [Webhooks](${DOCS}/docs/webhooks): signed events back to your app
+- [TypeScript SDK reference](${DOCS}/sdks/typescript): every method of @opensequence/sdk
 
 ## Source
 
