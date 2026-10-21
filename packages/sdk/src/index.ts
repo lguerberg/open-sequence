@@ -15,6 +15,7 @@ import { Schema } from './resources/schema.js';
 import { Senders } from './resources/senders.js';
 import { Sequences } from './resources/sequences.js';
 import { Tasks } from './resources/tasks.js';
+import { Unsubscribes } from './resources/unsubscribes.js';
 import { Webhooks } from './resources/webhooks.js';
 
 export type OpenSequenceOptions = ClientOptions;
@@ -30,6 +31,8 @@ export class OpenSequence {
   readonly analytics: Analytics;
   readonly project: ProjectResource;
   readonly schema: Schema;
+  /** Read and apply unsubscribe tokens, for an unsubscribe page hosted in your app. */
+  readonly unsubscribes: Unsubscribes;
   /** The HTTP core, for an endpoint the SDK has no method for yet. */
   readonly http: HttpClient;
 
@@ -44,6 +47,7 @@ export class OpenSequence {
     this.analytics = new Analytics(this.http);
     this.project = new ProjectResource(this.http);
     this.schema = new Schema(this.http);
+    this.unsubscribes = new Unsubscribes(this.http);
   }
 }
 
@@ -96,5 +100,6 @@ export type { AllSequencesQuery } from './resources/analytics.js';
 export { ProjectResource, ApiKeys, Flags } from './resources/project.js';
 export type { Provider, ProviderCredentialInput, CreateApiKeyInput } from './resources/project.js';
 export { Schema } from './resources/schema.js';
+export { Unsubscribes } from './resources/unsubscribes.js';
 export { Admin, AdminProjects } from './resources/admin.js';
 export type { CreateProjectInput, AdminCreateApiKeyInput, CreatedProject, PlatformHealth } from './resources/admin.js';

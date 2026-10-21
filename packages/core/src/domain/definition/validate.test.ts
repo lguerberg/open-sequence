@@ -101,3 +101,44 @@ describe('validateDefinition', () => {
     expect(r.problems.find((p) => p.code === 'UNKNOWN_CHANNEL')?.message).toContain('Available: email, sms');
   });
 });
+
+describe('email size limits and HEAVY_EMAIL', () => {
+  const withBody = (body: string, format?: 'text' | 'html') => {
+    const d = good();
+    d.nodes.email_intro.params = { subject: 'Hi', body: `${body} {{ unsubscribe_url }}`, ...(format ? { format } : {}) } as typeof d.nodes.email_intro.params;
+    return d;
+  };
+  const img = (bytes: number, fill = 5) => `<img alt="x" src="data:image/png;base64,${Buffer.alloc(bytes, fill).toString('base64')}">`;
+
+  it('keeps 100,000 characters for a text body and allows 5,000,000 for html', () => {
+    const long = 'a'.repeat(150_000);
+    const text = validateDefinition(withBody(long));
+    expect(text.ok).toBe(false);
+    expect(text.problems[0]).toMatchObject({ path: 'nodes.email_intro.params.body', code: 'INVALID_DEFINITION' });
+    expect(text.problems[0]!.message).toContain('100,000');
+    expect(validateDefinition(withBody(long, 'html')).ok).toBe(true);
+    expect(validateDefinition(withBody('a'.repeat(5_000_001), 'html')).ok).toBe(false);
+  });
+
+  it('accepts a definition up to 10 MB and refuses a larger one', () => {
+    const d = withBody(img(2 * 1024 * 1024), 'html');
+    expect(Buffer.byteLength(JSON.stringify(d))).toBeGreaterThan(256 * 1024);
+    expect(validateDefinition(d).ok).toBe(true);
+    const huge = { ...good(), padding: 'x'.repeat(10 * 1024 * 1024) };
+    const r = validateDefinition(huge);
+    expect(r.ok).toBe(false);
+    expect(r.problems[0]!.message).toContain('the limit is 10 MB');
+  });
+
+  it('warns HEAVY_EMAIL when the embedded images pass 400 KB, without blocking', () => {
+    const light = validateDefinition(withBody(img(300 * 1024), 'html'));
+    expect(codes(light)).not.toContain('HEAVY_EMAIL');
+    const heavy = validateDefinition(withBody(img(300 * 1024, 1) + img(200 * 1024, 2), 'html'));
+    expect(heavy.ok).toBe(true);
+    expect(heavy.problems.find((p) => p.code === 'HEAVY_EMAIL')).toMatchObject({ severity: 'warning', path: 'nodes.email_intro.params.body' });
+    // The same image twice is one attachment: not heavy.
+    expect(codes(validateDefinition(withBody(img(300 * 1024) + img(300 * 1024), 'html')))).not.toContain('HEAVY_EMAIL');
+    // A text body never warns.
+    expect(codes(validateDefinition(withBody('x')))).not.toContain('HEAVY_EMAIL');
+  });
+});

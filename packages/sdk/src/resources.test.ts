@@ -129,5 +129,7 @@ describe('project and schema', () => {
   test('health', () => hits((o) => o.project.health(), { method: 'GET', url: '/v1/engine/health' }));
   test('schema.definition', () => hits((o) => o.schema.definition(), { method: 'GET', url: '/v1/schema' }));
   test('schema.fields', () => hits((o) => o.schema.fields(), { method: 'GET', url: '/v1/schema/fields' }));
+  test('unsubscribes.get encodes the token', () => hits((o) => o.unsubscribes.get('abc.d/e'), { method: 'GET', url: '/v1/unsubscribes/abc.d%2Fe' }));
+  test('unsubscribes.apply', () => hits((o) => o.unsubscribes.apply('abc.def'), { method: 'POST', url: '/v1/unsubscribes/abc.def' }));
   test('schema.events', () => hits((o) => o.schema.events(), { method: 'GET', url: '/v1/schema/events' }, []));
 });

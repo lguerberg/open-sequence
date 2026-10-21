@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { conditionParamsSchema, evaluate, OPERATORS_BY_TYPE, operatorNeedsValue } from '../conditions/evaluate.js';
 import type { Effect, InterpretContext, RunDraft } from '../interpreter/effects.js';
 import { render } from '../template/render.js';
+import { EMAIL_LIMITS, embeddedImageBytes } from '../email/inline-images.js';
 import { addDuration, SEND_TOLERANCE_MS, stepSendAt } from '../time/timing.js';
 import { durationSchema, DEFINITION_LIMITS } from './schema.js';
 import { registry, type RegisteredNode, type ValidationProblem } from './registry.js';
@@ -245,16 +246,30 @@ export function registerBuiltins(): void {
           .object({
             name: z.string().max(120).optional(),
             subject: z.string().min(1).max(300),
-            body: z.string().min(1).max(100_000),
+            /** Up to 100,000 characters as text, 5,000,000 as html (room for embedded images). */
+            body: z.string().min(1).max(DEFINITION_LIMITS.maxHtmlEmailChars),
             format: z.enum(['text', 'html']).default('text'),
             reply_in_thread: z.boolean().default(false),
           })
-          .strict(),
+          .strict()
+          .superRefine((p, ctx) => {
+            if (p.format !== 'html' && p.body.length > DEFINITION_LIMITS.maxTextEmailChars) {
+              ctx.addIssue({ code: 'too_big', origin: 'string', maximum: DEFINITION_LIMITS.maxTextEmailChars, inclusive: true, path: ['body'], message: `A text email body is at most ${DEFINITION_LIMITS.maxTextEmailChars.toLocaleString('en-US')} characters (this one is ${p.body.length.toLocaleString('en-US')}). HTML bodies may be up to ${DEFINITION_LIMITS.maxHtmlEmailChars.toLocaleString('en-US')}.` });
+            }
+          }),
         validate: (node) => {
+          const problems: ValidationProblem[] = [];
           const body = String(node.params['body'] ?? '');
-          return body.includes('unsubscribe_url')
-            ? []
-            : [{ path: `nodes.${node.id}.params.body`, code: 'NO_UNSUBSCRIBE', message: 'This email has no {{ unsubscribe_url }}. Recipients cannot opt out with one click.', severity: 'warning' }];
+          if (!body.includes('unsubscribe_url')) {
+            problems.push({ path: `nodes.${node.id}.params.body`, code: 'NO_UNSUBSCRIBE', message: 'This email has no {{ unsubscribe_url }}. Recipients cannot opt out with one click.', severity: 'warning' });
+          }
+          if (node.params['format'] === 'html') {
+            const bytes = embeddedImageBytes(body);
+            if (bytes > EMAIL_LIMITS.heavyImageBytes) {
+              problems.push({ path: `nodes.${node.id}.params.body`, code: 'HEAVY_EMAIL', message: `This email embeds ${Math.round(bytes / 1024)} KB of base64 images (more than ${EMAIL_LIMITS.heavyImageBytes / 1024} KB). Heavy emails land in spam and get clipped; host large images over https.`, severity: 'warning' });
+            }
+          }
+          return problems;
         },
       },
     },

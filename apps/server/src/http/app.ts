@@ -14,6 +14,7 @@ import { enrollmentRoutes } from './routes/enrollments.js';
 import { healthRoutes } from './routes/health.js';
 import { hookRoutes } from './routes/hooks.js';
 import { optOutRoutes } from './routes/optout.js';
+import { unsubscribeRoutes } from './routes/unsubscribes.js';
 import { projectRoutes } from './routes/project.js';
 import { senderRoutes } from './routes/senders.js';
 import { sequenceRoutes } from './routes/sequences.js';
@@ -47,7 +48,14 @@ export function pruneUnreferencedComponents<T extends OpenApiLike>(doc: T): T {
 }
 
 export async function buildApp(rt: Runtime, log: pino.Logger) {
-  const app = Fastify({ loggerInstance: log, genReqId: () => `req_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`, trustProxy: true, bodyLimit: 2 * 1024 * 1024 });
+  const app = Fastify({
+    loggerInstance: log,
+    genReqId: () => `req_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`,
+    trustProxy: true,
+    bodyLimit: 2 * 1024 * 1024,
+    // Unsubscribe tokens (/u/{token}, /v1/unsubscribes/{token}) are about 200 characters; the default cap is 100.
+    routerOptions: { maxParamLength: 2048 },
+  });
   // Fastify hands an absent body to the validator as `null`; Zod `.optional()` bodies expect `undefined`.
   app.setValidatorCompiler((routeSchema) => {
     const validate = validatorCompiler(routeSchema as Parameters<typeof validatorCompiler>[0]);
@@ -97,6 +105,7 @@ export async function buildApp(rt: Runtime, log: pino.Logger) {
     await taskRoutes(api, rt);
     await webhookRoutes(api, rt);
     await analyticsRoutes(api, rt);
+    await unsubscribeRoutes(api, rt);
     await optOutRoutes(api, rt);
   });
   // Hooks need the raw body for signatures, so they live in their own plugin with their own parsers.

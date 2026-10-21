@@ -58,7 +58,7 @@ To join the list back to your users, match `externalId` to your user id (or keep
 | `email` | The person's address, for `{{ sender.email }}`. The email channel's address comes from the mailbox you connect; for SMTP it is the fallback `from` when the SMTP login is not an address. |
 | `timezone` | An IANA zone such as `Europe/London`, default `UTC`. Tasks are due and expire on the sender's calendar, and a send window with `tz: "sender"` follows it. |
 | `attrs` | Free JSON. Templates read `{{ sender.attrs.<path> }}`. |
-| `signature_html` | The email signature as HTML, up to 20,000 characters. See below. |
+| `signature_html` | The email signature as HTML, up to 1 MB, so a base64 logo fits. See below. |
 | `signature_text` | The plain-text signature, up to 4,000 characters. Derived from the HTML when you omit it. |
 
 ## The signature
@@ -73,13 +73,30 @@ Hi {{ contact.first_name | "there" }},
 {{ sender.signature }}
 ```
 
-The HTML is sanitized when you save it, so a signature can never carry a script, a form or a tracking frame into every email:
+A signature can be as rich as the rest of a branded email: a table layout, inline styles, a logo. Any rep can edit one, and it goes into every email they send, so the HTML is sanitized when you save it with an email allowlist. A signature can never carry a script, a form or a tracking frame.
 
-- Kept: text formatting (`b`, `i`, `u`, `em`, `strong`, `span`, `font`, `p`, `div`, `br`, `hr`, lists), links (`http`, `https`, `mailto`, `tel`), images by `http` or `https` URL, and simple tables for layout.
-- Kept attributes: inline `style`, `align`, `width`, `height`, `border`, `color` and the like, `href` on links, `src` and `alt` on images.
-- Removed: everything else, including scripts, forms, iframes and `data:` images.
+- Kept tags: `table`, `tbody`, `thead`, `tr`, `td`, `th`, `div`, `span`, `p`, `br`, `hr`, `a`, `img`, `b`, `strong`, `i`, `em`, `u`, `s`, `small`, `font`, `h1` to `h6`, `ul`, `ol`, `li`, `center`, `blockquote`.
+- Kept attributes: `style`, `align`, `valign`, `width`, `height`, `bgcolor`, `border`, `cellpadding`, `cellspacing`, `alt`, `title`; `href` over `http`, `https`, `mailto` and `tel`; `src` over `https` or as `data:image/png`, `jpeg`, `gif` or `webp` with base64.
+- Kept CSS in `style`: `color`, `background`, `background-color`, the `font-*` and `text-*` properties, `line-height`, `letter-spacing`, `margin*`, `padding*`, `border*`, `border-radius`, `width`, `height`, `max-width`, `min-width`, `display`, `vertical-align`.
+- Removed: everything else, including scripts, event handlers, forms, iframes, `javascript:` links, images over plain `http`, and CSS with `url()`, `expression()` or `javascript:`.
 
-When you send `signature_html` without `signature_text`, the text version is rebuilt from the HTML: one line per block, links as `label (url)`, images by their `alt` text. Omit both fields to keep the stored signature; send `null` to clear one. A sender without a signature renders the template's fallback, if any: `{{ sender.signature | "Max" }}`.
+A base64 logo in a signature is sent as an inline attachment, like any embedded image in an html body ([HTML emails and images](/docs/sequences/templates#html-emails-and-images)). Keep it small, a few kilobytes: it travels with every email the sender sends.
+
+```html
+<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:Arial,sans-serif">
+  <tr>
+    <td style="padding-right:12px;border-right:2px solid #0a66c2">
+      <img src="data:image/png;base64,iVBORw0KGgo..." alt="Acme" width="48" height="48" style="display:block">
+    </td>
+    <td style="padding-left:12px;font-size:13px;line-height:18px;color:#333333">
+      <strong>Max Rivera</strong><br>Account Executive, Acme<br>
+      <a href="https://cal.com/max" style="color:#0a66c2">Book a call</a>
+    </td>
+  </tr>
+</table>
+```
+
+When you send `signature_html` without `signature_text`, the text version is rebuilt from the HTML: one line per block, links as `label (url)`, images as `[alt]`. Omit both fields to keep the stored signature; send `null` to clear one. A sender without a signature renders the template's fallback, if any: `{{ sender.signature | "Max" }}`.
 
 ## Channels
 

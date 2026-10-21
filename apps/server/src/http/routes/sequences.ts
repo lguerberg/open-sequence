@@ -9,7 +9,7 @@ import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
 import { ok } from '../envelope.js';
 import { createdResponse, createdSequence, deleted, eventTypes, listResponse, okResponse, schemaCatalogue, schemaFields, sequence, sequenceDetail, sequenceListItem, validationResult, version, versionWithProblems } from '../responses.js';
-import { definitionBody, idAndVersionParams, idParam, listQuerySchema } from '../schemas.js';
+import { DEFINITION_BODY_LIMIT, definitionBody, idAndVersionParams, idParam, listQuerySchema } from '../schemas.js';
 
 /** The version summary a sequence carries in lists and in its detail. */
 const versionSummary = (v: Version) => ({ id: v.id, tag: v.tag, status: v.status, published_at: v.publishedAt, created_at: v.createdAt });
@@ -39,6 +39,7 @@ export async function sequenceRoutes(fastify: FastifyInstance, ctx: AppContext) 
   });
 
   app.post('/v1/sequences', {
+    bodyLimit: DEFINITION_BODY_LIMIT,
     preHandler: admin,
     schema: { tags: ['Sequences'], summary: 'Create a sequence and its v1 draft', body: createSequenceSchema, response: createdResponse(createdSequence) },
     handler: async (req, reply) => ok(reply, await createSequence(ctx.deps, projectOf(req), req.body), { status: 201 }),
@@ -91,6 +92,7 @@ export async function sequenceRoutes(fastify: FastifyInstance, ctx: AppContext) 
   });
 
   app.put('/v1/sequences/:id/versions/:vid/draft', {
+    bodyLimit: DEFINITION_BODY_LIMIT,
     preHandler: admin,
     schema: { tags: ['Sequences'], summary: 'Save a draft (optimistic lock)', params: idAndVersionParams, body: z.object({ definition: definitionBody, lock_version: z.number().int().min(0) }), response: okResponse(versionWithProblems) },
     handler: async (req, reply) => ok(reply, await saveDraft(ctx.deps, projectOf(req), req.params.vid, req.body)),
@@ -118,6 +120,7 @@ export async function sequenceRoutes(fastify: FastifyInstance, ctx: AppContext) 
   });
 
   app.post('/v1/sequences::validate', {
+    bodyLimit: DEFINITION_BODY_LIMIT,
     preHandler: read,
     schema: { tags: ['Sequences'], summary: 'Validate a definition without saving', body: z.object({ definition: definitionBody }), response: okResponse(validationResult) },
     handler: async (req, reply) => {

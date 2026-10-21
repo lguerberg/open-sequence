@@ -21,7 +21,7 @@ export function validateDefinition(input: unknown): ValidationResult {
   const problems: ValidationProblem[] = [];
   const bytes = Buffer.byteLength(JSON.stringify(input ?? null));
   if (bytes > DEFINITION_LIMITS.maxBytes) {
-    return { ok: false, problems: [{ path: '', code: 'INVALID_DEFINITION', message: `The definition is ${Math.round(bytes / 1024)} KB; the limit is ${DEFINITION_LIMITS.maxBytes / 1024} KB.`, severity: 'error' }] };
+    return { ok: false, problems: [{ path: '', code: 'INVALID_DEFINITION', message: `The definition is ${(bytes / (1024 * 1024)).toFixed(1)} MB; the limit is ${DEFINITION_LIMITS.maxBytes / (1024 * 1024)} MB. Host large images over https instead of embedding them.`, severity: 'error' }] };
   }
   const parsed = definitionSchema.safeParse(input);
   if (!parsed.success) {

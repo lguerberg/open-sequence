@@ -5,6 +5,30 @@ import { DomainError } from '../../domain/shared/errors.js';
 
 export const SCOPES: readonly Scope[] = ['read', 'enroll', 'admin'];
 
+export const UNSUBSCRIBE_TOKEN_PLACEHOLDER = '{token}';
+
+export const unsubscribeUrlSchema = z
+  .string()
+  .max(2000)
+  .refine((v) => v.includes(UNSUBSCRIBE_TOKEN_PLACEHOLDER), { message: 'must contain {token}, where the signed unsubscribe token goes, like https://app.example.com/u/{token}' })
+  .refine(
+    (v) => {
+      try {
+        const u = new URL(v.replaceAll(UNSUBSCRIBE_TOKEN_PLACEHOLDER, 'token'));
+        return u.protocol === 'https:' && !!u.hostname;
+      } catch {
+        return false;
+      }
+    },
+    { message: 'must be an https URL, like https://app.example.com/u/{token}' }
+  );
+
+/** The unsubscribe link for one token: the project's own page when set, else the page this server hosts. */
+export function unsubscribeUrlFor(template: string | null | undefined, publicUrl: string, token: string): string {
+  if (template) return template.replaceAll(UNSUBSCRIBE_TOKEN_PLACEHOLDER, encodeURIComponent(token));
+  return `${publicUrl}/u/${token}`;
+}
+
 export const projectSettingsSchema = z
   .object({
     attribution_days: z.number().int().min(1).max(90).optional(),
@@ -18,6 +42,13 @@ export const projectSettingsSchema = z
     allo: z.object({ outcome_map: z.record(z.string(), z.string()).optional() }).optional(),
     max_steps_per_tick: z.number().int().min(1).max(10_000).optional(),
     mock: z.record(z.string(), z.unknown()).optional(),
+    /**
+     * Your own unsubscribe page, like `https://app.example.com/u/{token}`: an https URL with
+     * `{token}` where the signed token goes. `{{ unsubscribe_url }}` and the List-Unsubscribe
+     * headers use it; the page calls GET and POST /v1/unsubscribes/{token}. null goes back to
+     * the page this server hosts.
+     */
+    unsubscribe_url: unsubscribeUrlSchema.nullable().optional(),
   })
   .strict();
 

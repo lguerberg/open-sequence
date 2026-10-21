@@ -81,6 +81,11 @@ export type DefinitionInput = z.input<typeof definitionSchema>;
 /** Limits that protect the service; the validator reports them as INVALID_DEFINITION. */
 export const DEFINITION_LIMITS = {
   maxNodes: 200,
-  maxBytes: 256 * 1024,
+  /** The definition as JSON. Large enough for a few HTML emails with embedded images. */
+  maxBytes: 10 * 1024 * 1024,
   maxSmsChars: 1000,
+  /** An email body with `format: "text"`. */
+  maxTextEmailChars: 100_000,
+  /** An email body with `format: "html"`: room for a branded layout and a few embedded images. */
+  maxHtmlEmailChars: 5_000_000,
 } as const;

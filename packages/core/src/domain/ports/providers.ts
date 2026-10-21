@@ -2,6 +2,7 @@
  * Provider ports. The engine never calls a vendor; it calls these. Adapters live in
  * @opensequence/providers and get credentials only through @opensequence/auth.
  */
+import type { InlineImage } from '../email/inline-images.js';
 
 /** What an adapter needs to act for one sender on one channel. Secrets arrive through the auth module, not here. */
 export interface ChannelRef {
@@ -31,7 +32,10 @@ export interface EmailSendRequest {
   to: string;
   subject: string;
   text: string;
+  /** The HTML body; embedded images are already `cid:` references to `inlineImages`. */
   html?: string;
+  /** Images the HTML references by `cid:`, sent as inline parts in a multipart/related next to the HTML. */
+  inlineImages?: InlineImage[];
   /** Our own Message-ID, derived from the run key; also the idempotency key. */
   messageId: string;
   inReplyTo?: string;

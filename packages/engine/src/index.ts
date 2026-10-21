@@ -55,6 +55,12 @@ export * from './application/execution/shared.js';
 export { executeEmailStep, type StepOutcome } from './application/execution/execute-email-step.js';
 export { executeSmsStep } from './application/execution/execute-sms-step.js';
 export { consumeStepMessage, executors, type StepExecutor } from './application/execution/consume-step-message.js';
+// Unsubscribes
+export { maskEmail, type UnsubscribeStatus } from './application/unsubscribes/shared.js';
+export { getUnsubscribe } from './application/unsubscribes/get-unsubscribe.js';
+export { applyUnsubscribe } from './application/unsubscribes/apply-unsubscribe.js';
+// Email HTML
+export { sanitizeEmailHtml } from './application/email/sanitize-email-html.js';
 // Signals and tasks
 export { SIGNAL_QUEUE, recordSignal, type RecordSignalInput } from './application/signals/record-signal.js';
 export { processSignal } from './application/signals/process-signal.js';

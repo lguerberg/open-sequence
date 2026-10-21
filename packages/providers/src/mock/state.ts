@@ -1,4 +1,4 @@
-import type { ChannelRef, CrmSchema, InboundEvent } from '@opensequence/core';
+import type { ChannelRef, CrmSchema, InboundEvent, InlineImage } from '@opensequence/core';
 
 export interface OutboxEntry {
   projectId: string;
@@ -7,6 +7,10 @@ export interface OutboxEntry {
   to: string;
   subject?: string;
   body: string;
+  /** Email only: the HTML part, its inline images and the extra headers, as the adapter received them. */
+  html?: string;
+  inlineImages?: InlineImage[];
+  headers?: Record<string, string>;
   /** Email Message-ID or the SMS idempotency key. */
   key: string;
   providerId: string;

@@ -586,7 +586,7 @@ async function generateDefinition(): Promise<void> {
 
 The same document is served by \`GET /v1/schema\` (with the node and channel catalogue) so a canvas, a script or an agent validates against what the service enforces. Node \`params\` are open here and validated per node type and channel action: see [Nodes and channels](/reference/nodes).
 
-Limits: ${DEFINITION_LIMITS.maxNodes} nodes, ${DEFINITION_LIMITS.maxBytes / 1024} KB per definition, ${DEFINITION_LIMITS.maxSmsChars} characters per SMS body.
+Limits: ${DEFINITION_LIMITS.maxNodes} nodes, ${DEFINITION_LIMITS.maxBytes / (1024 * 1024)} MB per definition, ${DEFINITION_LIMITS.maxSmsChars} characters per SMS body, ${DEFINITION_LIMITS.maxTextEmailChars.toLocaleString('en-US')} characters per text email body and ${DEFINITION_LIMITS.maxHtmlEmailChars.toLocaleString('en-US')} per html email body.
 
 ## Top level
 

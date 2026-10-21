@@ -5,19 +5,23 @@ description: "Caps on definitions, batches, requests and retention, as enforced 
 
 | What | Limit | Where it is enforced |
 |---|---|---|
-| Definition size | 256 KB | `INVALID_DEFINITION` on save and publish |
+| Definition size | 10 MB | `INVALID_DEFINITION` on save and publish |
 | Nodes per definition | 200 | `INVALID_DEFINITION` |
 | Node id | `^[a-z][a-z0-9_]*$`, 1 to 64 characters | schema |
 | Rules per condition | 1 to 20 | schema |
 | SMS body | 1000 characters; a warning (`TOO_LONG`) above 320 | schema and validator |
-| Email subject and body | 300 and 100,000 characters | schema |
+| Email subject | 300 characters | schema |
+| Email body | 100,000 characters as `text`, 5,000,000 as `html` | schema |
+| Embedded (base64) image in an html email | 1 MB decoded per image (`IMAGE_TOO_LARGE`); a warning (`HEAVY_EMAIL`) above 400 KB per body | executor and validator |
+| Email message | 10 MB with its images (`MESSAGE_TOO_LARGE`) | executor |
+| Sender signature | 1 MB of HTML, 4,000 characters of text | API |
 | Task title, body, link, kind | 200, 4000, 2000 and 32 characters | schema |
 | Logic steps per advance | 25 before the enrollment is handed back to the planner | engine |
 | Contacts per batch upsert, per `:status`, per `:events` | 500 (`BATCH_TOO_LARGE`) | API |
 | Contacts per enroll call | 5,000 (`BATCH_TOO_LARGE`) | API |
 | Enrollments per `POST /v1/enrollments:exit` by sequence | 200 per call | API |
 | List page size | 1 to 200, default 50 | API |
-| Request body | 2 MB | API (`413`) |
+| Request body | 11 MB on the routes that carry a definition (create a sequence, save a draft, validate), 2 MB elsewhere | API (`413`) |
 | Requests | 600 per minute per key (`429` with `Retry-After`) | API |
 | Timeline and journey | the last 200 messages and signals, 100 tasks | API |
 | Email send retries | 5 reads of the queue message, then `failed` | executor |

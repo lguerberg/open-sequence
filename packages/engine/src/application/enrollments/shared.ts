@@ -2,6 +2,7 @@ import { validateDefinition, type Definition, type InterpretContext, type RunDra
 import type { Contact, Enrollment, Run, Sender, SenderChannel, Task } from '../../domain/entities.js';
 import type { Repositories, TransactionScope } from '../../domain/repositories.js';
 import type { Deps } from '../deps.js';
+import { unsubscribeUrlFor } from '../projects/shared.js';
 
 export const ACTIVE_STATUSES = ['active', 'paused', 'waiting_limit'] as const;
 
@@ -24,17 +25,20 @@ export interface StepContext {
   sender: Sender;
   channels: SenderChannel[];
   sequenceName: string;
+  /** The project's `unsubscribe_url` setting, when it has one. */
+  unsubscribeUrl: string | null;
 }
 
 export async function loadStepContext(repos: Repositories, e: Enrollment): Promise<StepContext> {
-  const [contact, sender, sequence] = await Promise.all([
+  const [contact, sender, sequence, project] = await Promise.all([
     repos.contacts.byId(e.projectId, e.contactId),
     repos.senders.byId(e.projectId, e.senderId),
     repos.sequences.byId(e.projectId, e.sequenceId),
+    repos.projects.byId(e.projectId),
   ]);
   if (!contact || !sender || !sequence) throw new Error(`enrollment ${e.id}: contact, sender or sequence is missing`);
   const channels = await repos.senders.channels(sender.id);
-  return { contact, sender, channels, sequenceName: sequence.name };
+  return { contact, sender, channels, sequenceName: sequence.name, unsubscribeUrl: project?.settings.unsubscribe_url ?? null };
 }
 
 const OPT_OUT_TOKEN_DAYS = 90;
@@ -48,7 +52,7 @@ export function templateContextFor(deps: Deps, ctx: StepContext, enrollment: Enr
     // `signature` is rendered raw by the template engine: the html in html emails, the text otherwise.
     sender: { name: ctx.sender.name, first_name: ctx.sender.name.split(' ')[0], email: ctx.sender.email, timezone: ctx.sender.timezone, attrs: ctx.sender.attrs, signature: { html: ctx.sender.signatureHtml ?? '', text: ctx.sender.signatureText ?? '' } },
     sequence: { name: ctx.sequenceName },
-    unsubscribe_url: `${deps.config.publicUrl}/u/${token}`,
+    unsubscribe_url: unsubscribeUrlFor(ctx.unsubscribeUrl, deps.config.publicUrl, token),
   };
 }
 

@@ -47,6 +47,8 @@ export interface ProjectSettings {
   allo?: { outcome_map?: Record<string, string> };
   max_steps_per_tick?: number;
   mock?: Record<string, unknown>;
+  /** Where `{{ unsubscribe_url }}` and List-Unsubscribe point: an https URL with `{token}`. Unset: the hosted page. */
+  unsubscribe_url?: string | null;
 }
 
 export const projects = seq.table('projects', {

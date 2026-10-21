@@ -5,6 +5,14 @@ description: "Release notes for OpenSequence, one section per version."
 
 The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this page says when it does.
 
+## 0.1.2
+
+- Branded HTML emails: an `html` body may hold up to 5,000,000 characters (text bodies stay at 100,000), and the definition limit is now 10 MB (was 256 KB). Base64 images (`<img src="data:image/png;base64,...">`, PNG, JPEG, GIF or WebP) are sent as inline attachments in a `multipart/related` with `cid:` references, so Gmail, Outlook and Apple Mail show them; identical images are attached once; hosted `https` images are untouched. An image over 1 MB fails the step with `IMAGE_TOO_LARGE`, a message over 10 MB with `MESSAGE_TOO_LARGE`. The validator warns `HEAVY_EMAIL` above 400 KB of embedded images. The text alternative shows images as `[alt]`. See [HTML emails and images](/docs/sequences/templates#html-emails-and-images).
+- Rich signatures: `signature_html` up to 1 MB, sanitized with an email allowlist that keeps table layouts, inline styles (an allowlist of CSS properties) and `https` or base64 images. Images over plain `http` are now dropped. The text twin shows images as `[alt]`.
+- The unsubscribe link on your domain: the project setting `unsubscribe_url` (an `https` URL with `{token}`) is used by `{{ unsubscribe_url }}` and the `List-Unsubscribe` headers. `GET /v1/unsubscribes/{token}` reads a token, `POST /v1/unsubscribes/{token}` applies it (scope `enroll`); SDK `unsubscribes.get(token)` and `unsubscribes.apply(token)`. See [Host the unsubscribe page in your app](/docs/contacts/consent-and-suppressions#host-the-unsubscribe-page-in-your-app).
+- Fix: the hosted unsubscribe page at `/u/{token}` answered `414` for every real token, because the router capped path parameters at 100 characters. The cap is now 2,048.
+- No migration.
+
 ## 0.1.1
 
 - Fix: an outreach step with `settings.jitter` rolled a new jitter every time its own deferral fired, so with `jitter: "20m"` each wake-up had about a 5% chance to send, and sends slid by hours or into the next day. Jitter is now rolled once when the step picks its send time; the wake-up that time produces sends if it is inside the send window. A step woken outside the window (for example, resumed after a pause) is moved into the next window with one new roll. Migration `0004_step_deferral` adds the nullable `seq.enrollments.deferral` column and runs at boot.

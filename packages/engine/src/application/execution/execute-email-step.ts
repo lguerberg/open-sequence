@@ -3,7 +3,7 @@
  * mailbox with our own Message-ID as the idempotency key; crash recovery asks the provider
  * whether that Message-ID already went out before sending again.
  */
-import { render } from '@opensequence/core';
+import { emailContent, EmailContentError, render, type EmailContent } from '@opensequence/core';
 import type { Deps } from '../deps.js';
 import { EMAIL_PROVIDER } from '../senders/shared.js';
 import { channelGate, completeRun, deferRun, failRun, loadStep, skipRun, windowGate, type StepEnv } from './shared.js';
@@ -58,9 +58,18 @@ export async function executeEmailStep(deps: Deps, runId: string, attempt: numbe
     }
   }
 
+  // Embedded images become inline parts; a message that breaks a size limit can never be sent, so it fails now instead of retrying.
+  let content: EmailContent;
+  try {
+    content = emailContent(body.text, { html, idSuffix: messageId.replace(/^<|>$/g, '') });
+  } catch (err) {
+    if (err instanceof EmailContentError) return failRun(deps, run, `${err.code}: ${err.message}`, now).then(() => 'failed');
+    throw err;
+  }
+
   try {
     const already = attempt > 1 ? await deps.providers.email.findSent({ channel: channelRef, messageId }) : null;
-    const sent = already ?? (await deps.providers.email.send({ channel: channelRef, to: contact.email, subject, text: html ? stripHtml(body.text) : body.text, html: html ? body.text : undefined, messageId, inReplyTo, references, threadRef, headers }));
+    const sent = already ?? (await deps.providers.email.send({ channel: channelRef, to: contact.email, subject, text: content.text, html: content.html, inlineImages: content.inlineImages, messageId, inReplyTo, references, threadRef, headers }));
     await deps.uow.repos.messages.insert({
       id: deps.ids.next('message'),
       projectId: run.projectId,
@@ -72,7 +81,8 @@ export async function executeEmailStep(deps: Deps, runId: string, attempt: numbe
       fromAddress: channel.address,
       toAddress: contact.email,
       subject,
-      body: body.text,
+      // The HTML as sent: embedded images are `cid:` references, so the stored copy stays small.
+      body: content.html ?? content.text,
       status: 'sent',
       provider,
       providerId: sent.providerId,
@@ -98,8 +108,4 @@ async function loadParams(deps: Deps, env: StepEnv): Promise<Record<string, unkn
   const { loadDefinition } = await import('../enrollments/shared.js');
   const def = await loadDefinition(deps.uow.repos, env.run.projectId, env.enrollment.versionId);
   return def.nodes[env.run.nodeId]?.params ?? {};
-}
-
-function stripHtml(s: string): string {
-  return s.replace(/<[^>]+>/g, '').replace(/\s+\n/g, '\n').trim();
 }

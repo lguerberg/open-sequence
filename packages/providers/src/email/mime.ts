@@ -1,6 +1,18 @@
-import type { EmailSendRequest } from '@opensequence/core';
+import type { EmailSendRequest, InlineImage } from '@opensequence/core';
 
-/** Builds the RFC 2822 message the SMTP adapter sends and files in the Sent folder. */
+/**
+ * Builds the RFC 2822 message the SMTP adapter sends and files in the Sent folder.
+ *
+ * Text only: one text/plain part. HTML: multipart/alternative with the text twin and the HTML.
+ * HTML with embedded images: the HTML and its images go in a multipart/related inside the
+ * multipart/alternative, each image an inline part whose Content-ID the HTML names as `cid:`:
+ *
+ *   multipart/alternative
+ *   ├─ text/plain
+ *   └─ multipart/related; type="text/html"
+ *      ├─ text/html
+ *      └─ image/png  (Content-ID, Content-Disposition: inline)
+ */
 export function buildRfc2822(req: EmailSendRequest, now: Date = new Date()): string {
   const headers: Array<[string, string]> = [
     ['From', req.channel.address],
@@ -18,11 +30,10 @@ export function buildRfc2822(req: EmailSendRequest, now: Date = new Date()): str
   const text = textPart(req.text);
   let body: string;
   if (req.html !== undefined) {
-    const boundary = `=_os_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+    const boundary = newBoundary();
     headers.push(['Content-Type', `multipart/alternative; boundary="${boundary}"`]);
-    body = [`--${boundary}`, text, `--${boundary}`, htmlPart(req.html), `--${boundary}--`, ''].join(
-      '\r\n'
-    );
+    const html = req.inlineImages?.length ? relatedPart(req.html, req.inlineImages) : htmlPart(req.html);
+    body = [`--${boundary}`, text, `--${boundary}`, html, `--${boundary}--`, ''].join('\r\n');
   } else {
     headers.push(
       ['Content-Type', 'text/plain; charset="UTF-8"'],
@@ -39,6 +50,31 @@ function textPart(text: string): string {
 
 function htmlPart(html: string): string {
   return `Content-Type: text/html; charset="UTF-8"\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n${quotedPrintable(html)}`;
+}
+
+// `=_` never occurs in base64 or quoted-printable output, so the boundary cannot collide with content.
+function newBoundary(): string {
+  return `=_os_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+}
+
+function relatedPart(html: string, images: InlineImage[]): string {
+  const boundary = newBoundary();
+  const lines = [`Content-Type: multipart/related; type="text/html"; boundary="${boundary}"`, '', `--${boundary}`, htmlPart(html)];
+  for (const image of images) lines.push(`--${boundary}`, imagePart(image));
+  lines.push(`--${boundary}--`);
+  return lines.join('\r\n');
+}
+
+function imagePart(image: InlineImage): string {
+  const name = image.filename.replace(/["\\\r\n]/g, '');
+  return [
+    `Content-Type: ${image.contentType}; name="${name}"`,
+    'Content-Transfer-Encoding: base64',
+    `Content-ID: ${angleBracketed(image.contentId)}`,
+    `Content-Disposition: inline; filename="${name}"`,
+    '',
+    image.base64.replace(/.{1,76}/g, '$&\r\n').replace(/\r\n$/, ''),
+  ].join('\r\n');
 }
 
 export function angleBracketed(id: string): string {

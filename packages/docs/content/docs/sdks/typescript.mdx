@@ -198,6 +198,7 @@ await oseq.analytics.sequences({ min_enrolled: 20 });
 ```ts
 await oseq.project.get();                                        // settings, credential status, webhook URLs
 await oseq.project.updateSettings({ attribution_days: 14, sms_countries: ['US', 'GB'] });
+await oseq.project.updateSettings({ unsubscribe_url: 'https://app.example.com/u/{token}' }); // your own unsubscribe page
 await oseq.project.setProvider('allo', { api_key });
 await oseq.project.setProvider('attio', { api_key });
 await oseq.project.alloNumbers(); await oseq.project.alloUsers(); await oseq.project.attioSchema();
@@ -205,6 +206,15 @@ await oseq.project.apiKeys.list(); await oseq.project.apiKeys.create({ name: 'ap
 await oseq.project.flags.set('channel:sms', { value: false });
 await oseq.project.health();
 await oseq.schema.definition(); await oseq.schema.fields(); await oseq.schema.events();
+```
+
+</Accordion>
+<Accordion title="unsubscribes">
+
+```ts
+// For an unsubscribe page in your app (project setting unsubscribe_url). Scope enroll.
+const status = await oseq.unsubscribes.get(token);   // { valid, expired, contact: { email: 'd***@acme.com', first_name }, already_unsubscribed }
+await oseq.unsubscribes.apply(token);                // suppress email, exit enrollments; idempotent
 ```
 
 </Accordion>

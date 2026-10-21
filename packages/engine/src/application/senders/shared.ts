@@ -6,8 +6,8 @@ export const senderInputSchema = z.object({
   email: z.string().email().max(320).optional().nullable(),
   timezone: z.string().max(48).refine(isValidTimezone, 'not an IANA time zone, like Europe/London').default('UTC'),
   attrs: z.record(z.string(), z.unknown()).default({}),
-  /** The email signature as HTML; sanitized on save (see signature.ts). `null` clears it. */
-  signature_html: z.string().max(20_000).optional().nullable(),
+  /** The email signature as HTML, up to 1 MB (a base64 logo fits); sanitized on save (see signature.ts). `null` clears it. */
+  signature_html: z.string().max(1024 * 1024).optional().nullable(),
   /** The plain-text version, for `format: "text"` emails; derived from the HTML when omitted. */
   signature_text: z.string().max(4_000).optional().nullable(),
 });

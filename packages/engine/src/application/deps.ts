@@ -38,8 +38,22 @@ export interface EngineConfig {
   publicUrl: string;
 }
 
-/** Signs the opt-out link token for one run; the server verifies it at GET /u/{token}. */
-export type OptOutTokenSigner = (t: { projectId: string; contactId: string; runId: string; exp: number }) => string;
+export interface OptOutClaims {
+  projectId: string;
+  contactId: string;
+  runId: string;
+  /** Expiry, in seconds since the epoch. */
+  exp: number;
+}
+
+/** Signs the opt-out link token for one run. */
+export type OptOutTokenSigner = (t: OptOutClaims) => string;
+
+/**
+ * Reads a token back: null when it was not signed by this server (or is malformed), otherwise its
+ * claims and whether it has expired. An expired token is still authentic, so a page can say whose it was.
+ */
+export type OptOutTokenVerifier = (token: string, now: Date) => { claims: OptOutClaims; expired: boolean } | null;
 
 export interface Deps {
   uow: UnitOfWork;
@@ -51,6 +65,7 @@ export interface Deps {
   secrets: SecretsPort;
   webhookTransport: WebhookTransport;
   optOutToken: OptOutTokenSigner;
+  optOutVerify: OptOutTokenVerifier;
   config: EngineConfig;
 }
 

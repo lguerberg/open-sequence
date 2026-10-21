@@ -13,7 +13,7 @@ import type pino from 'pino';
 import type { Env } from './config/env.js';
 import type { AppContext, AuthModule } from './http/context.js';
 import { healthState } from './http/routes/health.js';
-import { signOptOutToken } from './http/routes/optout.js';
+import { signOptOutToken, verifyOptOutToken } from './http/routes/optout.js';
 import { engineLogger } from './infrastructure/logger.js';
 
 export interface Runtime extends AppContext {
@@ -71,6 +71,7 @@ export async function bootstrap(env: Env, log: pino.Logger): Promise<Runtime> {
     secrets: { encrypt: async (plain) => cipher.encrypt(plain), decrypt: async (c, k) => cipher.decrypt(c, k) },
     webhookTransport: fetchWebhookTransport,
     optOutToken: (t) => signOptOutToken(optOutSecret, t),
+    optOutVerify: (token, now) => verifyOptOutToken(optOutSecret, token, now),
     config: {
       ...DEFAULT_CONFIG,
       paused: env.SEQ_PAUSED,

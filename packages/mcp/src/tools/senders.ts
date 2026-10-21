@@ -115,7 +115,7 @@ export const upsertSender = defineTool({
   name: 'upsert_sender',
   title: 'Create or update a sender',
   description:
-    'Creates a sender (a person outreach is sent as) by your external id, or updates one. Fields you leave out keep their stored value, so you can change only the signature. The signature is what {{ sender.signature }} renders at the end of an email: signature_html for html emails (sanitized on save: links, images, line breaks and simple tables stay; scripts and forms are dropped) and signature_text for text emails (derived from the HTML when you leave it out). null clears a signature. Connecting a mailbox or phone number is not done here.',
+    'Creates a sender (a person outreach is sent as) by your external id, or updates one. Fields you leave out keep their stored value, so you can change only the signature. The signature is what {{ sender.signature }} renders at the end of an email: signature_html for html emails (sanitized on save: tables, inline styles, links and https or base64 images stay; scripts, forms, event handlers and javascript: links are dropped) and signature_text for text emails (derived from the HTML when you leave it out). null clears a signature. Connecting a mailbox or phone number is not done here.',
   scope: 'admin',
   input: {
     sender: z
@@ -146,10 +146,12 @@ export const upsertSender = defineTool({
       ),
     signature_html: z
       .string()
-      .max(20_000)
+      .max(1024 * 1024)
       .nullable()
       .optional()
-      .describe('The email signature as HTML, like "<p>Max Rivera<br>Acme</p>". null clears it.'),
+      .describe(
+        'The email signature as HTML, up to 1 MB, like "<p>Max Rivera<br>Acme</p>". Tables, inline styles, links and images (https or data:image/png|jpeg|gif|webp;base64) are kept. null clears it.'
+      ),
     signature_text: z
       .string()
       .max(4_000)

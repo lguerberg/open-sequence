@@ -1,6 +1,6 @@
 ---
 title: "Consent and suppressions"
-description: "SMS consent, do-not-contact, the hosted opt-out link, STOP, bounces and complaints, and where each one is enforced."
+description: "SMS consent, do-not-contact, the opt-out link on your domain or ours, STOP, bounces and complaints, and where each one is enforced."
 ---
 
 <CodeGroup>
@@ -31,7 +31,7 @@ A suppression is a mark on a contact for one channel (`email`, `sms`) or `all`, 
 
 | Source | Channel | Reason | Also |
 |---|---|---|---|
-| The hosted opt-out link in an email (`{{ unsubscribe_url }}`, `List-Unsubscribe` headers) | `email` | `opt_out` | exits the enrollment with `opt_out` |
+| The opt-out link in an email (`{{ unsubscribe_url }}`, `List-Unsubscribe` headers), on the hosted page or through `POST /v1/unsubscribes/{token}` | `email` | `opt_out` | exits the enrollment with `opt_out` |
 | A `STOP` text (`STOP`, `QUIT`, `END`, `CANCEL`, `UNSUBSCRIBE`, `OPT OUT`, `STOPALL`) | `sms` | `opt_out` | exits |
 | A hard bounce | `email` | `hard_bounce` | exits with `bounced`; a soft bounce suppresses nothing |
 | A complaint | `email` | `complaint` | exits with `bounced` |
@@ -42,7 +42,45 @@ Suppressions are never removed by the API today; erase the contact and create it
 
 ## The opt-out link
 
-Every email body should contain `{{ unsubscribe_url }}` (publishing without it is the warning `NO_UNSUBSCRIBE`). It renders a signed link on your instance, `SEQ_PUBLIC_URL/u/{token}`, valid for 90 days, that shows a one-click page; the click (or the `List-Unsubscribe-Post` one-click that mail clients send) writes the `email` suppression and exits the enrollment. Every email also carries `List-Unsubscribe` and `List-Unsubscribe-Post` headers pointing at the same token. The token is derived from `SEQ_ENCRYPTION_KEYS`; rotating the first key invalidates links already sent.
+Every email body should contain `{{ unsubscribe_url }}` (publishing without it is the warning `NO_UNSUBSCRIBE`). It renders a signed link valid for 90 days. Every email also carries `List-Unsubscribe: <url>` and `List-Unsubscribe-Post: List-Unsubscribe=One-Click` headers with the same URL, so mail clients show their own unsubscribe button. The token is derived from `SEQ_ENCRYPTION_KEYS`; rotating the first key invalidates links already sent.
+
+Without the project setting `unsubscribe_url`, the link points at a page this server hosts, `SEQ_PUBLIC_URL/u/{token}`. It shows a one-click page; the click, or the one-click POST that mail clients send, writes the `email` suppression and exits the enrollment. This is enough for a self-hosted install with no app in front of it.
+
+## Host the unsubscribe page in your app
+
+When OpenSequence runs behind your product, the link should be on your domain, and your app should show the page. OpenSequence only answers your API calls.
+
+First, set the project's `unsubscribe_url`: an `https` URL containing `{token}`, where the signed token goes. With an `admin` key:
+
+```bash
+curl -X PUT $SEQ/v1/project/settings -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"unsubscribe_url":"https://app.example.com/u/{token}"}'
+```
+
+```ts
+await oseq.project.updateSettings({ unsubscribe_url: 'https://app.example.com/u/{token}' });
+```
+
+From then on `{{ unsubscribe_url }}` and both headers render `https://app.example.com/u/<token>`. A URL that is not `https`, or has no `{token}`, is refused with `INVALID_SETTINGS`. Set it to `null` to go back to the hosted page.
+
+Then, on GET of that page, read the token with an `enroll` key and show a confirmation. Reading changes nothing. The email is masked so a forwarded link does not reveal the address:
+
+```ts
+const status = await oseq.unsubscribes.get(token);
+// { valid: true, expired: false, contact: { email: 'd***@acme.com', first_name: 'Dana' }, already_unsubscribed: false }
+```
+
+An unknown, altered or other-project token reads `valid: false`; an expired one reads `valid: false, expired: true`.
+
+When the person confirms, apply it:
+
+```ts
+await oseq.unsubscribes.apply(token); // POST /v1/unsubscribes/{token}
+```
+
+This writes the `email` suppression and exits the contact's enrollments with `opt_out`, exactly like the hosted page. It is idempotent: a second call changes nothing and returns `already_unsubscribed: true`. An invalid token is a `400` with `UNSUBSCRIBE_TOKEN_INVALID`, an expired one `UNSUBSCRIBE_TOKEN_EXPIRED`.
+
+Finally, accept a POST on the same URL. Under RFC 8058, Gmail, Yahoo and Apple Mail unsubscribe with one click by sending `POST https://app.example.com/u/<token>` with the body `List-Unsubscribe=One-Click`, without opening the page. Your handler applies the token on that POST, answers `200` without a redirect or a login, and must not require a CSRF token for it. Bulk senders are required to support one-click unsubscribe.
 
 ## What exits, what pauses
 

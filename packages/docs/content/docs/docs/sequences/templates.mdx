@@ -1,6 +1,6 @@
 ---
 title: "Templates"
-description: "Syntax, paths, fallbacks, text and html bodies, the unsubscribe link, and what is recorded."
+description: "Syntax, paths, fallbacks, text and html bodies, branded HTML emails with images, the unsubscribe link, and what is recorded."
 ---
 
 ```text
@@ -24,7 +24,7 @@ Subjects, bodies, task titles, bodies and links are rendered by one small engine
 | `sender.attrs.<path>` | the sender's attrs |
 | `sender.signature` | the sender's signature: the sanitized HTML in an html body, the text twin in a text body. The only path rendered without escaping ([Senders](/docs/sending/senders)) |
 | `sequence.name` | the sequence's name |
-| `unsubscribe_url` | the hosted opt-out link for this run |
+| `unsubscribe_url` | the opt-out link for this run: your own page when the project sets `unsubscribe_url`, else the page this server hosts |
 
 A path outside these roots is a publish error (`BAD_TEMPLATE`).
 
@@ -37,7 +37,7 @@ Store each sender's signature once (`PUT /v1/senders/{id}` with `signature_html`
 "format": "html"
 ```
 
-The HTML is sanitized when saved: text, links (`http`, `https`, `mailto`, `tel`), images over `http` or `https`, line breaks and simple tables stay; scripts, forms, frames and event handlers are dropped. An empty signature renders as nothing, or as the fallback when you give one.
+The HTML is sanitized when saved with an email allowlist: table layouts, inline styles, links (`http`, `https`, `mailto`, `tel`) and images over `https` or as base64 stay; scripts, forms, frames, event handlers and CSS that loads anything are dropped ([Senders](/docs/sending/senders#the-signature)). An empty signature renders as nothing, or as the fallback when you give one.
 
 ## Missing values and fallbacks
 
@@ -45,11 +45,58 @@ A missing or empty value renders as the fallback, or as an empty string when the
 
 ## Text and HTML
 
-Email bodies are `text` (default) or `html` (`params.format`). In `html`, every rendered value is HTML-escaped, and the message carries a plain-text alternative made from the HTML. In `text`, values are inserted as is. SMS bodies and task fields are plain text.
+Email bodies are `text` (default) or `html` (`params.format`). In `html`, every rendered value is HTML-escaped, and the message carries a plain-text alternative made from the HTML: one line per block, links as `label (url)`, images as `[alt]`. In `text`, values are inserted as is. SMS bodies and task fields are plain text.
+
+A text body holds up to 100,000 characters and an html body up to 5,000,000, enough for a branded layout with a few embedded images.
+
+## HTML emails and images
+
+An `html` body is sent as you wrote it. Write it the way email builders such as Customer.io or Mailchimp do: tables for layout, inline `style` attributes, widths in pixels. The body is written by your project's admins, so the service does not sanitize it; only signatures, which any rep can edit, go through the allowlist.
+
+An image can be hosted or embedded.
+
+- **Hosted**: `<img src="https://cdn.example.com/logo.png">`. The email stays small, and the client loads the image when the reader opens it. Hosted images are untouched at send time. They are the best choice for large campaigns and for anything above a few kilobytes.
+- **Embedded**: `<img src="data:image/png;base64,...">` with a PNG, JPEG, GIF or WebP. Gmail, Outlook and Apple Mail do not show `data:` images, so at send time every embedded image becomes an inline attachment: a part of a `multipart/related` with its own `Content-ID`, and its `src` becomes `cid:...`. The same image used twice, in the body and in the signature for example, is attached once. `alt`, `width`, `height` and `style` are kept. Embedded images show without a click on "load images", and work without a CDN.
+
+| Limit | Value | When it is broken |
+|---|---|---|
+| One embedded image, decoded | 1 MB | the step fails with `IMAGE_TOO_LARGE` |
+| The whole message, both bodies and the encoded images | 10 MB | the step fails with `MESSAGE_TOO_LARGE` |
+| Embedded images in one html body, decoded | 400 KB | the warning `HEAVY_EMAIL` on save and publish; the email still sends |
+
+A failed step is never truncated or sent without its images: the run fails with the code in `error`, and the enrollment follows the step's `failed` transition.
+
+Keep emails light. Every embedded byte travels with every message, large emails are clipped by Gmail above about 100 KB of HTML and are scored as bulk mail, and an email that is mostly image reads as spam. Embed a logo or an icon; host photos and banners. Always give every image an `alt`: many readers block images, and the text alternative shows `[alt]` in its place.
+
+A branded email with a table layout and an embedded logo:
+
+```html
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7">
+  <tr><td align="center" style="padding:24px 0">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px">
+      <tr><td style="padding:24px">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="Acme" width="120" height="40" style="display:block">
+      </td></tr>
+      <tr><td style="padding:0 24px;font-family:Arial,sans-serif;font-size:16px;line-height:24px;color:#333333">
+        Hi {{ contact.first_name | "there" }},<br>Your workspace is ready.
+      </td></tr>
+      <tr><td style="padding:24px">
+        <a href="https://app.acme.com/start" style="background:#0a66c2;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-family:Arial,sans-serif">Open Acme</a>
+      </td></tr>
+      <tr><td style="padding:0 24px 24px">{{ sender.signature }}</td></tr>
+      <tr><td style="padding:16px 24px;font-family:Arial,sans-serif;font-size:12px;color:#888888">
+        <a href="{{ unsubscribe_url }}" style="color:#888888">Unsubscribe</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+```
+
+In the definition the HTML is the `body` string, with `"format": "html"`. Embedded images count toward the definition limit of 10 MB.
 
 ## The unsubscribe link
 
-`{{ unsubscribe_url }}` renders `SEQ_PUBLIC_URL/u/{token}`, a signed link valid for 90 days that writes an email suppression and exits the enrollment with one click; every email also carries `List-Unsubscribe` and `List-Unsubscribe-Post` headers for the same token. An email body without it publishes with the warning `NO_UNSUBSCRIBE`. See [Consent and suppressions](/docs/contacts/consent-and-suppressions).
+`{{ unsubscribe_url }}` renders a signed link, valid for 90 days, that writes an email suppression and exits the enrollment with one click. By default it points at a page this server hosts, `SEQ_PUBLIC_URL/u/{token}`. When the project setting `unsubscribe_url` is set, for example `https://app.example.com/u/{token}`, it renders that URL with the token in place of `{token}`, so the link is on your own domain. Every email also carries `List-Unsubscribe` and `List-Unsubscribe-Post` headers with the same URL. An email body without it publishes with the warning `NO_UNSUBSCRIBE`. See [Consent and suppressions](/docs/contacts/consent-and-suppressions#host-the-unsubscribe-page-in-your-app).
 
 ## What is recorded
 

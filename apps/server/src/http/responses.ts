@@ -557,3 +557,16 @@ export const sequenceRow = z
   .object({ sequence: z.string(), name: z.string(), status: z.string(), enrolled: z.number().int(), replies: z.number().int(), meetings: z.number().int(), replies_per_100_enrolled: rate, meetings_per_100_enrolled: rate })
   .meta({ id: 'SequenceRow' });
 export const allSequences = z.object({ sequences: z.array(sequenceRow).describe('Ranked by replies then meetings per 100 enrolled.') }).meta({ id: 'AllSequences' });
+
+// ------------------------------------------------------------------ unsubscribes
+export const unsubscribeStatus = z
+  .object({
+    valid: z.boolean().describe('Signed by this server for this project, not expired, and the contact still exists.'),
+    expired: z.boolean().describe('Authentic but past its 90-day expiry.'),
+    contact: z
+      .object({ email: z.string().nullable().describe('Masked, like d***@acme.com.'), first_name: z.string().nullable() })
+      .nullable()
+      .describe('Null when the token is not authentic or the contact was deleted.'),
+    already_unsubscribed: z.boolean().describe('The contact already had an email (or all-channel) suppression before this call.'),
+  })
+  .meta({ id: 'UnsubscribeStatus', description: 'What an unsubscribe page shows, and what applying a token did.' });

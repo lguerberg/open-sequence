@@ -9,6 +9,10 @@ export * from './domain/conditions/facts.js';
 export * from './domain/conditions/evaluate.js';
 // Templates
 export * from './domain/template/render.js';
+// Email content
+export * from './domain/email/inline-images.js';
+export * from './domain/email/html-to-text.js';
+export * from './domain/email/email-content.js';
 // Time
 export * from './domain/time/timing.js';
 export * from './domain/time/timezones.js';

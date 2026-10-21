@@ -42,6 +42,8 @@ export type Definition = Record<string, unknown>;
 // ------------------------------------------------------------------ project
 export type ProjectSettings = Schemas['ProjectSettings'];
 export type Project = Schemas['Project'];
+/** What an unsubscribe page shows (`unsubscribes.get`) and what applying a token did (`unsubscribes.apply`). */
+export type UnsubscribeStatus = Schemas['UnsubscribeStatus'];
 /** A provider credential as the API shows it: status and key id, never the secret. */
 export type CredentialView = Schemas['Credential'];
 export type ProjectView = Schemas['ProjectView'];
