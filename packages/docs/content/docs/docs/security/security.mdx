@@ -1,9 +1,10 @@
 ---
-title: "Security"
-description: "The OpenSequence security model: tenants, API keys, encrypted secrets, signed webhooks, mailbox privacy, consent rules and the gaps still open."
+title: "Security model"
+nav: "Security model"
+description: "How OpenSequence protects access: tenants, API keys, encrypted secrets, signed webhooks, mailbox privacy, consent rules and the gaps still open."
 ---
 
-OpenSequence sends from real people's mailboxes and phone numbers and reads their replies, so this page lists every control that protects that access. To harden a deployment, read [Security hardening](/docs/self-hosting/security-hardening); to report a vulnerability privately, see [Support](/docs/community/support).
+OpenSequence sends from real people's mailboxes and phone numbers and reads their replies, so this page lists every control that protects that access. To harden a deployment, read [Security hardening](/docs/security/security-hardening); to report a vulnerability, contact the maintainer privately through their [GitHub profile](https://github.com/lguerberg), never in a public issue.
 
 ## Controls
 
@@ -44,6 +45,6 @@ OpenSequence sends from real people's mailboxes and phone numbers and reads thei
 | `X-Request-Id` | not propagated; the service makes its own `req_…` id |
 | `retention_days` | accepted, not enforced ([Data retention](/docs/security/data-retention)) |
 | rate limit | counted per api replica, not globally |
-| key rotation | no command re-encrypts stored secrets under a new key yet ([Security hardening](/docs/self-hosting/security-hardening)) |
+| key rotation | no command re-encrypts stored secrets under a new key yet ([Security hardening](/docs/security/security-hardening)) |
 
-See the [roadmap](/docs/community/roadmap).
+

@@ -15,7 +15,7 @@ We build OpenSequence, an Apache-2.0 open source sequencing engine you run yours
 
 ## Who should not move
 
-OpenSequence is a headless engine that runs as one container with a Postgres database and an API. It is pre-1.0, and the SDK is not on npm yet. Stay where you are if any of these is true:
+OpenSequence is a headless engine that runs as one container with a Postgres database and an API. It is pre-1.0, and its TypeScript SDK installs with `npm install @opensequence/sdk`. Stay where you are if any of these is true:
 
 - Your reps send from Microsoft 365 or Outlook. OpenSequence sends over SMTP and IMAP, and Microsoft turned password sign-in off for both.
 - Nobody on the team writes code. OpenSequence has no UI. Someone has to build the enroll button, the task inbox and the reporting screen on the API.
@@ -141,7 +141,7 @@ A connected call counts as a reply, so `exit_on: ['reply']` ends the flow when a
 
 ## Mailboxes and warm-up continuity
 
-If your reps connected Google Workspace mailboxes to Outreach or Salesloft, you do not need to re-warm anything. OpenSequence sends through the [same accounts over SMTP](https://docs.opensequence.dev/docs/sending/email-smtp), from the same domain, with the same reputation. Each rep creates an app password once, and the engine checks it before it saves it.
+If your reps connected Google Workspace mailboxes to Outreach or Salesloft, you do not need to re-warm anything. OpenSequence sends through the [same accounts over SMTP](https://docs.opensequence.dev/docs/modules/email), from the same domain, with the same reputation. Each rep creates an app password once, and the engine checks it before it saves it.
 
 The trap is combined volume during the parallel run. OpenSequence's `daily_limit` defaults to 30 emails with a 60 second minimum gap, and it counts only OpenSequence's own sends. It cannot see what Outreach sent from the same mailbox an hour earlier. If a rep sent 50 a day before, split that budget. Put 35 in the old tool and 15 in OpenSequence in week one, then shift the split as the old sequences drain. Google's hard ceiling is [2,000 messages a day per Workspace user](https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace), and a cold outbound mailbox should stay far below it.
 
@@ -170,13 +170,13 @@ for (let i = 0; i < rows.length; i += 500) {
 }
 ```
 
-Event ids make the import idempotent, so a rerun after a crash changes nothing. The [contact events page](https://docs.opensequence.dev/docs/contacts/events) lists every type.
+Event ids make the import idempotent, so a rerun after a crash changes nothing. The [contact events page](https://docs.opensequence.dev/docs/get-started/integrate#report-what-the-service-cannot-see) lists every type.
 
 Watch for replies on old threads. OpenSequence detects replies only in threads it started, so it does not see a prospect who answers an Outreach email from three weeks ago. While both systems run, forward any such reply as a `reply` event, or that contact keeps getting follow-ups.
 
 Sometimes contacts must move mid-sequence, because the contract ends before the drain does. In that case, export their sequence state, remove them from the sequence in the old tool, and enroll them in a second published sequence whose `entry` is the step they had reached. Its first email cannot thread onto the old one, because `reply_in_thread` only threads within the same enrollment. Write that email as a new message that makes sense without the earlier thread.
 
-Rehearse with `mode: "dry_run"` first. In dry-run mode, the engine records email and text steps with their rendered text instead of sending them. Waits and conditions run for real. Task steps are recorded too, but no task reaches a rep's inbox ([enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)).
+Rehearse with `mode: "dry_run"` first. In dry-run mode, the engine records email and text steps with their rendered text instead of sending them. Waits and conditions run for real. Task steps are recorded too, but no task reaches a rep's inbox ([enrolling](https://docs.opensequence.dev/docs/concepts/enrollment)).
 
 ## CRM sync
 

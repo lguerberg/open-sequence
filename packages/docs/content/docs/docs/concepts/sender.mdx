@@ -1,0 +1,71 @@
+---
+title: "Sender: the rep a sequence sends as"
+nav: "Sender"
+description: "What a sender is: the rep an enrollment acts as, with a name, time zone, email signature, attributes such as a calendar URL, and one channel per kind."
+---
+
+A sender is the person outreach comes from. This page shows the profile fields and how a sender gets its channels.
+
+Emails go out from the sender's mailbox, texts from their Allo number, and tasks land in their inbox. You create a sender with your own user id. It needs an `admin` key.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/senders/u_42 -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{
+  "name": "Max Rivera",
+  "email": "max@acme.com",
+  "timezone": "America/New_York",
+  "signature_html": "<p><b>Max Rivera</b><br>Account Executive</p>",
+  "attrs": { "calendar_url": "https://cal.com/max-rivera/30min", "direct_line": "+1 415 555 0134" }
+}'
+```
+
+```ts title="TypeScript"
+await oseq.senders.upsert('u_42', {
+  name: 'Max Rivera',
+  email: 'max@acme.com',
+  timezone: 'America/New_York',
+  signature_html: '<p><b>Max Rivera</b><br>Account Executive</p>',
+  attrs: { calendar_url: 'https://cal.com/max-rivera/30min', direct_line: '+1 415 555 0134' },
+});
+```
+
+</CodeGroup>
+
+| Field | What it does |
+|---|---|
+| `name` | Required. Templates read `{{ sender.name }}` and `{{ sender.first_name }}` (the first word). |
+| `email` | The person's address, for `{{ sender.email }}`. |
+| `timezone` | An IANA zone, default `UTC`. Task due dates and a send window with `tz: "sender"` follow it. |
+| `signature_html` | The email signature, up to 1 MB, so a base64 logo fits. Sanitized on save. |
+| `signature_text` | The plain-text signature for `format: "text"` emails. Built from the HTML when you leave it out. |
+| `attrs` | Anything else a template needs. See [Attributes](/docs/concepts/attributes). |
+
+`PUT` replaces the profile. Send `attrs` every time, or they are cleared. Leaving out the signature keeps the stored one, and `null` clears it.
+
+## The signature
+
+`{{ sender.signature }}` inserts `signature_html` in an html email and `signature_text` in a text email. It can be as rich as a branded email: a table layout, inline styles and a logo. On save, an email allowlist keeps tables, inline styles, links and images over `https` or base64, and drops scripts, forms, frames, event handlers and images over plain `http`. A base64 logo goes out as an inline attachment with every email, so keep it to a few kilobytes.
+
+## A calendar link per sender
+
+Yes, each sender can have their own booking link. Store it in `attrs` and use it in any template:
+
+```text
+Worth a quick call? Pick a time: {{ sender.attrs.calendar_url | "just reply to this email" }}
+
+{{ sender.signature }}
+```
+
+The same works for a direct line, a title or a LinkedIn URL. OpenSequence never reads the calendar. Report a booked meeting with a [contact event](/docs/get-started/integrate#report-what-the-service-cannot-see).
+
+## Channels
+
+A sender has at most one channel per kind. Only an `active` channel sends.
+
+| Channel | Connect it with | Module |
+|---|---|---|
+| `email` | `PUT /v1/senders/{id}/channels/email` | [Email](/docs/modules/email) |
+| `sms` | `PUT /v1/senders/{id}/channels/sms` | [Allo](/docs/modules/sms/allo) |
+
+`GET /v1/senders/{id}/readiness` says which steps the sender can run now, and why not. `DELETE /v1/senders/{id}` disables the sender. Their new enrollments are refused with `409 SENDER_DISABLED`. The API cannot re-enable a disabled sender yet.

@@ -1,0 +1,81 @@
+---
+title: "TypeScript SDK: install @opensequence/sdk from npm"
+nav: "TypeScript SDK"
+icon: typescript
+description: "How to install the OpenSequence TypeScript SDK from npm, create a client with your server URL and key, handle errors and verify webhooks."
+---
+
+The SDK is a typed client for the OpenSequence API. Install it, create one client per key, and call resources by name.
+
+## What it gives you
+
+- One method per endpoint, typed from the server's OpenAPI file.
+- `verifyWebhook()` for signed deliveries.
+- Zero runtime dependencies: global `fetch` and `node:crypto`. ESM, Node 20 or newer.
+
+## What you need
+
+- The URL of your OpenSequence server.
+- A project API key, or `SEQ_ADMIN_TOKEN` for the operator client.
+
+## Steps
+
+```bash
+npm install @opensequence/sdk
+```
+
+```ts
+import { OpenSequence, OpenSequenceAdmin } from '@opensequence/sdk';
+
+const oseq = new OpenSequence({ baseUrl: 'https://sequences.example.com', apiKey: process.env.OSEQ_KEY! });
+
+// Only to create projects: the operator token
+const operator = new OpenSequenceAdmin({ baseUrl: 'https://sequences.example.com', adminToken: process.env.SEQ_ADMIN_TOKEN! });
+```
+
+`baseUrl` has no `/v1`. Keep keys on your server, never in a browser.
+
+The same call with curl and with the SDK:
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"email":"dana@example.com"}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.upsert('p_7', { email: 'dana@example.com' });
+```
+
+</CodeGroup>
+
+## Check it works
+
+```ts
+const project = await oseq.project.get();
+console.log(project.project?.slug);
+```
+
+## Common errors
+
+Every failure is an `OpenSequenceError` with `status`, `code`, `message`, `details` and `requestId`.
+
+```ts
+import { OpenSequenceError } from '@opensequence/sdk';
+
+try {
+  await oseq.sequences.enroll(sequenceId, { contacts: ['p_7'], sender: 'u_42' });
+} catch (err) {
+  if (err instanceof OpenSequenceError && err.is('ALREADY_IN_SEQUENCE')) console.log(err.details); // { conflicts: [...] }
+  else throw err;
+}
+```
+
+| `code` | Fix |
+|---|---|
+| `NETWORK_ERROR`, `TIMEOUT` (`status: 0`) | The server is unreachable. Check `baseUrl`. |
+| `UNAUTHORIZED` | The key is wrong or revoked. |
+| `INSUFFICIENT_SCOPE` | The key's scope is too narrow. |
+| `VALIDATION_ERROR` | The body does not match the schema. `details` lists the fields. |
+
+Every method, resource by resource: [SDK reference](/sdks/typescript). There is no Python or Go SDK: see [Python](/sdks/python) and [Go](/sdks/go) for calling the API directly.

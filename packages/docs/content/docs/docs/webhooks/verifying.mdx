@@ -1,6 +1,7 @@
 ---
-title: "Verifying signatures"
-description: "Standard Webhooks signatures, with the SDK and by hand."
+title: "Verifying webhook signatures"
+nav: "Signatures"
+description: "How to verify Standard Webhooks signatures with the SDK or by hand, store the signing secret, and rotate it safely."
 ---
 
 Every delivery carries three headers following the [Standard Webhooks](https://www.standardwebhooks.com) specification. Verify them before you trust the body; otherwise anyone who finds your URL can enroll a fake "reply" into your CRM.

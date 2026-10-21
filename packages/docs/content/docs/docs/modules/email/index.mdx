@@ -1,0 +1,137 @@
+---
+title: "Email: send over SMTP and read replies over IMAP"
+nav: "Overview"
+icon: email
+description: "How to connect a sender's mailbox to OpenSequence: SMTP to send, IMAP to read replies and bounces, daily limits, send windows and deliverability basics."
+---
+
+The Email module sends each email from the rep's own mailbox and reads their replies. Connect one mailbox per sender, then set its limits.
+
+## What it gives you
+
+- Emails sent through the sender's SMTP server, from their own address, with a copy filed in Sent.
+- Replies, out-of-office messages and bounces read from the IMAP inbox about once a minute.
+- A reply ends the enrollment when the sequence's `exit_on` lists `reply`. A hard bounce always ends it.
+
+## What you need
+
+- An `admin` API key.
+- A [sender](/docs/concepts/sender) to attach the mailbox to.
+- The mailbox's SMTP and IMAP host, port and login. Use an app password wherever the provider has one.
+
+Provider settings: [Gmail and Google Workspace](/docs/modules/email/gmail), [Outlook and Microsoft 365](/docs/modules/email/outlook), [other SMTP providers](/docs/modules/email/other-smtp).
+
+## Steps
+
+<Steps>
+<Step title="Save the mailbox">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/senders/u_42/channels/email -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{
+  "provider": "smtp",
+  "smtp": { "host": "smtp.gmail.com", "port": 465, "secure": true, "user": "max@acme.com", "password": "abcd efgh ijkl mnop" },
+  "imap": { "host": "imap.gmail.com", "port": 993, "secure": true, "user": "max@acme.com", "password": "abcd efgh ijkl mnop" }
+}'
+```
+
+```ts title="TypeScript"
+const box = (host: string, port: number) => ({ host, port, secure: true, user: 'max@acme.com', password: process.env.MAX_APP_PASSWORD! });
+await oseq.senders.setSmtp('u_42', { provider: 'smtp', smtp: box('smtp.gmail.com', 465), imap: box('imap.gmail.com', 993) });
+```
+
+</CodeGroup>
+
+The service signs in to SMTP, then IMAP, before it stores anything. Both passwords are encrypted and never returned. `from` is optional: it defaults to the SMTP login when that is an address. `secure: true` means TLS from the first byte (465, 993). `secure: false` means STARTTLS (587, 143).
+
+</Step>
+<Step title="Set the limits">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PATCH $SEQ/v1/senders/u_42/channels/email -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"daily_limit":30,"min_gap_seconds":90}'
+```
+
+```ts title="TypeScript"
+await oseq.senders.patchChannel('u_42', 'email', { daily_limit: 30, min_gap_seconds: 90 });
+```
+
+</CodeGroup>
+
+`daily_limit` (default 30) counts sends in a rolling 24 hours. Over it, the step waits an hour and the enrollment shows `waiting_limit`. `min_gap_seconds` (default 60) spaces sends out. `{ "status": "paused" }` stops the channel without removing it.
+
+</Step>
+</Steps>
+
+## Check it works
+
+```bash
+curl $SEQ/v1/senders/u_42/readiness -H "Authorization: Bearer $KEY"
+# {"email":{"ok":true},"sms":{"ok":false,"reason":"no_allo_number"},"task":{"ok":true}}
+```
+
+`oseq.senders.readiness('u_42')` returns the same. Then enroll yourself in a one-email sequence and reply to it. Within about a minute the enrollment exits with `replied`.
+
+## Common errors
+
+| Error | Fix |
+|---|---|
+| `422 SMTP_AUTH_FAILED`, `IMAP_AUTH_FAILED` | The server refused the login. Use an app password and check that SMTP and IMAP access are on. |
+| `422 SMTP_UNREACHABLE`, `IMAP_UNREACHABLE` | Wrong host or port, a firewall, or an untrusted certificate. For a private certificate authority, set `NODE_EXTRA_CA_CERTS`. |
+| `422 SMTP_REFUSED`, `IMAP_REFUSED` | Connected, then refused, for example no STARTTLS on a remote host with `secure: false`. |
+| `422 FROM_REQUIRED` | Set `from`, or use the full address as the SMTP user. |
+| Steps skip with `sender_channel_credentials_needed` | The password stopped working. Save the mailbox again. A `sender.channel_status` webhook tells you. |
+
+## Send window
+
+Put working hours in the sequence definition. A step outside them waits for the next opening.
+
+```json
+"settings": { "send_window": { "days": ["mon", "tue", "wed", "thu", "fri"], "from": "09:00", "to": "17:00", "tz": "contact" }, "jitter": "20m" }
+```
+
+`tz` is `contact` (default) or `sender`. `jitter` adds a random delay so sends do not all land on the hour.
+
+## Deliverability basics
+
+- Mail leaves through the sender's own provider, so there is no DNS record to add for OpenSequence. Check that the sending domain has SPF, DKIM and DMARC.
+- Every email carries `List-Unsubscribe` and one-click unsubscribe headers. Put `{{ unsubscribe_url }}` in the body too; publishing without it returns the warning `NO_UNSUBSCRIBE`.
+- An unsubscribe, a hard bounce or a complaint suppresses email for the contact and exits the enrollment.
+- Warm up a new mailbox at 10 to 15 emails a day for two weeks, then raise `daily_limit` slowly.
+- `reply_in_thread: true` on a follow-up sends it in the same thread as the previous email.
+
+## Host the unsubscribe page in your app
+
+By default `{{ unsubscribe_url }}` and the `List-Unsubscribe` headers point at a page this server hosts, `SEQ_PUBLIC_URL/u/{token}`. To put the link on your own domain, set the project's `unsubscribe_url`, an `https` URL with `{token}`:
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/project/settings -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"unsubscribe_url":"https://app.example.com/u/{token}"}'
+```
+
+```ts title="TypeScript"
+await oseq.project.updateSettings({ unsubscribe_url: 'https://app.example.com/u/{token}' });
+```
+
+</CodeGroup>
+
+Your page then calls the API with an `enroll` key:
+
+1. On GET, read the token and show a confirmation: `oseq.unsubscribes.get(token)` (`GET /v1/unsubscribes/{token}`). It returns `valid`, `expired`, a masked email and `already_unsubscribed`, and changes nothing.
+2. On confirm, apply it: `oseq.unsubscribes.apply(token)` (`POST /v1/unsubscribes/{token}`). The contact gets an email suppression and their enrollments exit with `opt_out`. A second call changes nothing.
+3. Accept a POST on the same URL with the body `List-Unsubscribe=One-Click`. Gmail, Yahoo and Apple Mail send it for one-click unsubscribe (RFC 8058). Apply the token and answer `200`, with no login, redirect or CSRF check.
+
+A URL that is not `https` or has no `{token}` is refused with `INVALID_SETTINGS`. An invalid token is a `400 UNSUBSCRIBE_TOKEN_INVALID`, an expired one `UNSUBSCRIBE_TOKEN_EXPIRED`. Set `unsubscribe_url` to `null` to go back to the hosted page.
+
+## How replies are read
+
+The service reads only the IMAP inbox, only new messages, and only messages that answer an email it sent from this mailbox in the last 30 days. Everything else is skipped and never stored. An out-of-office reply pauses the enrollment until the return date it mentions, or for seven days. Reply bodies are not stored. Meetings booked elsewhere are invisible to the service: report them with `POST /v1/contacts/{id}/events`.
+
+Every 15 minutes the service signs in again. A refused login sets the channel to `credentials_needed` and email steps skip until you save the mailbox again.
+
+`DELETE /v1/senders/{id}/channels/email` (`oseq.senders.deleteChannel(id, 'email')`) removes the channel and deletes the passwords.

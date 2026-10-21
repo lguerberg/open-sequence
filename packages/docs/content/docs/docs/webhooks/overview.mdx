@@ -1,6 +1,7 @@
 ---
 title: "Receiving webhooks"
-description: "Register an endpoint, the event catalogue, payloads, ordering and idempotency."
+nav: "Events"
+description: "How to register a webhook endpoint, which events exist, what the payloads carry, and how ordering and idempotency work."
 ---
 
 <CodeGroup>
@@ -31,7 +32,7 @@ The service tells your backend what happened with the delivery guarantees you ex
 | `enrollment.exited` | an exit by rule or by API, with `exit_reason` and the `signal` that caused it. Two exits carry the enrollment **id** instead of the object: a contact erased with `DELETE /v1/contacts/{id}` (`contact: { id, external_id }`) and a sequence archived with `exit_active` (`contact: { id }`) |
 | `enrollment.completed` | an `end` node or an unwired transition |
 | `enrollment.paused`, `enrollment.resumed` | a pause or resume, any cause, with `pause_reason` and `paused_until` |
-| `run.done` | an outreach step was sent: `run` (`id`, `node_id`, `node_type`, `channel`, `action`, `status`, `touch_number`, `provider`, `provider_ref`, `branch`, `enrollment`) and `enrollment`. The subject and body are not in it: read the [journey](/docs/contacts/journey) and take the message whose `runId` is `run.id` |
+| `run.done` | an outreach step was sent: `run` (`id`, `node_id`, `node_type`, `channel`, `action`, `status`, `touch_number`, `provider`, `provider_ref`, `branch`, `enrollment`) and `enrollment`. The subject and body are not in it: read the [journey](/docs/concepts/enrollment#show-where-a-contact-is-in-a-sequence) and take the message whose `runId` is `run.id` |
 | `run.skipped`, `run.failed`, `run.needs_review` | a step did not execute, with `run` and a `reason` or an `error` |
 | `task.created` | a task for a sender appeared, with the rendered `task` |
 | `task.expired` | a task closed without the sender: `task` is the full task when an exit cancelled it, but only the id (`task: "tsk_…"`) when its timer expired |
@@ -87,4 +88,4 @@ Answer any `2xx` within 10 seconds. Anything else, a timeout or a connection err
 | `GET /v1/webhooks/{id}/deliveries` | the log: status, attempts, last status code and error, the payload |
 | `POST /v1/webhooks/deliveries/{id}/replay` | re-send one delivery |
 
-No endpoint? Every list endpoint accepts `updated_since` so you can [poll](/docs/webhooks/polling) instead.
+No endpoint? Every list endpoint accepts `updated_since`, so you can poll instead.

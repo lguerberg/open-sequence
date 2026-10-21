@@ -1,6 +1,7 @@
 ---
-title: "Validation"
-description: "Every validation code with its fix. Warnings on save, errors on publish."
+title: "Validation codes and fixes"
+nav: "Validation"
+description: "What every validation code means and how to fix it. Warnings come back on save; errors block publish."
 ---
 
 Validation runs on `POST /v1/sequences:validate`, on every draft save (problems are returned, the save goes through) and on publish (errors block). Every problem is `{ path, code, message, severity }` with a JSON path into the definition and a sentence a person or an agent can act on:

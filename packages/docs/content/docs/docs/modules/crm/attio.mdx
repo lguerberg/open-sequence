@@ -1,0 +1,104 @@
+---
+title: "Connect Attio for live CRM conditions"
+nav: "Attio"
+icon: attio
+description: "How to connect Attio to OpenSequence with one read-only token, then branch sequences on person, company and deal data read live when a condition runs."
+---
+
+The Attio module lets a condition read the contact's person, company and open deal from Attio. Connect one token per project, then use `crm.*` fields in conditions.
+
+## What it gives you
+
+- `crm.*` condition fields read live when the step runs, with no sync and nothing stale.
+- A schema endpoint that lists your Attio attributes, for your condition editor.
+- Read-only access: OpenSequence never writes to Attio.
+
+## What you need
+
+- An Attio access token with read access to records (`record_permission:read`) and to the object configuration (`object_configuration:read`). Create it in Attio's workspace settings, under Developers.
+- An OpenSequence `admin` key.
+
+## Steps
+
+<Steps>
+<Step title="Save the token">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/project/providers/attio -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"api_key":"…"}'
+```
+
+```ts title="TypeScript"
+await oseq.project.setProvider('attio', { api_key: process.env.ATTIO_TOKEN! });
+```
+
+</CodeGroup>
+
+The token is checked with Attio, then stored encrypted and never returned. Save it again to rotate it.
+
+</Step>
+<Step title="Load the fields for your editor">
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/project/providers/attio/schema -H "Authorization: Bearer $KEY"
+# {"objects":[{"name":"person","attributes":[{"slug":"job_title","label":"Job title","type":"text"},…]},
+#             {"name":"deal","attributes":[{"slug":"stage","label":"Stage","type":"status","values":["Lead","In Progress","Won","Lost"]},…]}]}
+```
+
+```ts title="TypeScript"
+const schema = await oseq.project.attioSchema();
+```
+
+</CodeGroup>
+
+It lists the `person`, `company` and `deal` attributes that are not archived. It is cached for an hour.
+
+</Step>
+<Step title="Branch on CRM data">
+
+```json
+"check_deal": {
+  "type": "condition",
+  "params": { "mode": "all", "rules": [
+    { "field": "crm.deal.exists", "op": "is_true" },
+    { "field": "crm.deal.stage", "op": "is", "value": "Lead" } ] },
+  "next": { "yes": "call_1", "no": "email_2" }
+}
+```
+
+</Step>
+</Steps>
+
+## The fields
+
+| Field | Type |
+|---|---|
+| `crm.person.exists`, `crm.company.exists`, `crm.deal.exists` | bool: `is_true`, `is_false` |
+| `crm.deal.count_open` | number: `eq`, `ne`, `gt`, `gte`, `lt`, `lte` |
+| `crm.deal.stage` | text: the selected deal's stage |
+| `crm.person.<slug>`, `crm.company.<slug>`, `crm.deal.<slug>` | text: any attribute by its Attio slug |
+
+The person is found by the contact's email, the company by the email's domain (or the person's company), and deals by their link to either. A deal is open unless its stage starts with closed, won, lost or churn, or Attio marks it as won. When several are open, `settings.crm.deal_selection` picks one: `newest_open` (default), `highest_value` or `any_open` (the oldest).
+
+Every value is compared as text, so use `is`, `is_not`, `contains`, `is_empty` and `is_not_empty` on attributes. A multi-value attribute gives its first value.
+
+## Check it works
+
+1. `GET /v1/project` lists the Attio credential with `status: "active"`.
+2. `GET /v1/project/providers/attio/schema` returns your attributes.
+3. Enroll a test contact whose email matches an Attio person. Read the condition's `result.facts` in [the journey](/docs/concepts/enrollment#show-where-a-contact-is-in-a-sequence): each fact shows the value read.
+
+## Common errors
+
+| Error | Fix |
+|---|---|
+| `422 INVALID_CREDENTIAL` | The token is wrong, revoked or inactive. Create a new one. |
+| Every `crm.*.exists` is false | The contact has no email, or no Attio person has that email. |
+| A fact shows an `error` | Attio failed or rate-limited the lookup. The fact is empty, the rule fails, and an `all` condition takes `no`. Design `no` as the safe branch. |
+| The schema call fails with a permission error | The token lacks `object_configuration:read`. |
+
+With mock providers on, every lookup finds nothing and the schema is a fixed sample.

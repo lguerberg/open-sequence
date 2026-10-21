@@ -1,0 +1,29 @@
+---
+title: "Modules: what you can connect to OpenSequence"
+nav: "Overview"
+description: "Every OpenSequence module in one table: email, SMS with Allo, CRM conditions with Attio, webhooks, MCP and the TypeScript SDK, and which ones you need."
+---
+
+Each module connects OpenSequence to one outside system. This page lists them all and says which ones you need.
+
+Every install needs the server and one Postgres first: see the [Quickstart](/docs/get-started/quickstart) or [Install](/docs/self-hosting/install).
+
+| | Module | What it does | Required |
+|---|---|---|---|
+| <ModuleLogo name="email" size={32} /> | [Email](/docs/modules/email) | Sends from each rep's mailbox over SMTP and reads replies over IMAP. | For email steps |
+| <ModuleLogo name="gmail" size={32} /> | Email: [Gmail and Google Workspace](/docs/modules/email/gmail) | The Email module with a Google app password. | One email provider |
+| <ModuleLogo name="outlook" size={32} /> | Email: [Outlook and Microsoft 365](/docs/modules/email/outlook) | The Email module with Microsoft's servers. | One email provider |
+| <ModuleLogo name="email" size={32} /> | Email: [Other SMTP providers](/docs/modules/email/other-smtp) | The Email module with Fastmail, Zoho, iCloud or your own server. | One email provider |
+| <ModuleLogo name="allo" size={32} /> | SMS: [Allo](/docs/modules/sms/allo) | Texts, inbound replies and STOP, and call tasks that complete themselves. | For SMS and call steps |
+| <ModuleLogo name="attio" size={32} /> | CRM: [Attio](/docs/modules/crm/attio) | Lets conditions read live person, company and deal data. | For `crm.*` conditions |
+| <ModuleLogo name="webhook" size={32} /> | [Webhooks to your app](/docs/modules/webhooks) | Sends signed events to your backend: sent, replied, exited, task created. | Recommended |
+| <ModuleLogo name="mcp" size={32} /> | [MCP for AI agents](/docs/modules/mcp) | Lets Claude, Cursor or any MCP client build sequences and enroll people. | Optional |
+| <ModuleLogo name="typescript" size={32} /> | [TypeScript SDK](/docs/modules/typescript-sdk) | A typed client and webhook verification: `npm install @opensequence/sdk`. | Optional |
+
+Every module page follows the same order: what it gives you, what you need, the steps with curl and the SDK, how to check it works, and common errors.
+
+Logos identify each integration. They do not imply endorsement by their owners.
+
+## Try without accounts
+
+With `SEQ_DEV_MOCK_PROVIDERS=1`, every provider is a mock. Mailbox logins are not checked, nothing leaves the machine, and `POST /hooks/mock/{project slug}` injects replies, bounces and calls. The process refuses mock providers when `NODE_ENV=production`.

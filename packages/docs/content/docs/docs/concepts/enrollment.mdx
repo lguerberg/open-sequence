@@ -1,0 +1,142 @@
+---
+title: "Enrollment: where a contact is in a sequence"
+nav: "Enrollment"
+description: "What an enrollment is: one contact in one sequence version, its status, its current step and its journey, and how to show where a contact is."
+---
+
+An enrollment is one contact going through one sequence version as one sender. This page covers its status, its current step and its journey.
+
+## Enrolling
+
+You enroll contacts with an `enroll` key. A contact can be in one active sequence per project. A second enrollment fails with `409 ALREADY_IN_SEQUENCE`, and nobody in that batch is enrolled.
+
+```ts
+const { enrollments } = await oseq.sequences.enroll(sequenceId, { contacts: ['p_7'], sender: 'u_42' }); // POST /v1/sequences/{id}/enrollments
+```
+
+The enrollment stays pinned to the version it started on, even after you publish a new one.
+
+## Status
+
+| Status | Meaning |
+|---|---|
+| `active` | Moving through the flow, or waiting for a timer, an event or a task. |
+| `paused` | Paused by you, by an out-of-office reply (until the return date or 7 days) or by a failed step. |
+| `waiting_limit` | Held by the sender's daily limit. It retries an hour later. |
+| `completed` | Reached an `end` node or an unwired exit. |
+| `exited` | Left early. `exitReason` is `replied`, `meeting_booked`, `opt_out`, `bounced`, `suppressed`, `manual` or `deleted`. |
+| `failed` | Reserved. The engine does not set it today: a failed step pauses the enrollment with `pauseReason: "step_failed"`. |
+
+The current step is `currentNodeId`. `nextRunAt` is when the engine looks at it next.
+
+Replies, bookings and opt-outs end the enrollment. An unsubscribe, a STOP text, a hard bounce or a suppression always exits. A reply or a booked meeting exits when the definition's `exit_on` lists it, and otherwise can wake a `wait_for`.
+
+Pause, resume and exit: `POST /v1/enrollments/{id}/pause`, `/resume` (`enroll` key) and `/exit` (`admin` key).
+
+## The journey
+
+`GET /v1/enrollments/{id}` (`oseq.enrollments.get()`) returns the journey: the enrollment, the contact, the pinned version with its definition, and what happened. Each step that ran is a run, in `runs[]`: its `nodeId`, `status`, the `branch` it took, and a `result` with what it saw and did (`result.facts` for a condition, `result.skip_reason` for a skipped step, `result.until` for a wait). `messages[]` are the emails and texts, each linked to its step by `runId`. `signals[]` are the replies, bounces, opt-outs and other events that came back, and `tasks[]` are the tasks.
+
+## Show where a contact is in a sequence
+
+These steps turn one journey into a picture: the visited nodes, the edges taken, the current step and a timeline.
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/enrollments/enr_01JA… -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+const journey = await oseq.enrollments.get('enr_01JA…'); // type Journey
+```
+
+</CodeGroup>
+
+`GET /v1/enrollments/{id}` needs a `read` key. It returns `enrollment`, `contact`, `version`, `runs`, `messages`, `signals` and `tasks`. Stored records are camelCase. Abridged:
+
+```json
+{
+  "enrollment": { "id": "enr_01JA…", "status": "active", "currentNodeId": "wait_reply", "nextRunAt": "2026-10-24T16:00:00.000Z",
+                  "ownerRunId": null, "waiting": { "runId": "run_04…", "events": { "reply": "end" }, "onTimeout": "call_1" },
+                  "pausedUntil": null, "pauseReason": null, "exitReason": null, "touchCount": 1, "versionId": "ver_01JA…" },
+  "contact": { "id": "ctc_01JA…", "externalId": "p_7", "firstName": "Dana", "email": "dana@example.com" },
+  "version": { "id": "ver_01JA…", "tag": "v2", "status": "published", "definition": { "entry": "start", "nodes": { "…": "…" } } },
+  "runs": [
+    { "id": "run_01…", "nodeId": "start", "nodeType": "start", "status": "done", "branch": "then", "next": { "then": "check_plan" }, "result": {} },
+    { "id": "run_02…", "nodeId": "check_plan", "nodeType": "condition", "status": "done", "branch": "yes", "next": { "yes": "intro", "no": "end" },
+      "result": { "mode": "all", "branch": "yes", "note": "The condition matched.",
+                  "facts": [{ "field": "attrs.plan", "label": "attrs.plan", "value": "trial", "rule": "is trial", "matched": true }] } },
+    { "id": "run_03…", "nodeId": "intro", "nodeType": "outreach", "channel": "email", "status": "done", "branch": "sent", "touchNumber": 1,
+      "next": { "sent": "wait_reply" }, "result": { "rendered": { "contact.first_name": "Dana" } } },
+    { "id": "run_04…", "nodeId": "wait_reply", "nodeType": "wait_for", "status": "waiting", "branch": null,
+      "next": { "reply": "end", "timeout": "call_1" }, "result": { "until": "2026-10-24T16:00:00.000Z", "events": ["reply"] } }
+  ],
+  "messages": [{ "id": "msg_01…", "runId": "run_03…", "channel": "email", "direction": "out", "subject": "Hi Dana", "status": "sent", "occurredAt": "2026-10-21T16:00:02.000Z" }],
+  "signals": [],
+  "tasks": []
+}
+```
+
+Every field is on the [reference page](/api/enrollments/get-enrollments-id) and in the SDK's `Journey` type. The journey has no sequence name: read it with `GET /v1/sequences/{id}` (`oseq.sequences.get(journey.enrollment.sequenceId)`).
+
+### Run order
+
+`runs` are sorted by `createdAt`, then `id`. Steps the engine takes in one pass (a `start`, a `condition` and an email, say) share the same `createdAt`, and their ids are not ordered within the same millisecond. So inside a group with the same `createdAt`, the array order can differ from the path. Chain those runs by their edges instead: a run's `next[branch]` is the `nodeId` of the run after it.
+
+### 1. Draw the sequence
+
+Lay out `version.definition.nodes`. This is the version the enrollment is pinned to, not the latest one, so the drawing always matches the path.
+
+### 2. Mark the visited nodes
+
+Every `runs[].nodeId` is a visited node. A `start` node always produces a run with `branch: "then"` when the definition has one; a definition may also begin directly with another node. Color each node by its run's `status`:
+
+| `status` | Show |
+|---|---|
+| `done` | Done, with the `branch` it took. |
+| `skipped` | Skipped, with `result.skip_reason`, such as `no_consent`. |
+| `deferred` | Retrying at `result.retry_at`, because of `result.deferred` (a limit, the send window, quiet hours). |
+| `waiting` | Waiting. A `wait_for` run has `result.until` (its timeout, or `null`) and `result.events`. When it closes, `branch` is the event or `timeout`, and `result.woken_by` is the signal id that woke it. |
+| `running` | Sending now. |
+| `failed`, `needs_review` | Stopped, with `error`. |
+| `skipped_dry_run` | Rehearsed in a dry run. Nothing was sent. |
+
+A node can have several runs when a step was retried (`attempt` goes up). Show the last one.
+
+### 3. Draw the edges taken
+
+For each run with a `branch`, the edge taken goes from `run.nodeId` to `run.next[run.branch]`. In the example, `check_plan` took `yes` to `intro`.
+
+A run with `branch: null` has not finished. Its `next` holds the possible next steps.
+
+### 4. Mark the current step
+
+The current step is `enrollment.currentNodeId`. Read it with `status`, `waiting` and `nextRunAt`:
+
+| When | Show |
+|---|---|
+| `status` is `completed` or `exited` | Finished. Show `exitReason` and `finishedAt`. |
+| `status` is `paused` | Paused for `pauseReason` (`manual`, `ooo` or `step_failed`), until `pausedUntil` when set. |
+| `status` is `waiting_limit` | Held by the sender's daily limit. Next try at `nextRunAt`. |
+| `status` is `active` and `ownerRunId` is set | Sending now. |
+| `status` is `active` and `waiting` is set | Waiting. `waiting.events` maps each awaited event to its exit. `nextRunAt` is the timeout or the task expiry. |
+| `status` is `active` otherwise | Scheduled for `nextRunAt`. |
+
+A `wait` node finishes its run at once, with `result.until`. During the wait, `currentNodeId` is already the step after it, scheduled for `nextRunAt`.
+
+### 5. Build the timeline
+
+Merge `messages`, `signals` and `tasks` by time:
+
+- `messages` are the emails and texts this enrollment sent, plus replies received since it started. `runId` links an outbound message to its step. Inbound messages have `runId: null`.
+- `signals` are what came back: `kind` is `reply`, `bounce`, `opt_out`, `ooo`, `meeting_booked`, `call_connected`, `task_completed` and so on. `attributedRunId` names the step that earned it.
+- `tasks` are this enrollment's tasks, with `status`, `outcome` and `note`.
+
+### Why a condition took its branch
+
+A condition run stores what it read at decision time in `result.facts`. Each fact has the `field`, the `value` read, the `rule` as a sentence and `matched`. A failed read also has `error`. Show these under the node, so "why did this contact take No" never depends on today's data.
+
+### Many contacts at once
+
+`GET /v1/enrollments?sequence=seq_…&status=active` lists enrollments with their `currentNodeId`. Count them per node to show how many people are on each step. `GET /v1/contacts/{id}/timeline` merges everything that ever happened to one contact, across enrollments.

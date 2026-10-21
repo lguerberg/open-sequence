@@ -1,5 +1,6 @@
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
-import { ArrowRight, BookOpen, Boxes, Braces, Rocket } from 'lucide-react';
+import { ArrowRight, BookOpen, Braces, ListChecks, Rocket } from 'lucide-react';
+import { ModuleLogo } from '@/components/logos';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -17,25 +18,21 @@ export const metadata: Metadata = {
 };
 
 const start = [
-  { href: '/docs/get-started/quickstart', title: 'Quickstart', text: 'Docker Compose up, a sender, a contact, a published sequence and a first enrollment in ten minutes.', icon: Rocket },
-  { href: '/docs/get-started/concepts', title: 'Concepts', text: 'Senders, contacts, sequences, enrollments, runs and signals, in one page and one diagram.', icon: BookOpen },
-  { href: '/api/conventions', title: 'API reference', text: 'Every endpoint, generated from the OpenAPI file, with a playground against your instance.', icon: Braces },
-  { href: '/docs/get-started/architecture', title: 'Architecture', text: 'Roles, queues, the planner, executors, signals and the webhook outbox.', icon: Boxes },
-];
-
-const useCases = [
-  { href: '/docs/use-cases/sales-outbound', title: 'Sales outbound', text: 'A rep emails, calls and texts prospects from their own mailbox and number, and stops on a reply.' },
-  { href: '/docs/use-cases/customer-onboarding', title: 'Customer onboarding', text: 'A 90-day activation plan sent by the account owner, started when a deal is won.' },
-  { href: '/docs/use-cases/re-engagement', title: 'Re-engagement', text: 'Win back dormant customers, branching on why they went quiet.' },
-  { href: '/docs/use-cases/event-follow-up', title: 'Event and trial follow-up', text: 'Follow up after a webinar or a trial start, and wait for a reply with a timeout.' },
-  { href: '/docs/use-cases/embedded-sequences', title: 'Sequences in your product', text: 'Give every user of your app sequences: a canvas on the schema, enroll from your UI.' },
+  { href: '/docs/get-started/quickstart', title: 'Quickstart', text: 'Run the server, create a project, connect a mailbox and enroll a first contact.', icon: Rocket },
+  { href: '/docs/get-started/integrate', title: 'Integrate into your product', text: 'The checklist: one call per step, from senders to webhooks.', icon: ListChecks },
+  { href: '/docs/concepts/project', title: 'Concepts', text: 'Project, sender, contact, attributes, sequence, node and run, one short page each.', icon: BookOpen },
+  { href: '/api/conventions', title: 'API reference', text: 'Every endpoint, generated from the OpenAPI file.', icon: Braces },
 ];
 
 const modules = [
-  { href: '/docs/sending/email-smtp', title: 'Email', text: 'any mailbox over SMTP and IMAP, Gmail included' },
-  { href: '/docs/sending/sms-and-calls-allo', title: 'Allo', text: 'texts and the power dialer' },
-  { href: '/docs/sending/call-tasks', title: 'Call tasks', text: 'manual steps for reps' },
-  { href: '/docs/sequences/crm-conditions', title: 'Attio', text: 'read-only CRM conditions' },
+  { href: '/docs/modules/email', title: 'Email', text: 'SMTP and IMAP', logo: 'email' },
+  { href: '/docs/modules/email/gmail', title: 'Gmail', text: 'and Google Workspace', logo: 'gmail' },
+  { href: '/docs/modules/email/outlook', title: 'Outlook', text: 'and Microsoft 365', logo: 'outlook' },
+  { href: '/docs/modules/sms/allo', title: 'Allo', text: 'texts and call tasks', logo: 'allo' },
+  { href: '/docs/modules/crm/attio', title: 'Attio', text: 'live CRM conditions', logo: 'attio' },
+  { href: '/docs/modules/webhooks', title: 'Webhooks', text: 'signed events to your app', logo: 'webhook' },
+  { href: '/docs/modules/mcp', title: 'MCP', text: 'for AI agents', logo: 'mcp' },
+  { href: '/docs/modules/typescript-sdk', title: 'TypeScript SDK', text: 'npm install @opensequence/sdk', logo: 'typescript' },
 ];
 
 function FlowNode({ label, sub, strong }: { label: string; sub: string; strong?: boolean }) {
@@ -110,22 +107,22 @@ export default function HomePage() {
           <p className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-fd-primary">Documentation</p>
           <h1 className="text-5xl leading-none font-semibold tracking-[-0.045em] sm:text-6xl">OpenSequence docs</h1>
           <p className="max-w-2xl text-base leading-relaxed text-fd-muted-foreground sm:text-lg">
-            Open source, self-hosted email, SMS and call sequences for any CRM. You publish a sequence and enroll contacts;
-            OpenSequence sends from each rep&rsquo;s own mailbox and number.
+            OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS and call tasks for any
+            CRM. You publish a sequence and enroll contacts. It sends from each rep&rsquo;s own mailbox and number.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/docs/get-started/quickstart" className="inline-flex items-center gap-2 rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground transition-opacity hover:opacity-90">
               Start the quickstart <ArrowRight className="size-4" />
             </Link>
-            <Link href="/docs" className="inline-flex items-center gap-2 rounded-lg border border-fd-border bg-fd-background px-4 py-2.5 text-sm font-medium transition-colors hover:bg-fd-accent">
-              Browse the docs
+            <Link href="/docs/modules" className="inline-flex items-center gap-2 rounded-lg border border-fd-border bg-fd-background px-4 py-2.5 text-sm font-medium transition-colors hover:bg-fd-accent">
+              Browse the modules
             </Link>
           </div>
         </header>
 
         <FlowDiagram />
 
-        <Section kicker="Start here" title="Learn it in four pages">
+        <Section kicker="Start here" title="Start here">
           <div className="grid gap-4 sm:grid-cols-2">
             {start.map((e) => (
               <Link key={e.href} href={e.href} className={card}>
@@ -141,42 +138,30 @@ export default function HomePage() {
           </div>
         </Section>
 
-        <Section kicker="Use cases" title="Pick your use case">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {useCases.map((e) => (
-              <Link key={e.href} href={e.href} className={card}>
-                <span className="flex items-center justify-between font-semibold">
-                  {e.title}
-                  <ArrowRight className="size-4 text-fd-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-fd-primary" />
-                </span>
-                <p className="text-sm leading-relaxed text-fd-muted-foreground">{e.text}</p>
-              </Link>
-            ))}
-          </div>
-        </Section>
-
-        <Section kicker="Sending modules" title="What it sends through">
+        <Section kicker="Modules" title="What you can connect">
           <div className="flex flex-wrap gap-2.5">
             {modules.map((m) => (
-              <Link key={m.href} href={m.href} className="rounded-full border border-fd-border bg-fd-card px-4 py-2 text-sm transition-colors hover:border-fd-primary/60 hover:bg-fd-accent/60">
+              <Link key={m.href} href={m.href} className="inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-card py-1.5 pr-4 pl-2 text-sm transition-colors hover:border-fd-primary/60 hover:bg-fd-accent/60">
+                <ModuleLogo name={m.logo} size={22} />
                 <span className="font-semibold">{m.title}</span> <span className="text-fd-muted-foreground">{m.text}</span>
               </Link>
             ))}
           </div>
+          <p className="text-xs text-fd-muted-foreground">Logos identify each integration and imply no endorsement.</p>
         </Section>
 
         <footer className="grid gap-8 border-t border-fd-border pt-10 text-sm sm:grid-cols-3">
           <div className="flex flex-col gap-2">
             <p className="font-semibold">Run it</p>
             <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/self-hosting/install">Self-hosting</Link>
-            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/self-hosting/docker-compose">Docker Compose</Link>
+            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/self-hosting/database">Database</Link>
             <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/self-hosting/configuration">Configuration</Link>
           </div>
           <div className="flex flex-col gap-2">
             <p className="font-semibold">Build on it</p>
-            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/sdks/typescript">TypeScript SDK</Link>
-            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/sdks/mcp">MCP server</Link>
-            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/webhooks/overview">Webhooks</Link>
+            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/modules/typescript-sdk">TypeScript SDK</Link>
+            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/modules/mcp">MCP server</Link>
+            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/modules/webhooks">Webhooks</Link>
           </div>
           <div className="flex flex-col gap-2">
             <p className="font-semibold">For agents and tools</p>

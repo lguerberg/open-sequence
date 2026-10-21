@@ -1,0 +1,58 @@
+---
+title: "Contact: the person who receives a sequence"
+nav: "Contact"
+description: "What a contact is: name, email, E.164 phone, ISO country, time zone and attributes, keyed by your own id, plus SMS consent and suppressions."
+---
+
+A contact is the person a sequence reaches. This page shows the fields, consent and suppressions.
+
+You create a contact with your own person id. Upserting needs an `enroll` key.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{
+  "first_name": "Dana", "last_name": "Whitfield", "email": "dana@example.com",
+  "phone": "+14155550123", "country": "US", "timezone": "America/Los_Angeles",
+  "attrs": { "plan": "trial", "company": { "name": "Example Inc" } }
+}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.upsert('p_7', {
+  first_name: 'Dana', last_name: 'Whitfield', email: 'dana@example.com',
+  phone: '+14155550123', country: 'US', timezone: 'America/Los_Angeles',
+  attrs: { plan: 'trial', company: { name: 'Example Inc' } },
+});
+```
+
+</CodeGroup>
+
+| Field | Rules |
+|---|---|
+| `email` | Needed for email steps and for Attio lookups. |
+| `phone` | E.164, like `+14155550123`. Other formats are normalized; an invalid number is a `422 INVALID_CONTACT`. |
+| `country` | ISO 3166-1 alpha-2, like `US`. Texts go only to countries in the project's `sms_countries`. |
+| `timezone` | An IANA zone. Used for send windows, business days and SMS quiet hours. |
+| `attrs` | Free JSON, merged by top-level key on every upsert. See [Attributes](/docs/concepts/attributes). |
+
+A field you leave out keeps its stored value. Up to 500 contacts at once: `POST /v1/contacts:batch` (`oseq.contacts.batch()`).
+
+OpenSequence does not fill `country` from the phone number. Derive it yourself when you have no better source:
+
+```ts
+import { parsePhoneNumber } from 'libphonenumber-js';
+const country = parsePhoneNumber(phone)?.country; // '+447700900123' -> 'GB'
+```
+
+## Consent and suppressions
+
+SMS consent is off by default. Only an `admin` key can record it, and no text goes out without it.
+
+```ts
+await oseq.contacts.setSmsConsent('p_7', { consent: true, source: 'signup form' }); // PUT /v1/contacts/{id}/sms-consent
+```
+
+A suppression means "do not contact on this channel". The service adds one on an unsubscribe click, a STOP text, a hard bounce or a complaint, and the contact's enrollments exit. You add one by reporting `{ "type": "suppressed" }` or `{ "type": "opt_out" }` with `POST /v1/contacts/{id}/events`. Suppressions are checked when you enroll and again before every send. The API cannot remove a suppression yet.
+
+`DELETE /v1/contacts/{id}` erases the contact and everything attached, for privacy requests.

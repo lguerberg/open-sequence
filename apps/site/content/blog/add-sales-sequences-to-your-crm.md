@@ -60,9 +60,9 @@ export async function POST(req: Request) {
 }
 ```
 
-The rep's user id becomes the sender id, so later calls pass `rep.id` and nothing else. `oseq.senders.readiness(rep.id)` tells your settings page whether email is ready to send and, if not, why. The [email setup guide](https://docs.opensequence.dev/docs/sending/email-smtp) lists the server settings for Gmail, Fastmail, Zoho, iCloud and others.
+The rep's user id becomes the sender id, so later calls pass `rep.id` and nothing else. `oseq.senders.readiness(rep.id)` tells your settings page whether email is ready to send and, if not, why. The [email setup guide](https://docs.opensequence.dev/docs/modules/email) lists the server settings for Gmail, Fastmail, Zoho, iCloud and others.
 
-The SDK and the MCP package are not on npm yet. Install them from the repository until they are.
+The code uses the TypeScript SDK: `npm install @opensequence/sdk`. The MCP server ships with the repository and the Docker image.
 
 ## Step 2. Sync contacts from your CRM
 
@@ -82,7 +82,7 @@ await oseq.contacts.batch(
 );
 ```
 
-Two fields deserve care. `timezone` decides when emails land, because the send window runs in the contact's zone and falls back to the sender's when it is empty. `attrs` is free JSON that templates and conditions read, so put there the fields a sequence will branch on or mention: the company name, the deal stage, the plan. When a deal moves, patch only that field with `oseq.contacts.patch(p.id, { attrs: { deal: { stage: 'proposal' } } })`. The [attributes page](https://docs.opensequence.dev/docs/contacts/attrs) shows how conditions read them.
+Two fields deserve care. `timezone` decides when emails land, because the send window runs in the contact's zone and falls back to the sender's when it is empty. `attrs` is free JSON that templates and conditions read, so put there the fields a sequence will branch on or mention: the company name, the deal stage, the plan. When a deal moves, patch only that field with `oseq.contacts.patch(p.id, { attrs: { deal: { stage: 'proposal' } } })`. The [attributes page](https://docs.opensequence.dev/docs/concepts/attributes) shows how conditions read them.
 
 You can also skip the sync and pass contacts inline when you enroll. The engine upserts them first. That is simpler, but a nightly batch keeps `attrs` fresh for people already mid-sequence.
 
@@ -171,7 +171,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
 Three behaviours of the enroll call shape the UI. A contact can be in one active sequence at a time. If any selected person already is, the call enrolls nobody and returns a 409 that names each conflict, so the dialog can say "Dana Whitfield is already in UK facilities managers" and let the rep remove her. Suppressed people come back in `skipped` with a reason, and the rest still enroll. `capacity` tells you how many days the first emails take at the rep's daily cap, which the dialog can show as "first emails finish in about 3 days".
 
-Call `oseq.sequences.previewEnrollment` with the same arguments before the rep confirms. It returns the same result and errors and writes nothing. `mode: 'dry_run'` goes one step further: it creates real enrollments whose emails are rendered and recorded but not sent, which is how you rehearse a new sequence on one contact ([enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)).
+Call `oseq.sequences.previewEnrollment` with the same arguments before the rep confirms. It returns the same result and errors and writes nothing. `mode: 'dry_run'` goes one step further: it creates real enrollments whose emails are rendered and recorded but not sent, which is how you rehearse a new sequence on one contact ([enrolling](https://docs.opensequence.dev/docs/concepts/enrollment)).
 
 ## Step 5. Write activity back to your CRM
 
@@ -227,7 +227,7 @@ const { items } = await oseq.tasks.list({ sender: rep.id, status: 'open' });
 await oseq.tasks.complete(taskId, { outcome: 'connected', note: 'Booked a demo for Thursday.' });
 ```
 
-The outcome is free text up to 32 characters. The sequence can branch on it, and an outcome listed in the node's `connected_outcomes` counts as a conversation, which exits the enrollment when `exit_on` includes `reply`. A task nobody completes expires and the sequence takes its `no_answer` path. To keep the inbox live without polling, mirror `task.created` and `task.expired` into your own table. The [tasks page](https://docs.opensequence.dev/docs/enrollments/tasks) lists the fields to store.
+The outcome is free text up to 32 characters. The sequence can branch on it, and an outcome listed in the node's `connected_outcomes` counts as a conversation, which exits the enrollment when `exit_on` includes `reply`. A task nobody completes expires and the sequence takes its `no_answer` path. To keep the inbox live without polling, mirror `task.created` and `task.expired` into your own table. The [tasks page](https://docs.opensequence.dev/docs/modules/sms/allo) lists the fields to store.
 
 ## Step 7. Stop sequences from CRM events
 
@@ -244,7 +244,7 @@ await oseq.contacts.reportEvent(person.id, { id: calendarEventId, type: 'meeting
 await oseq.enrollments.exitMany({ contact: person.id, label: 'Deal won' });
 ```
 
-Reported events are idempotent by the `id` you give them, so a sync job that runs every night can resend the whole do-not-contact list safely with `oseq.contacts.reportEvents`. Treat the suppression report as mandatory. If your CRM knows someone asked not to be contacted and the engine does not, it will keep emailing them ([contact events](https://docs.opensequence.dev/docs/contacts/events)). `exitMany` needs an admin key, so call it from a background job, not from the browser path.
+Reported events are idempotent by the `id` you give them, so a sync job that runs every night can resend the whole do-not-contact list safely with `oseq.contacts.reportEvents`. Treat the suppression report as mandatory. If your CRM knows someone asked not to be contacted and the engine does not, it will keep emailing them ([contact events](https://docs.opensequence.dev/docs/get-started/integrate#report-what-the-service-cannot-see)). `exitMany` needs an admin key, so call it from a background job, not from the browser path.
 
 ## Step 8. Let an agent use the same setup
 
@@ -283,7 +283,7 @@ Either call `exitMany` with the contact from the code that changes the stage, or
 
 ### Can I use this with Attio or HubSpot instead of my own CRM?
 
-Yes, as long as you have an app or a job that calls the API. The steps are the same: sync people, enroll from your app, write events back. OpenSequence also reads Attio directly. Conditions can branch on the person, company and open deal in Attio at the moment they run ([connect Attio](https://docs.opensequence.dev/docs/senders/connect-attio)).
+Yes, as long as you have an app or a job that calls the API. The steps are the same: sync people, enroll from your app, write events back. OpenSequence also reads Attio directly. Conditions can branch on the person, company and open deal in Attio at the moment they run ([connect Attio](https://docs.opensequence.dev/docs/modules/crm/attio)).
 
 ### Will emails come from the rep's own address?
 

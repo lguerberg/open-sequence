@@ -1,6 +1,7 @@
 ---
-title: "The auth package"
-description: "Using @opensequence/auth on its own: store API keys and mailbox passwords encrypted, hand them to adapters, rotate keys."
+title: "Using the auth package on its own"
+nav: "Auth package"
+description: "How to use @opensequence/auth on its own: store API keys and mailbox passwords encrypted, hand them to adapters, and rotate keys."
 ---
 
 `@opensequence/auth` is the part of OpenSequence that stores provider secrets: a tenant's API keys (Allo, Attio) and each user's mailbox settings (SMTP and IMAP passwords). It has no idea what a sequence is. Tenants and owners are opaque strings, so it works for any application that keeps third-party secrets encrypted at rest and hands them only to the code that calls the provider.

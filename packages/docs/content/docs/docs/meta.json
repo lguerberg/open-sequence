@@ -1,6 +1,6 @@
 {
   "title": "Docs",
-  "description": "Guides, from the quickstart to self-hosting",
+  "description": "Guides: get started, concepts, modules, sequences, webhooks, analytics, self-hosting and security.",
   "root": true,
-  "pages": ["index", "integrate", "get-started", "use-cases", "sending", "sequences", "contacts", "webhooks", "analytics", "self-hosting", "security", "community"]
+  "pages": ["get-started", "concepts", "modules", "sequences", "webhooks", "analytics", "self-hosting", "security"]
 }

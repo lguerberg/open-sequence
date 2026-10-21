@@ -1,5 +1,6 @@
 ---
-title: "Database"
+title: "Postgres database requirements"
+nav: "Database"
 description: "What OpenSequence needs from Postgres: version, schemas, how migrations run, pool size behind a pooler, and how to back up and restore."
 ---
 
@@ -19,14 +20,14 @@ The service uses no session-level features: no advisory locks, no `LISTEN`, and 
 
 ## The schemas
 
-The service creates and owns two schemas. Give it its own database.
+The service creates and owns two schemas and touches nothing else, so it can share a database with your app, such as a Supabase project. Use a role that can create schemas, and leave `seq` and `seq_auth` to OpenSequence.
 
 | Schema | Owner | Tables |
 |---|---|---|
 | `seq` | the engine | `projects`, `api_keys`, `webhook_endpoints`, `webhook_deliveries`, `idempotency_keys`, `senders`, `sender_channels`, `contacts`, `suppressions`, `sequences`, `versions`, `enrollments`, `runs`, `messages`, `tasks`, `signals`, `signal_effects`, `flags`, `job_locks`, `queue_messages`, `queue_dead`, plus `migrations` and `migration_lock` |
 | `seq_auth` | the auth module | `credentials` (a project's provider secrets), `connections` (a sender's SMTP and IMAP passwords), plus `migrations` and `migration_lock` |
 
-Every tenant-owned table carries `project_id`. Secrets are AES-256-GCM ciphertext under `SEQ_ENCRYPTION_KEYS`, and each row records the id of the key that encrypted it. They live in `auth.credentials`, `auth.connections` and `seq.webhook_endpoints`.
+Every tenant-owned table carries `project_id`. Secrets are AES-256-GCM ciphertext under `SEQ_ENCRYPTION_KEYS`, and each row records the id of the key that encrypted it. They live in `seq_auth.credentials`, `seq_auth.connections` and `seq.webhook_endpoints`.
 
 ## Migrations
 
@@ -44,6 +45,18 @@ node dist/cli.js migrate             # oseq migrate: once, from a pipeline or a 
 
 When `SEQ_RUN_MIGRATIONS` is off, nothing checks the schema at boot. Run `oseq migrate` before you start the new image. See [Upgrades](/docs/self-hosting/upgrades) for the order.
 
+## The queue
+
+The queue lives in Postgres by default (`SEQ_QUEUE=postgres`), so you need no Redis. Messages sit in `seq.queue_messages` and are read with `FOR UPDATE SKIP LOCKED`. Enqueuing joins the transaction that records the work, so a recorded step and its queued message never diverge.
+
+| `SEQ_QUEUE` | Use it for |
+|---|---|
+| `postgres` | The default. Nothing else to run. |
+| `redis` | More throughput on large installs, with `SEQ_REDIS_DSN` and Redis persistence on. A message can arrive twice after a crash; the executors are idempotent. |
+| `memory` | Development and tests, one process only. |
+
+The worker reads four queues: `seq_email`, `seq_sms`, `seq_signals` and `seq_webhooks`. Their depths are in `GET /v1/admin/engine/health`.
+
 ## Pool size
 
 `SEQ_DB_POOL` (default 10) is per process. A worker reads four queues (`seq_email`, `seq_sms`, `seq_signals`, `seq_webhooks`) with up to `SEQ_CONCURRENCY` messages in flight each, so 32 by default, plus the scheduler jobs. They share the pool: a query waits for a free connection rather than failing. Most work is short, so 10 is enough at the default concurrency. Raise both together.
@@ -59,7 +72,7 @@ pg_restore --dbname="$NEW_DSN" oseq.dump
 
 Back up the database and `SEQ_ENCRYPTION_KEYS` together. A database restored without the key that encrypted its secrets has unreadable credentials: every mailbox password, Allo and Attio key and webhook secret must be entered again.
 
-There is no state outside the database, except queue messages when `SEQ_QUEUE=redis`. Losing those costs only a delay: the reaper rebuilds the work from the tables. See [Queues](/docs/self-hosting/queues).
+There is no state outside the database, except queue messages when `SEQ_QUEUE=redis`. Losing those costs only a delay: the reaper rebuilds the work from the tables.
 
 ## Growth
 

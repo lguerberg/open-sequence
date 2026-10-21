@@ -7,18 +7,11 @@ verification, `node:crypto`.
 
 ## Install
 
-The package is not on npm yet. Until it is, build it from the repository and depend on the built
-package by path:
-
 ```bash
-git clone https://github.com/lguerberg/open-sequence && cd open-sequence
-pnpm install && pnpm --filter @opensequence/sdk run build
-cd /path/to/your/app && npm install /path/to/open-sequence/packages/sdk
+npm install @opensequence/sdk
 ```
 
-Once published it will be `npm install @opensequence/sdk`. Every call is one `fetch` to a
-documented endpoint, so an application that does not want the dependency can call the API
-directly: see the quickstart on https://docs.opensequence.dev/sdks/typescript.
+Full reference: https://docs.opensequence.dev/sdks/typescript.
 
 ## Quickstart: the six calls
 

@@ -1,5 +1,6 @@
 ---
-title: "Scaling"
+title: "Scaling api and worker replicas"
+nav: "Scaling"
 description: "How many api and worker replicas to run, the knobs that raise throughput, what really limits sending, and how to stop the engine safely."
 ---
 
@@ -42,7 +43,7 @@ The binding limits are outside: each sender's email `daily_limit` (30 by default
 
 ## Measure the lag
 
-Queue depth comes from the health endpoints (see [Queues](/docs/self-hosting/queues)). Oldest-due lag, how long enrollments wait past their `next_run_at`, has no endpoint yet; read it from the database:
+Queue depth comes from the health endpoints (`GET /v1/admin/engine/health`). Oldest-due lag, how long enrollments wait past their `next_run_at`, has no endpoint yet; read it from the database:
 
 ```sql
 select now() - min(next_run_at) as oldest_due_lag

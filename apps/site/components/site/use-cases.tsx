@@ -4,7 +4,7 @@ import { Section, SectionHeading } from '@/components/ds/frame';
 import { Tabs } from '@/components/ds/tabs';
 import { useCases } from '@/lib/content';
 import { icons } from '@/lib/icons';
-import { DOCS } from '@/lib/links';
+import { DOCS, links } from '@/lib/links';
 
 /**
  * The use-case switcher, in the shape of a code section: the cases as a list on the left,
@@ -52,11 +52,11 @@ export function UseCases() {
                       <>
                         {' '}
                         <span className="text-foreground/60">
-                          The SDK is not on npm yet: build it from the repository or call the same endpoints with fetch (
-                          <a href={`${DOCS}/sdks/typescript`} className="underline underline-offset-2 hover:text-foreground">
-                            how
+                          Install it with{' '}
+                          <a href={links.npm} className="underline underline-offset-2 hover:text-foreground">
+                            npm install @opensequence/sdk
                           </a>
-                          ).
+                          .
                         </span>
                       </>
                     )}

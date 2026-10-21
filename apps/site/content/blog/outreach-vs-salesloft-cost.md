@@ -88,11 +88,11 @@ That is $864 a year. On [Fly.io](https://docs.fly.io/about/pricing), a shared-cp
 
 OpenSequence sends each email through the rep's own mailbox over SMTP. Outreach and Salesloft also send from the rep's mailbox, so this cost is the same in every column. [Google Workspace](https://workspace.google.com/pricing) Business Standard is $14 per user per month on an annual plan, so 15 × $14 × 12 = $2,520.
 
-Each rep creates a Workspace app password once, and the engine checks the login before it saves it. The [email setup guide](https://docs.opensequence.dev/docs/sending/email-smtp) lists the settings.
+Each rep creates a Workspace app password once, and the engine checks the login before it saves it. The [email setup guide](https://docs.opensequence.dev/docs/modules/email) lists the settings.
 
 ### SMS and calls
 
-OpenSequence sends texts and pushes call tasks to a power dialer through [Allo](https://docs.opensequence.dev/docs/senders/connect-allo). It has no Twilio integration today. A Twilio adapter is on the [roadmap](https://docs.opensequence.dev/docs/community/roadmap) under "Later". On the [Allo pricing page](https://www.withallo.com/pricing), Business is $32 per seat per month billed yearly and includes outbound SMS to US numbers, call recording and AI call summaries. The Power Dialer is $50 a month for the whole team, and 10DLC registration is $24 once.
+OpenSequence sends texts and pushes call tasks to a power dialer through [Allo](https://docs.opensequence.dev/docs/modules/sms/allo). It has no Twilio integration today. On the [Allo pricing page](https://www.withallo.com/pricing), Business is $32 per seat per month billed yearly and includes outbound SMS to US numbers, call recording and AI call summaries. The Power Dialer is $50 a month for the whole team, and 10DLC registration is $24 once.
 
 For 15 reps that is 15 × $32 × 12 = $5,760, plus $600 for the dialer and $24 for 10DLC, so $6,384 in year one. Email-only teams skip this line.
 
@@ -141,7 +141,7 @@ OpenSequence does none of the following:
 - It sends email over SMTP and IMAP, so Microsoft 365 teams, whose mailboxes no longer allow password sign-in, cannot use it today.
 - Steps outside email, SMS and calls are tasks a rep performs by hand.
 
-OpenSequence does the sequencing. It sends from each rep's own mailbox and threads follow-ups. It applies daily caps per sender, send windows in the contact's time zone, and an 08:00 to 21:00 window for texts. It detects replies, bounces and opt-outs, takes booked meetings your app reports, then exits the enrollment and sends a signed webhook to your app. [How it works](https://docs.opensequence.dev/docs/get-started/how-it-works) follows one contact through every step. The project is pre-1.0, and the SDK and MCP packages are not on npm yet.
+OpenSequence does the sequencing. It sends from each rep's own mailbox and threads follow-ups. It applies daily caps per sender, send windows in the contact's time zone, and an 08:00 to 21:00 window for texts. It detects replies, bounces and opt-outs, takes booked meetings your app reports, then exits the enrollment and sends a signed webhook to your app. [Enrollment](https://docs.opensequence.dev/docs/concepts/enrollment) follows one contact through every step. The project is pre-1.0, and the TypeScript SDK installs with `npm install @opensequence/sdk`.
 
 ## When Outreach or Salesloft is the better buy
 

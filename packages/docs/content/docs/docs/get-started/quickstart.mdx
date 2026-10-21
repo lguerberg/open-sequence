@@ -1,86 +1,39 @@
 ---
-title: "Quickstart"
-description: "Run OpenSequence with Docker Compose, send a first email through the mock mailbox and watch a reply end the sequence, in about ten minutes."
+title: "Quickstart: run OpenSequence and enroll your first contact"
+nav: "Quickstart"
+description: "How to run the OpenSequence server, create a project, connect a mailbox and enroll a first contact with the TypeScript SDK, then run it on your own Postgres."
 ---
 
-This page takes you from an empty folder to one contact who gets an email, replies, and leaves the sequence. It runs on your laptop with Docker Compose and mock providers, so you need no mail server, Allo or Attio account.
+You run the server, create a project, connect a mailbox and enroll one contact who replies and leaves the sequence.
+It runs locally on mock providers, so you need no mail server or Allo account.
 
-You need Docker, `curl` and `jq`. Every command below runs as is, in one shell, from top to bottom.
+You need Docker, Node 20 or newer, `curl` and `jq`.
 
 <Steps>
-<Step title="Start the stack">
+<Step title="Start the service">
 
 ```bash
 git clone https://github.com/lguerberg/open-sequence && cd open-sequence
 docker compose up -d
-export SEQ=http://localhost:8080
-curl -s $SEQ/readyz
+curl -s http://localhost:8080/readyz
 # {"ok":true}
 ```
 
-Compose pulls the published image (`ghcr.io/lguerberg/open-sequence:main`), then starts Postgres and one OpenSequence container. The container applies the database migrations on boot, serves the API on port 8080 and runs the background workers in the same process. If `/readyz` answers `{"ok":false,...}`, wait two seconds and try again: it turns ready once the database is migrated and the scheduler has run its first job.
+Compose starts Postgres and one OpenSequence container (`ghcr.io/lguerberg/open-sequence:main`) on port 8080. If `/readyz` says `{"ok":false,...}`, wait two seconds: it turns ready once migrations ran.
 
 </Step>
-<Step title="Create a project">
-
-A project is one tenant: its own senders, contacts, sequences and keys. The operator token (`dev-admin-token` in the compose file) creates it, and the response carries the project's first `admin` key. The key is shown once, so keep it.
+<Step title="Install the SDK">
 
 ```bash
-ADMIN_KEY=$(curl -s -X POST $SEQ/v1/admin/projects \
-  -H "Authorization: Bearer dev-admin-token" -H "Content-Type: application/json" \
-  -d '{"slug":"acme","name":"Acme"}' | jq -r .data.api_key)
-echo $ADMIN_KEY
-# sk_live_...
+npm init -y && npm install @opensequence/sdk tsx
 ```
 
 </Step>
-<Step title="Create an API key for your app">
+<Step title="Save the sequence">
 
-Your backend should not hold the `admin` key. An `enroll` key can upsert contacts, enroll them and read what happened, but it cannot change senders or sequences.
+One email, then a wait of up to three days for a reply. `exit_on: ["reply"]` makes a reply end the enrollment.
 
-```bash
-APP_KEY=$(curl -s -X POST $SEQ/v1/api-keys \
-  -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
-  -d '{"name":"crm-backend","scopes":["enroll"]}' | jq -r .data.api_key)
-```
-
-Scopes are ordered `read`, `enroll`, `admin`, and each one can do everything the scopes before it can.
-
-</Step>
-<Step title="Add a sender">
-
-A sender is the person the email comes from. You address it by your own id (`u_42` here). Their mailbox's SMTP and IMAP settings give them an `email` channel. With mock providers the logins are not checked and the channel is active at once; in production both logins are checked first.
-
-```bash
-curl -s -X PUT $SEQ/v1/senders/u_42 \
-  -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
-  -d '{"name":"Max Rivera","email":"max@acme.com","timezone":"America/New_York"}' > /dev/null
-
-curl -s -X PUT $SEQ/v1/senders/u_42/channels/email \
-  -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
-  -d '{"provider":"smtp","smtp":{"host":"smtp.gmail.com","port":465,"secure":true,"user":"max@acme.com","password":"app-password"},"imap":{"host":"imap.gmail.com","port":993,"secure":true,"user":"max@acme.com","password":"app-password"}}' | jq .data.status
-# "active"
-```
-
-</Step>
-<Step title="Add a contact">
-
-A contact is the person who receives the sequence, also addressed by your own id. `attrs` is free JSON that templates and conditions can read.
-
-```bash
-curl -s -X PUT $SEQ/v1/contacts/p_7 \
-  -H "Authorization: Bearer $APP_KEY" -H "Content-Type: application/json" \
-  -d '{"first_name":"Dana","email":"dana@example.com","timezone":"Europe/London","attrs":{"plan":"trial"}}' | jq .data.id
-# "ctc_..."
-```
-
-</Step>
-<Step title="Publish a sequence">
-
-The definition is one JSON document: an email, then a wait of up to three days for a reply. `exit_on` makes a reply end the enrollment.
-
-```bash
-cat > definition.json <<'EOF'
+```json title="definition.json"
 {
   "schema_version": 1,
   "entry": "start",
@@ -103,134 +56,127 @@ cat > definition.json <<'EOF'
     "end": { "type": "end" }
   }
 }
-EOF
-```
-
-Creating a sequence also creates its first draft version. Save the definition into the draft, then publish it. Publishing fails on validation errors; warnings come back in `problems` and do not block.
-
-```bash
-CREATED=$(curl -s -X POST $SEQ/v1/sequences \
-  -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{"name":"Trial intro"}')
-SEQ_ID=$(echo $CREATED | jq -r .data.sequence.id)
-VER_ID=$(echo $CREATED | jq -r .data.version.id)
-
-curl -s -X PUT $SEQ/v1/sequences/$SEQ_ID/versions/$VER_ID/draft \
-  -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
-  -d "{\"definition\": $(cat definition.json), \"lock_version\": 0}" | jq .data.problems
-# []
-
-curl -s -X POST $SEQ/v1/sequences/$SEQ_ID/versions/$VER_ID/publish \
-  -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" | jq .data.version.status
-# "published"
 ```
 
 </Step>
-<Step title="Enroll the contact">
+<Step title="Run the flow">
 
-Enroll the contact as the sender. A contact can be in one active sequence per project, so enrolling `p_7` a second time returns `409 ALREADY_IN_SEQUENCE`.
-
-```bash
-ENR_ID=$(curl -s -X POST $SEQ/v1/sequences/$SEQ_ID/enrollments \
-  -H "Authorization: Bearer $APP_KEY" -H "Content-Type: application/json" \
-  -d '{"contacts":["p_7"],"sender":"u_42"}' | jq -r '.data.enrollments[0].id')
-echo $ENR_ID
-# enr_...
-```
-
-</Step>
-<Step title="Watch the journey and the mock mailbox">
-
-Within about ten seconds the planner picks up the enrollment (it runs every five seconds) and the email worker sends through the mock mailbox. The journey lists every step that ran and every message.
-
-```bash
-sleep 10
-curl -s $SEQ/v1/enrollments/$ENR_ID -H "Authorization: Bearer $APP_KEY" \
-  | jq '{node: .data.enrollment.currentNodeId, runs: [.data.runs[] | "\(.nodeId) \(.status)"], sent: .data.messages[0].subject}'
-# { "node": "wait_reply", "runs": ["start done", "intro done", "wait_reply waiting"], "sent": "Quick question, Dana" }
-```
-
-The mock mailbox keeps sent mail in memory and has no inbox to open. The contact's timeline shows the message as it went out, with its rendered body and the thread reference a reply is matched on:
-
-```bash
-curl -s $SEQ/v1/contacts/p_7/timeline -H "Authorization: Bearer $APP_KEY" \
-  | jq '.data[] | select(.kind == "message") | .item | {direction, subject, body, threadRef}'
-```
-
-</Step>
-<Step title="Simulate a reply">
-
-With mock providers on, `POST /hooks/mock/{project slug}` accepts an inbound event as if the mailbox had reported it. Reply in the thread of the email that went out:
-
-```bash
-THREAD=$(curl -s $SEQ/v1/enrollments/$ENR_ID -H "Authorization: Bearer $APP_KEY" | jq -r '.data.messages[0].threadRef')
-
-curl -s -X POST $SEQ/hooks/mock/acme -H "Content-Type: application/json" \
-  -d "{\"kind\":\"reply\",\"channel\":\"email\",\"externalId\":\"evt_1\",\"from\":\"dana@example.com\",\"to\":\"max@acme.com\",\"threadRef\":\"$THREAD\"}"
-# {"ok":true,"stored":1,"ignored":0}
-
-sleep 6
-curl -s $SEQ/v1/enrollments/$ENR_ID -H "Authorization: Bearer $APP_KEY" \
-  | jq '{status: .data.enrollment.status, reason: .data.enrollment.exitReason}'
-# { "status": "exited", "reason": "replied" }
-
-curl -s $SEQ/v1/sequences/$SEQ_ID/analytics/summary -H "Authorization: Bearer $APP_KEY" \
-  | jq '{enrolled: .data.enrolled, replies: .data.replies, replies_by_channel: .data.replies_by_channel}'
-# { "enrolled": 1, "replies": 1, "replies_by_channel": { "email": 1 } }
-```
-
-The reply became a signal, was credited to the `intro` email, and ended the enrollment because `exit_on` lists `reply`.
-
-</Step>
-</Steps>
-
-## The same flow in TypeScript
-
-The SDK wraps the same calls. This script does everything above after `docker compose up`, on a fresh database:
-
-```ts title="quickstart.ts"
+```ts title="quickstart.mts"
 import { readFileSync } from 'node:fs';
 import { OpenSequence, OpenSequenceAdmin } from '@opensequence/sdk';
 
 const baseUrl = 'http://localhost:8080';
 const definition = JSON.parse(readFileSync('definition.json', 'utf8'));
 
+// A project is one tenant. The operator token creates it and returns its first admin key, once.
 const operator = new OpenSequenceAdmin({ baseUrl, adminToken: 'dev-admin-token' });
-const { project, api_key } = await operator.projects.create({ slug: 'acme', name: 'Acme' });
+const { api_key } = await operator.projects.create({ slug: 'acme', name: 'Acme' });
 const admin = new OpenSequence({ baseUrl, apiKey: api_key });
 
+// Your app's key: an enroll key upserts contacts and enrolls, but cannot change senders or sequences.
 const appKey = await admin.project.apiKeys.create({ name: 'crm-backend', scopes: ['enroll'] });
 const app = new OpenSequence({ baseUrl, apiKey: appKey.api_key });
 
+// A sender (the rep, by your user id) and their mailbox. Mock providers accept any login.
 await admin.senders.upsert('u_42', { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' });
-const mailbox = (host: string, port: number) => ({ host, port, secure: true, user: 'max@acme.com', password: 'app-password' });
-await admin.senders.setSmtp('u_42', { provider: 'smtp', smtp: mailbox('smtp.gmail.com', 465), imap: mailbox('imap.gmail.com', 993) });
+const box = (host: string, port: number) => ({ host, port, secure: true, user: 'max@acme.com', password: 'app-password' });
+await admin.senders.setSmtp('u_42', { provider: 'smtp', smtp: box('smtp.gmail.com', 465), imap: box('imap.gmail.com', 993) });
+
+// A contact (the recipient, by your person id). attrs is free JSON for templates and conditions.
 await app.contacts.upsert('p_7', { first_name: 'Dana', email: 'dana@example.com', timezone: 'Europe/London', attrs: { plan: 'trial' } });
 
+// Create, save the draft, publish. Errors block publishing; warnings come back in problems.
 const { sequence, version } = await admin.sequences.create({ name: 'Trial intro' });
 await admin.sequences.versions.saveDraft(sequence.id, version.id, { definition, lock_version: 0 });
 await admin.sequences.versions.publish(sequence.id, version.id);
 
+// Enroll. The planner runs every five seconds, then the email goes out through the mock mailbox.
 const { enrollments } = await app.sequences.enroll(sequence.id, { contacts: ['p_7'], sender: 'u_42' });
 await new Promise((r) => setTimeout(r, 10_000));
 
 const journey = await app.enrollments.get(enrollments[0].id);
-console.log(project.slug, journey.enrollment.currentNodeId, journey.messages[0]?.subject);
-// acme wait_reply Quick question, Dana
+console.log(journey.enrollment.id, journey.enrollment.currentNodeId, journey.messages[0]?.subject);
+console.log(`APP_KEY=${appKey.api_key} ENR_ID=${journey.enrollment.id} THREAD=${journey.messages[0]?.threadRef}`);
 ```
-
-## Clean up
 
 ```bash
-docker compose down -v
+npx tsx quickstart.mts
+# enr_... wait_reply Quick question, Dana
+# APP_KEY=sk_live_... ENR_ID=enr_... THREAD=<...>
 ```
 
-`-v` also deletes the Postgres volume. Leave it off to keep your data for next time.
+</Step>
+<Step title="Simulate a reply">
+
+With mock providers on, `POST /hooks/mock/{project slug}` injects an inbound event as if the mailbox had reported it. Paste the three values the script printed:
+
+```bash
+export APP_KEY=sk_live_... ENR_ID=enr_... THREAD='<...>'
+
+curl -s -X POST http://localhost:8080/hooks/mock/acme -H "Content-Type: application/json" \
+  -d "{\"kind\":\"reply\",\"channel\":\"email\",\"externalId\":\"evt_1\",\"from\":\"dana@example.com\",\"to\":\"max@acme.com\",\"threadRef\":\"$THREAD\"}"
+# {"ok":true,"stored":1,"ignored":0}
+
+sleep 6
+curl -s http://localhost:8080/v1/enrollments/$ENR_ID -H "Authorization: Bearer $APP_KEY" \
+  | jq '{status: .data.enrollment.status, reason: .data.enrollment.exitReason}'
+# { "status": "exited", "reason": "replied" }
+```
+
+The reply became a signal, was credited to the `intro` email, and ended the enrollment. `GET /v1/sequences/{id}/analytics/summary` now counts one enrollment and one email reply.
+
+</Step>
+</Steps>
+
+Run it a second time and enrolling `p_7` returns `409 ALREADY_IN_SEQUENCE`: a contact is in one active sequence at a time. Start over with `docker compose down -v` (`-v` also deletes the database).
+
+## Run it on your own Postgres
+
+The server is one Docker image, `ghcr.io/lguerberg/open-sequence`, and one Postgres 14 or newer. The queue lives in Postgres too, so you need no Redis.
+
+```bash
+docker run -d -p 8080:8080 \
+  -e SEQ_DB_DSN=postgres://user:pass@db.example.com:5432/postgres \
+  -e SEQ_ENCRYPTION_KEYS="$(docker run --rm ghcr.io/lguerberg/open-sequence:main node dist/cli.js secrets new-key)" \
+  -e SEQ_ADMIN_TOKEN="$(openssl rand -base64 32)" \
+  -e SEQ_PUBLIC_URL=https://sequences.example.com \
+  -e SEQ_ROLES=all \
+  -e SEQ_RUN_MIGRATIONS=1 \
+  ghcr.io/lguerberg/open-sequence:main
+```
+
+| Variable | Meaning |
+|---|---|
+| `SEQ_DB_DSN` | The Postgres connection string. A transaction pooler is fine. |
+| `SEQ_ENCRYPTION_KEYS` | Encrypts every stored password and key. Back it up with the database. |
+| `SEQ_ADMIN_TOKEN` | The operator token that creates projects. Required for the `api` and `all` roles. |
+| `SEQ_PUBLIC_URL` | The HTTPS address the outside world reaches: unsubscribe links and the Allo webhook use it. |
+| `SEQ_ROLES` | `all` for one process, or `api` and `worker` apart. |
+| `SEQ_RUN_MIGRATIONS` | `1` applies migrations at boot. |
+
+OpenSequence creates and owns two schemas, `seq` and `seq_auth`, so it can share a database such as Supabase's.
+
+`GET /healthz` answers while the process runs. `GET /readyz` answers `{"ok":true}` once the database answers and, on a worker, the scheduler has run in the last two minutes. Then create a project with the operator token:
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST https://sequences.example.com/v1/admin/projects -H "Authorization: Bearer $SEQ_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" -d '{"slug":"acme","name":"Acme"}'
+```
+
+```ts title="TypeScript"
+const { project, api_key } = await new OpenSequenceAdmin({ baseUrl, adminToken }).projects.create({ slug: 'acme', name: 'Acme' });
+```
+
+</CodeGroup>
+
+The response holds the project's first `admin` key, shown once. Next, connect real accounts: [Modules](/docs/modules). Production setup: [Install](/docs/self-hosting/install).
 
 ## Where next
 
 <Cards>
-  <Card title="Concepts" href="/docs/get-started/concepts">The objects you just touched, and how they relate.</Card>
-  <Card title="How it works" href="/docs/get-started/how-it-works">What happened between enroll and exit, step by step.</Card>
-  <Card title="Docker Compose" href="/docs/self-hosting/docker-compose">Turn the mocks off and connect a real mailbox or Allo.</Card>
-  <Card title="Receiving webhooks" href="/docs/webhooks/overview">Get told about replies and exits instead of polling the journey.</Card>
+  <Card title="Integrate OpenSequence into your product" href="/docs/get-started/integrate">The checklist, one call per step.</Card>
+  <Card title="Modules" href="/docs/modules">Email, Allo, Attio, webhooks, MCP and the SDK.</Card>
+  <Card title="Concepts" href="/docs/concepts/project">Projects, senders, contacts, sequences and runs.</Card>
 </Cards>

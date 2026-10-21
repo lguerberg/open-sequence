@@ -36,8 +36,9 @@ const content = path.join(out, 'content');
 // ------------------------------------------------------------------ helpers
 const GENERATED_NOTE = (source: string) => `<Note>This page is generated from \`${source}\` by \`pnpm generate\`. Do not edit it by hand; change the source and regenerate.</Note>`;
 
-function frontmatter(title: string, description: string): string {
-  return `---\ntitle: ${JSON.stringify(title)}\ndescription: ${JSON.stringify(description)}\n---\n\n`;
+/** `nav` is the short sidebar label (one to three words); `title` stays the page's H1 and <title>. */
+function frontmatter(title: string, description: string, nav?: string): string {
+  return `---\ntitle: ${JSON.stringify(title)}\n${nav ? `nav: ${JSON.stringify(nav)}\n` : ''}description: ${JSON.stringify(description)}\n---\n\n`;
 }
 
 /** Escapes a value for an MDX table cell or paragraph. */
@@ -71,17 +72,17 @@ interface OpenApiDoc {
 }
 
 const TAG_TITLES: Record<string, { title: string; description: string }> = {
-  Operator: { title: 'Operator', description: 'SEQ_ADMIN_TOKEN: projects, keys and platform health' },
-  Project: { title: 'Project', description: 'Settings, provider credentials and API keys' },
-  Engine: { title: 'Engine', description: 'This project\u2019s health and kill switches' },
-  Senders: { title: 'Senders', description: 'The acting users, their mailbox and channels' },
-  Contacts: { title: 'Contacts', description: 'The people who receive sequences' },
-  Sequences: { title: 'Sequences', description: 'Sequences, versions, drafts and publishing' },
-  Schema: { title: 'Schema', description: 'What a canvas or an agent reads first' },
-  Enrollments: { title: 'Enrollments', description: 'Preview, enroll, pause, resume, exit, the journey' },
-  Tasks: { title: 'Tasks', description: 'Manual steps for senders' },
-  Analytics: { title: 'Analytics', description: 'Replies and meetings, per sequence, step and channel' },
-  Webhooks: { title: 'Webhooks', description: 'Endpoints, deliveries, recovery and replay' },
+  Operator: { title: 'Operator', description: 'Operator endpoints, authenticated with SEQ_ADMIN_TOKEN: projects, API keys and platform health.' },
+  Project: { title: 'Project', description: 'Project endpoints: settings, provider credentials and API keys.' },
+  Engine: { title: 'Engine', description: 'Engine endpoints: this project\u2019s engine health and kill switches.' },
+  Senders: { title: 'Senders', description: 'Sender endpoints: the acting users, their mailbox and their channels.' },
+  Contacts: { title: 'Contacts', description: 'Contact endpoints: the people who receive sequences.' },
+  Sequences: { title: 'Sequences', description: 'Sequence endpoints: sequences, versions, drafts and publishing.' },
+  Schema: { title: 'Schema', description: 'Schema endpoints: what a canvas or an agent reads first to build sequences.' },
+  Enrollments: { title: 'Enrollments', description: 'Enrollment endpoints: preview, enroll, pause, resume, exit and the journey.' },
+  Tasks: { title: 'Tasks', description: 'Task endpoints: the manual steps senders complete, such as calls.' },
+  Analytics: { title: 'Analytics', description: 'Analytics endpoints: replies and meetings per sequence, step and channel.' },
+  Webhooks: { title: 'Webhooks', description: 'Webhook endpoints: registered endpoints, deliveries, recovery and replay.' },
 };
 
 /**
@@ -299,7 +300,7 @@ async function generateConfiguration(): Promise<void> {
   const source = 'apps/server/src/config/env.ts';
   await write(
     'content/reference/configuration.mdx',
-    frontmatter('Configuration', 'Every SEQ_* variable the service reads, validated once at boot.') +
+    frontmatter('Configuration variables reference', 'Every SEQ_* environment variable the service reads, with its type and default, validated once at boot.', 'Configuration') +
       GENERATED_NOTE(source) +
       '\n\nThe process refuses to start when a required value is missing or malformed, with a sentence that says which one. Values come from the environment only; there is no configuration file.\n\n' +
       tableText +
@@ -307,7 +308,7 @@ async function generateConfiguration(): Promise<void> {
   );
   await write(
     'content/docs/self-hosting/configuration.mdx',
-    frontmatter('Configuration', 'Every SEQ_* variable, the queue backends and the roles.') +
+    frontmatter('Configuring a self-hosted install', 'How to configure OpenSequence with environment variables: every SEQ_* variable, the queue backends and the roles.', 'Configuration') +
       GENERATED_NOTE(source) +
       `
 
@@ -328,7 +329,7 @@ The queue interface is \`send\`, \`read\` with a visibility timeout, \`release\`
 | \`redis\` | Redis 7+ | higher throughput for large installs; an enqueue cannot join the database transaction, so the reaper's sweep re-enqueues anything recorded but never queued |
 | \`memory\` | none | development and tests only; the planner and the reaper rebuild work from the tables on boot |
 
-Because the database is the truth and queue messages are hints, a lost or empty queue never loses work. See [Queues](/docs/self-hosting/queues).
+Because the database is the truth and queue messages are hints, a lost or empty queue never loses work. See [Queues](/docs/self-hosting/database).
 
 ## Roles
 
@@ -494,7 +495,7 @@ async function generateCli(): Promise<void> {
   const versionMatch = /\.version\('([^']+)'\)/.exec(text);
   await write(
     'content/sdks/cli.mdx',
-    frontmatter('oseq CLI', 'The operator CLI: migrations, projects, API keys, encryption keys and health.') +
+    frontmatter('oseq operator CLI', 'What the oseq operator CLI does: migrations, projects, API keys, encryption keys and health, with every command and option.', 'CLI') +
       GENERATED_NOTE('apps/server/src/cli.ts') +
       `
 
@@ -580,7 +581,7 @@ async function generateDefinition(): Promise<void> {
   const json = toJson(definitionSchema);
   await write(
     'content/reference/definition-schema.mdx',
-    frontmatter('Definition schema', 'The JSON Schema of a sequence definition, generated from the Zod source of truth.') +
+    frontmatter('Sequence definition JSON Schema', 'The JSON Schema of a sequence definition, generated from the Zod source of truth.', 'Definition schema') +
       GENERATED_NOTE('packages/core/src/domain/definition/schema.ts') +
       `
 
@@ -628,7 +629,7 @@ ${JSON.stringify(json, null, 2)}
   }
   await write(
     'content/reference/nodes.mdx',
-    frontmatter('Nodes and channels', 'Every registered node type and channel action: params, defaults and transitions.') +
+    frontmatter('Node types and channel actions', 'Every registered node type and channel action, with its params, defaults and transitions.', 'Nodes') +
       GENERATED_NOTE('packages/core/src/domain/definition/builtins.ts') +
       `
 
@@ -656,7 +657,7 @@ ${channelsMd}`,
   }
   await write(
     'content/reference/condition-fields.mdx',
-    frontmatter('Condition fields', 'The closed field registry conditions can read, with the operators per type.') +
+    frontmatter('Condition fields and operators', 'Which fields conditions can read from the closed field registry, and which operators each field type supports.', 'Condition fields') +
       GENERATED_NOTE('packages/core/src/domain/definition/builtins.ts and packages/core/src/domain/conditions/evaluate.ts') +
       `
 
@@ -705,7 +706,7 @@ async function generateEvents(): Promise<void> {
   for (const t of Object.keys(EVENT_DOCS)) if (!(EVENT_TYPES as readonly string[]).includes(t)) throw new Error(`generate: EVENT_DOCS documents ${t}, which is no longer an event type`);
   await write(
     'content/reference/webhook-events.mdx',
-    frontmatter('Webhook events', 'The event catalogue: when each event fires and what its payload carries.') +
+    frontmatter('Webhook event catalogue', 'The webhook event catalogue: when each event fires and what its payload carries.', 'Webhook events') +
       GENERATED_NOTE('packages/engine/src/domain/shared/events.ts') +
       `
 
@@ -841,7 +842,7 @@ Messages are plain English and may change; \`code\` is stable, so branch on it. 
 
   await write(
     'content/api/errors.mdx',
-    frontmatter('Errors', 'The error envelope and every error code the API returns.') +
+    frontmatter('API errors and the error envelope', 'What the API error envelope looks like, how to handle it, and every error code the API returns.', 'Errors') +
       GENERATED_NOTE('the error helpers in packages/engine, packages/auth and apps/server') +
       `
 
@@ -858,7 +859,7 @@ ${validationTable}`,
   );
   await write(
     'content/reference/error-codes.mdx',
-    frontmatter('Error codes', 'Every stable code: validation problems and HTTP errors.') +
+    frontmatter('Error codes reference', 'Every stable error code OpenSequence returns, from definition validation problems to HTTP errors.', 'Error codes') +
       GENERATED_NOTE('the error helpers in packages/core, packages/engine, packages/auth and apps/server') +
       `
 

@@ -1,6 +1,7 @@
 ---
 title: "Deploy on Fly.io"
-description: "Run OpenSequence on Fly.io with one fly.toml: api and worker process groups from the same image, migrations as the release command, secrets set once."
+nav: "Fly.io"
+description: "How to run OpenSequence on Fly.io with one fly.toml: api and worker process groups from one image, migrations as the release command, secrets set once."
 ---
 
 This guide runs OpenSequence as one Fly app with two process groups, `api` and `worker`, built from `apps/server/Dockerfile`. Migrations run as the release command, before any machine is replaced.

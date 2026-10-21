@@ -1,4 +1,5 @@
 import { BLOG_DESCRIPTION, type Post } from '@/lib/blog';
+import { GITHUB } from '@/lib/links';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 
 const BLOG_URL = `${SITE_URL}/blog`;
@@ -67,7 +68,10 @@ export function BlogJsonLd({ posts }: { posts: Post[] }) {
   );
 }
 
-/** One post: the BlogPosting, the breadcrumb and, when the post has a `## FAQ`, the FAQPage. */
+/**
+ * One post: the BlogPosting (also a TechArticle when the post is a guide), the breadcrumb and,
+ * when the post has a `## FAQ`, the FAQPage.
+ */
 export function PostJsonLd({ post }: { post: Post }) {
   const url = `${BLOG_URL}/${post.slug}`;
   const keywords = [post.keyword, ...post.tags].filter(Boolean);
@@ -78,8 +82,21 @@ export function PostJsonLd({ post }: { post: Post }) {
         '@graph': [
           organization,
           {
-            '@type': 'BlogPosting',
+            '@type': post.kind === 'guide' ? ['BlogPosting', 'TechArticle'] : 'BlogPosting',
             '@id': `${url}#article`,
+            ...(post.kind === 'guide'
+              ? {
+                  proficiencyLevel: 'Expert',
+                  about: { '@type': 'Thing', name: post.keyword ?? post.title },
+                  mentions: {
+                    '@type': 'SoftwareSourceCode',
+                    name: SITE_NAME,
+                    codeRepository: GITHUB,
+                    programmingLanguage: 'TypeScript',
+                    license: 'https://www.apache.org/licenses/LICENSE-2.0',
+                  },
+                }
+              : {}),
             headline: post.h1,
             description: post.description,
             datePublished: post.date,

@@ -1,0 +1,103 @@
+---
+title: "Integrate OpenSequence into your product"
+nav: "Integration checklist"
+description: "The integration checklist: run the server, connect each module, then upsert contacts, enroll them and handle webhooks, one API call per step."
+---
+
+This is the checklist for adding OpenSequence to an existing app. Each line is one call, and each module links to its own page.
+
+OpenSequence ships no UI. Your app keeps its screens and calls the API from your server.
+
+## 1. Set up once
+
+- [ ] **Run the server** and create a project: [Quickstart](/docs/get-started/quickstart#run-it-on-your-own-postgres).
+- [ ] **Install the SDK**: `npm install @opensequence/sdk`. See [TypeScript SDK](/docs/modules/typescript-sdk).
+- [ ] **Register your webhook endpoint** and store its secret: [Webhooks to your app](/docs/modules/webhooks).
+- [ ] **Connect Allo** if you send texts or call tasks: [Allo](/docs/modules/sms/allo).
+- [ ] **Connect Attio** if conditions read your CRM: [Attio](/docs/modules/crm/attio).
+- [ ] **Connect MCP** if an AI agent should build sequences: [MCP for AI agents](/docs/modules/mcp).
+
+## 2. For each rep
+
+- [ ] **Create the sender** with your user id, signature and attributes such as a calendar URL: [Sender](/docs/concepts/sender).
+
+```ts
+await oseq.senders.upsert(user.id, { name, email, timezone, signature_html, attrs: { calendar_url } }); // PUT /v1/senders/{id}
+```
+
+- [ ] **Connect their mailbox**: [Email](/docs/modules/email) ([Gmail](/docs/modules/email/gmail), [Outlook](/docs/modules/email/outlook), [other SMTP](/docs/modules/email/other-smtp)).
+
+```ts
+await oseq.senders.setSmtp(user.id, { provider: 'smtp', smtp, imap }); // PUT /v1/senders/{id}/channels/email
+```
+
+- [ ] **Connect their Allo number** (SMS and calls only).
+
+```ts
+await oseq.senders.setSms(user.id, { allo_user_id, number }); // PUT /v1/senders/{id}/channels/sms
+```
+
+## 3. Every time your app saves a person
+
+- [ ] **Upsert the contact** by your own id: [Contact](/docs/concepts/contact).
+
+```ts
+await oseq.contacts.upsert(person.id, { first_name, email, phone, country, timezone, attrs: { plan } }); // PUT /v1/contacts/{id}
+```
+
+`country` is ISO-2. When you have none, take it from the phone number with `libphonenumber-js`. Texts need recorded consent: `oseq.contacts.setSmsConsent()` with an `admin` key.
+
+## 4. Build and publish a sequence
+
+- [ ] **Create it, then publish it**: [Sequence](/docs/concepts/sequence) and [The definition](/docs/sequences/definition).
+
+```ts
+const { sequence, version } = await oseq.sequences.create({ name, definition }); // POST /v1/sequences
+await oseq.sequences.versions.publish(sequence.id, version.id);                  // POST /v1/sequences/{id}/versions/{vid}/publish
+```
+
+## 5. Enroll
+
+- [ ] **Enroll contacts as a sender** and store each `enr_…` id.
+
+```ts
+const { enrollments } = await oseq.sequences.enroll(sequence.id, { contacts: [person.id], sender: user.id }); // POST /v1/sequences/{id}/enrollments
+```
+
+A contact is in one active sequence at a time. One conflict fails the whole batch with `409 ALREADY_IN_SEQUENCE`, and `error.details.conflicts` names each contact, its sequence and its enrollment. `POST /v1/sequences/{id}/enrollments:preview` runs the same checks without writing.
+
+## 6. Handle the events
+
+- [ ] **Write each webhook into your app**, deduped by `event.id`.
+
+| Event | Write |
+|---|---|
+| `run.done` | An outbound activity on the person. |
+| `signal.received` with `reply` or `meeting_booked` | An inbound activity and a notification to the rep. |
+| `signal.received` with `bounce` or `opt_out` | A flag on the address or number. |
+| `enrollment.exited`, `enrollment.completed` | The outcome. Clear the "in sequence" badge. |
+| `task.created`, `task.expired` | Add or remove an item in the rep's task list. |
+| `sender.channel_status` | A "reconnect your mailbox" banner. |
+
+## Report what the service cannot see
+
+- [ ] **Report meetings, opt-outs and do-not-contact flags** that happen outside OpenSequence.
+
+```ts
+await oseq.contacts.reportEvent(person.id, { id: booking.id, type: 'meeting_booked' }); // POST /v1/contacts/{id}/events
+```
+
+`type` is `meeting_booked`, `opt_out`, `suppressed` or `reply`. The same `id` twice is recorded once.
+
+## 7. Exit when the work is done
+
+```ts
+await oseq.enrollments.exit(enrollmentId, { label: 'deal closed' }); // POST /v1/enrollments/{id}/exit, admin key
+```
+
+## Screens to build
+
+- **Sequences**: `GET /v1/sequences` and `GET /v1/analytics/sequences`.
+- **Where a contact is**: `GET /v1/enrollments/{id}`. See [Show where a contact is in a sequence](/docs/concepts/enrollment#show-where-a-contact-is-in-a-sequence).
+- **Senders and mailboxes**: `GET /v1/senders/{id}` for channels, status and readiness.
+- **Task list**: `GET /v1/tasks?sender=…&status=open`, then `POST /v1/tasks/{id}/complete`.

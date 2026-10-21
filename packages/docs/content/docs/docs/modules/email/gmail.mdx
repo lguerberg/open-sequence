@@ -1,0 +1,81 @@
+---
+title: "Connect Gmail and Google Workspace with an app password"
+nav: "Gmail"
+icon: gmail
+description: "How to connect a Gmail or Google Workspace mailbox to OpenSequence: turn on 2-Step Verification, create an app password, then save smtp.gmail.com and imap.gmail.com."
+---
+
+This page connects a Google mailbox as a sender's email channel. It takes about two minutes per rep.
+
+## What it gives you
+
+The rep's emails leave from their own Gmail or Workspace address, and replies come back over IMAP. See [Email](/docs/modules/email) for limits and send windows.
+
+## What you need
+
+- 2-Step Verification on the Google account.
+- An app password: a 16-character password Google generates for one app.
+- An OpenSequence `admin` key and the [sender](/docs/concepts/sender) id.
+
+## Steps
+
+<Steps>
+<Step title="Turn on 2-Step Verification">
+
+Open [myaccount.google.com/security](https://myaccount.google.com/security) and turn on 2-Step Verification. App passwords need it.
+
+</Step>
+<Step title="Create an app password">
+
+Open [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords), name it "OpenSequence" and copy the 16 characters. Use it as both the SMTP and the IMAP password.
+
+</Step>
+<Step title="Save the mailbox">
+
+| | Host | Port | `secure` |
+|---|---|---|---|
+| SMTP | `smtp.gmail.com` | 465 | `true` |
+| IMAP | `imap.gmail.com` | 993 | `true` |
+
+The user is the full address in both.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/senders/u_42/channels/email -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{
+  "provider": "smtp",
+  "smtp": { "host": "smtp.gmail.com", "port": 465, "secure": true, "user": "max@acme.com", "password": "abcdefghijklmnop" },
+  "imap": { "host": "imap.gmail.com", "port": 993, "secure": true, "user": "max@acme.com", "password": "abcdefghijklmnop" }
+}'
+```
+
+```ts title="TypeScript"
+const login = { user: 'max@acme.com', password: process.env.MAX_GOOGLE_APP_PASSWORD! };
+await oseq.senders.setSmtp('u_42', {
+  provider: 'smtp',
+  smtp: { host: 'smtp.gmail.com', port: 465, secure: true, ...login },
+  imap: { host: 'imap.gmail.com', port: 993, secure: true, ...login },
+});
+```
+
+</CodeGroup>
+
+</Step>
+</Steps>
+
+## Check it works
+
+`GET /v1/senders/u_42/readiness` returns `"email": { "ok": true }`. Send yourself a test sequence and reply: the enrollment exits with `replied` within about a minute.
+
+## Daily caps
+
+Google limits one mailbox to about 2,000 emails a day on Google Workspace and about 500 on a free Gmail account. Keep `daily_limit` far below that. The default is 30.
+
+## Common errors
+
+| Error | Fix |
+|---|---|
+| The app passwords page says the setting is not available | 2-Step Verification is off, or a Workspace admin blocked app passwords. Ask the admin to allow them for this user. |
+| `422 SMTP_AUTH_FAILED` or `IMAP_AUTH_FAILED` | You used the normal Google password, or the app password was revoked. Create a new app password. |
+| `422 IMAP_AUTH_FAILED` only | IMAP is turned off for the Workspace domain. An admin can turn it on in the Google Admin console. |
+| Steps skip with `sender_channel_credentials_needed` | The rep changed their Google password, which revokes app passwords. Create a new one and save the mailbox again. |

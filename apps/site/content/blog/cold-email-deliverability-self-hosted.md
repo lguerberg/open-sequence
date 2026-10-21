@@ -80,7 +80,7 @@ Google requires one-click unsubscribe "only for marketing and promotional messag
 
 [RFC 8058](https://www.rfc-editor.org/rfc/rfc8058.html) defines the mechanism. `List-Unsubscribe` must contain an HTTPS URI, `List-Unsubscribe-Post` must read `List-Unsubscribe=One-Click`, and the DKIM signature must cover both headers. The POST carries no cookies, and the server must not answer it with a redirect.
 
-OpenSequence adds both headers to every email it sends, and `{{ unsubscribe_url }}` renders the same signed link in the body. A click or a mail client's POST writes an email suppression and exits the enrollment at once, well inside Google's 48 hours and CAN-SPAM's 10 business days. If a body lacks the link, the sequence still publishes, with a `NO_UNSUBSCRIBE` warning instead of an error. Some teams drop the visible link to keep a 1:1 tone and rely on the headers plus a "reply 'no' and I'll stop" line. CAN-SPAM accepts a reply-based opt-out, so that choice is defensible. Google's bulk rules ask for a visible link. The details are in [consent and suppressions](https://docs.opensequence.dev/docs/contacts/consent-and-suppressions).
+OpenSequence adds both headers to every email it sends, and `{{ unsubscribe_url }}` renders the same signed link in the body. A click or a mail client's POST writes an email suppression and exits the enrollment at once, well inside Google's 48 hours and CAN-SPAM's 10 business days. If a body lacks the link, the sequence still publishes, with a `NO_UNSUBSCRIBE` warning instead of an error. Some teams drop the visible link to keep a 1:1 tone and rely on the headers plus a "reply 'no' and I'll stop" line. CAN-SPAM accepts a reply-based opt-out, so that choice is defensible. Google's bulk rules ask for a visible link. The details are in [consent and suppressions](https://docs.opensequence.dev/docs/concepts/contact).
 
 The links point at `SEQ_PUBLIC_URL`, which must be public HTTPS ([install guide](https://docs.opensequence.dev/docs/self-hosting/install)). The engine signs each link with the first key in `SEQ_ENCRYPTION_KEYS`, and the link stays valid for 90 days. Rotating that key breaks the links in every email already sent. CAN-SPAM requires a working opt-out for 30 days after sending.
 
@@ -97,7 +97,7 @@ OpenSequence defaults each sender's email channel to 30 sends in a rolling 24 ho
 | 3 | 30 | Same |
 | 4+ | 40 to 50 | Replies hold steady |
 
-To change the cap, send `PATCH /v1/senders/{id}/channels/email` with `{"daily_limit": 20}` ([senders](https://docs.opensequence.dev/docs/senders/senders)). The enrollment preview staggers first touches by that cap, so at 30 a day, contact 31 starts the next day ([enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)). The API stores `weekly_limit`, but the executors do not enforce it yet.
+To change the cap, send `PATCH /v1/senders/{id}/channels/email` with `{"daily_limit": 20}` ([senders](https://docs.opensequence.dev/docs/concepts/sender)). The enrollment preview staggers first touches by that cap, so at 30 a day, contact 31 starts the next day ([enrolling](https://docs.opensequence.dev/docs/concepts/enrollment)). The API stores `weekly_limit`, but the executors do not enforce it yet.
 
 ## Tracking pixels and link tracking
 
@@ -111,7 +111,7 @@ The engine reads each sender's inbox over IMAP every minute. A message from `mai
 
 The engine does not detect complaints. It handles a `complaint` signal, but the mail adapter never produces one, because neither IMAP nor Gmail gives individual senders a per-message complaint feed. Postmaster Tools is the only complaint view you get.
 
-The engine does not verify addresses. Run your list through a verification service before you enroll. A new domain has no sending history to offset the bounces from a bad list. Report do-not-contact flags from your CRM as `suppressed` events ([contact events](https://docs.opensequence.dev/docs/contacts/events)). The engine only sees its own channels, so a contact marked "do not email" in your CRM keeps getting mail until you report it. Our rule of thumb is to stop email for the project when a batch bounces above 2%, then clean the list before turning email back on. To stop it, send `PUT /v1/engine/flags/channel:email` with `{"value": false}`.
+The engine does not verify addresses. Run your list through a verification service before you enroll. A new domain has no sending history to offset the bounces from a bad list. Report do-not-contact flags from your CRM as `suppressed` events ([contact events](https://docs.opensequence.dev/docs/get-started/integrate#report-what-the-service-cannot-see)). The engine only sees its own channels, so a contact marked "do not email" in your CRM keeps getting mail until you report it. Our rule of thumb is to stop email for the project when a batch bounces above 2%, then clean the list before turning email back on. To stop it, send `PUT /v1/engine/flags/channel:email` with `{"value": false}`.
 
 ## What OpenSequence does and what you configure
 

@@ -3,13 +3,9 @@
   "pages": [
     "definition",
     "nodes",
-    "wait-for",
     "conditions",
-    "crm-conditions",
     "templates",
-    "versions",
     "validation",
-    "building-a-canvas",
-    "canvas-react-example"
+    "versions"
   ]
 }

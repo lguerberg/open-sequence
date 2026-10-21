@@ -4,22 +4,22 @@
   "redirects": [
     {
       "source": "/docs/senders/senders",
-      "destination": "/docs/sending/senders",
+      "destination": "/docs/concepts/sender",
       "permanent": true
     },
     {
       "source": "/docs/senders/connect-google",
-      "destination": "/docs/sending/email-smtp",
+      "destination": "/docs/modules/email",
       "permanent": true
     },
     {
       "source": "/docs/sending/email-gmail",
-      "destination": "/docs/sending/email-smtp",
+      "destination": "/docs/modules/email",
       "permanent": true
     },
     {
       "source": "/api/senders/post-senders-id-connections-google",
-      "destination": "/docs/sending/email-smtp",
+      "destination": "/docs/modules/email",
       "permanent": true
     },
     {
@@ -29,67 +29,67 @@
     },
     {
       "source": "/docs/senders/connect-smtp",
-      "destination": "/docs/sending/email-smtp",
+      "destination": "/docs/modules/email",
       "permanent": true
     },
     {
       "source": "/docs/senders/connect-allo",
-      "destination": "/docs/sending/sms-and-calls-allo",
+      "destination": "/docs/modules/sms/allo",
       "permanent": true
     },
     {
       "source": "/docs/senders/connect-attio",
-      "destination": "/docs/sequences/crm-conditions",
+      "destination": "/docs/modules/crm/attio",
       "permanent": true
     },
     {
       "source": "/docs/senders/connect-linkedin",
-      "destination": "/docs/sending/channels",
+      "destination": "/docs/modules",
       "permanent": true
     },
     {
       "source": "/docs/sequences/task-node",
-      "destination": "/docs/sending/call-tasks",
+      "destination": "/docs/modules/sms/allo",
       "permanent": true
     },
     {
       "source": "/docs/enrollments/tasks",
-      "destination": "/docs/sending/call-tasks",
+      "destination": "/docs/modules/sms/allo",
       "permanent": true
     },
     {
       "source": "/docs/enrollments/enrolling",
-      "destination": "/docs/contacts/enrolling",
+      "destination": "/docs/concepts/enrollment",
       "permanent": true
     },
     {
       "source": "/docs/enrollments/lifecycle",
-      "destination": "/docs/contacts/lifecycle",
+      "destination": "/docs/concepts/enrollment",
       "permanent": true
     },
     {
       "source": "/docs/enrollments/journey",
-      "destination": "/docs/contacts/journey",
+      "destination": "/docs/concepts/enrollment",
       "permanent": true
     },
     {
       "source": "/docs/security/email-compliance",
-      "destination": "/docs/sending/deliverability-and-compliance",
+      "destination": "/docs/modules/email",
       "permanent": true
     },
     {
       "source": "/docs/security/sms-compliance",
-      "destination": "/docs/sending/deliverability-and-compliance",
+      "destination": "/docs/modules/email",
       "permanent": true
     },
     {
       "source": "/docs/security/linkedin-automation",
-      "destination": "/docs/sending/channels",
+      "destination": "/docs/modules",
       "permanent": true
     },
     {
       "source": "/docs/get-started/comparison",
-      "destination": "/docs",
+      "destination": "/docs/get-started/quickstart",
       "permanent": true
     },
     {
@@ -99,22 +99,242 @@
     },
     {
       "source": "/docs/tutorials/integrate-your-crm",
-      "destination": "/docs/use-cases/sales-outbound",
+      "destination": "/docs/get-started/integrate",
       "permanent": true
     },
     {
       "source": "/docs/tutorials/migrate-from-a-saas-tool",
-      "destination": "/docs/use-cases/sales-outbound",
+      "destination": "/docs/get-started/integrate",
       "permanent": true
     },
     {
       "source": "/docs/tutorials/build-a-sequence-editor",
-      "destination": "/docs/sequences/building-a-canvas",
+      "destination": "/docs/sequences/definition",
       "permanent": true
     },
     {
       "source": "/docs/tutorials/agent-enrollment",
-      "destination": "/sdks/mcp",
+      "destination": "/docs/modules/mcp",
+      "permanent": true
+    },
+    {
+      "source": "/docs",
+      "destination": "/docs/get-started/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/docs/integrate",
+      "destination": "/docs/get-started/integrate",
+      "permanent": true
+    },
+    {
+      "source": "/docs/get-started/concepts",
+      "destination": "/docs/concepts/project",
+      "permanent": true
+    },
+    {
+      "source": "/docs/get-started/how-it-works",
+      "destination": "/docs/concepts/enrollment",
+      "permanent": true
+    },
+    {
+      "source": "/docs/get-started/architecture",
+      "destination": "/docs/self-hosting/scaling",
+      "permanent": true
+    },
+    {
+      "source": "/docs/use-cases/sales-outbound",
+      "destination": "/docs/get-started/integrate",
+      "permanent": true
+    },
+    {
+      "source": "/docs/use-cases/customer-onboarding",
+      "destination": "/docs/get-started/integrate",
+      "permanent": true
+    },
+    {
+      "source": "/docs/use-cases/re-engagement",
+      "destination": "/docs/get-started/integrate",
+      "permanent": true
+    },
+    {
+      "source": "/docs/use-cases/event-follow-up",
+      "destination": "/docs/get-started/integrate",
+      "permanent": true
+    },
+    {
+      "source": "/docs/use-cases/embedded-sequences",
+      "destination": "/docs/get-started/integrate",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sending/senders",
+      "destination": "/docs/concepts/sender",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sending/channels",
+      "destination": "/docs/modules",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sending/email-smtp",
+      "destination": "/docs/modules/email",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sending/sms-and-calls-allo",
+      "destination": "/docs/modules/sms/allo",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sending/call-tasks",
+      "destination": "/docs/modules/sms/allo",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sending/deliverability-and-compliance",
+      "destination": "/docs/modules/email",
+      "permanent": true
+    },
+    {
+      "source": "/docs/contacts/contacts",
+      "destination": "/docs/concepts/contact",
+      "permanent": true
+    },
+    {
+      "source": "/docs/contacts/attrs",
+      "destination": "/docs/concepts/attributes",
+      "permanent": true
+    },
+    {
+      "source": "/docs/contacts/consent-and-suppressions",
+      "destination": "/docs/concepts/contact",
+      "permanent": true
+    },
+    {
+      "source": "/docs/contacts/events",
+      "destination": "/docs/get-started/integrate",
+      "permanent": true
+    },
+    {
+      "source": "/docs/contacts/enrolling",
+      "destination": "/docs/concepts/enrollment",
+      "permanent": true
+    },
+    {
+      "source": "/docs/contacts/lifecycle",
+      "destination": "/docs/concepts/enrollment",
+      "permanent": true
+    },
+    {
+      "source": "/docs/contacts/journey",
+      "destination": "/docs/concepts/enrollment",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/wait-for",
+      "destination": "/docs/sequences/nodes",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/crm-conditions",
+      "destination": "/docs/modules/crm/attio",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/building-a-canvas",
+      "destination": "/docs/sequences/definition",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/canvas-react-example",
+      "destination": "/docs/sequences/definition",
+      "permanent": true
+    },
+    {
+      "source": "/docs/webhooks/polling",
+      "destination": "/docs/webhooks/overview",
+      "permanent": true
+    },
+    {
+      "source": "/docs/webhooks/recipes",
+      "destination": "/docs/modules/webhooks",
+      "permanent": true
+    },
+    {
+      "source": "/docs/self-hosting/docker-compose",
+      "destination": "/docs/self-hosting/install",
+      "permanent": true
+    },
+    {
+      "source": "/docs/self-hosting/queues",
+      "destination": "/docs/self-hosting/database",
+      "permanent": true
+    },
+    {
+      "source": "/docs/self-hosting/security-hardening",
+      "destination": "/docs/security/security-hardening",
+      "permanent": true
+    },
+    {
+      "source": "/docs/community/changelog",
+      "destination": "/docs/self-hosting/upgrades",
+      "permanent": true
+    },
+    {
+      "source": "/docs/community/contributing",
+      "destination": "/docs/get-started/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/docs/community/extending",
+      "destination": "/docs/modules",
+      "permanent": true
+    },
+    {
+      "source": "/docs/community/faq",
+      "destination": "/docs/get-started/integrate",
+      "permanent": true
+    },
+    {
+      "source": "/docs/community/roadmap",
+      "destination": "/docs/get-started/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/docs/community/support",
+      "destination": "/docs/get-started/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/sdks/mcp",
+      "destination": "/docs/modules/mcp",
+      "permanent": true
+    },
+    {
+      "source": "/reference/glossary",
+      "destination": "/docs/concepts/project",
+      "permanent": true
+    },
+    {
+      "source": "/docs/modules/allo",
+      "destination": "/docs/modules/sms/allo",
+      "permanent": true
+    },
+    {
+      "source": "/docs/modules/attio",
+      "destination": "/docs/modules/crm/attio",
+      "permanent": true
+    },
+    {
+      "source": "/docs/concepts/run",
+      "destination": "/docs/concepts/enrollment",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/show-where-a-contact-is",
+      "destination": "/docs/concepts/enrollment",
       "permanent": true
     }
   ]

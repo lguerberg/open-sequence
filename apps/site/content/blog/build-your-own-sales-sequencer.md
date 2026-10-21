@@ -1,17 +1,32 @@
 ---
-title: "What breaks when you build your own sales sequencer"
-h1: "What breaks after the cron job when you build your own sales sequencer"
-description: "A sales sequencer takes 16 to 24 engineer-weeks, not a cron job. This post covers time zones, double sends, caps, replies, bounces and RFC 8058, with our code."
+title: "How to build a sales sequencing tool"
+h1: "How to build a sales sequencing tool, and what breaks after the cron job"
+description: "How to build a sales sequencing tool: the seven parts, what breaks in each, 16 to 24 engineer-weeks of work, and when to use an open source engine instead."
 date: 2026-10-14
 updated: 2026-10-20
 author: Leo Guerberg
 tags: [engineering, build-vs-buy, email, architecture]
-keyword: "build your own sales sequencer"
+keyword: "how to build a sales sequencing tool"
+kind: guide
 ---
 
-You can build your own sales sequencer, but the cron job and the templates are the small part. Take a first production version that sends from reps' own inboxes, stops on replies and never double-sends. It takes one senior engineer about 16 to 24 weeks, plus upkeep. We know the parts list because we built one. We make [OpenSequence](https://github.com/lguerberg/open-sequence), an Apache-2.0 sequencing service. Its service code is about 13,900 lines of TypeScript plus 3,600 lines of tests.
+To build a sales sequencing tool, you need seven parts: contacts, senders, versioned sequence definitions, enrollments, a scheduler, channel executors for email, SMS and call tasks, and webhooks back to your app. The cron job and the templates are the small part. A first production version that sends from reps' own inboxes, stops on replies and never double-sends takes one senior engineer about 16 to 24 weeks, plus upkeep. If you would rather not build it, [OpenSequence](https://github.com/lguerberg/open-sequence) is an open source (Apache-2.0), self-hosted engine with these seven parts behind an API.
 
-Each section below names a failure mode, then shows how OpenSequence handles it, with code from the repo.
+We know the parts list because we built OpenSequence. Its service code is about 13,900 lines of TypeScript plus 3,600 lines of tests. Each section below names a failure mode, then shows how OpenSequence handles it, with code from the repo.
+
+## The architecture of a sales sequencing tool
+
+| Part | What it does | The hard part |
+|---|---|---|
+| Contacts | The people you reach, keyed by your CRM's ids, with email, phone, time zone and attributes | Keeping them in sync with your CRM, and honoring suppressions |
+| Senders | The reps who send, each with their own mailbox and phone number | Storing mailbox passwords encrypted, and per-mailbox caps |
+| Sequence definitions | The steps, waits, conditions and exit rules, as versioned JSON | Editing a sequence while people are in it |
+| Enrollments | One contact's place in one sequence, with a status and a next run time | One active enrollment per contact, and exits that stick |
+| Scheduler | Claims due enrollments and plans each step in the contact's time zone | Two workers and a crash must never send twice |
+| Channels | Executors that send email over SMTP, texts and call tasks, and read replies and bounces | Threading, auto-replies, bounces and one-click unsubscribe |
+| Webhooks | Signed events back to your app: sent, replied, exited, task created | Retries, ordering and a receiver that is down for a day |
+
+The data flows in one direction. Your app upserts contacts and senders, publishes a definition and enrolls people. The scheduler and the channels do the work. Replies, bounces and opt-outs come back as signals that exit the enrollment, and webhooks tell your app. OpenSequence's [architecture page](https://docs.opensequence.dev/docs/self-hosting/scaling) shows the same parts as running processes.
 
 ## The naive version
 
@@ -70,7 +85,7 @@ CREATE UNIQUE INDEX enrollments_one_active_idx ON seq.enrollments (project_id, c
   WHERE status IN ('active', 'paused', 'waiting_limit');
 ```
 
-With the default Postgres queue, the enqueue is an insert in the same transaction as the run record, so "run recorded" and "message queued" commit together. The [queues page](https://docs.opensequence.dev/docs/self-hosting/queues) covers the Redis case, where a reaper re-enqueues any run that was recorded but never queued.
+With the default Postgres queue, the enqueue is an insert in the same transaction as the run record, so "run recorded" and "message queued" commit together. The [queues page](https://docs.opensequence.dev/docs/self-hosting/database) covers the Redis case, where a reaper re-enqueues any run that was recorded but never queued.
 
 ## Per-mailbox caps
 
@@ -92,7 +107,7 @@ An out-of-office reply arrives in the thread and looks like a real reply. OpenSe
 
 A bounce is an email from `mailer-daemon@` or `postmaster@` with a `message/delivery-status` part ([RFC 3464](https://www.rfc-editor.org/rfc/rfc3464)). The adapter reads the status code and finds the original by our `Message-ID` in the attached headers. A `5.x.x` status is permanent and a `4.x.x` is transient ([RFC 3463](https://www.rfc-editor.org/rfc/rfc3463)). On a permanent bounce, OpenSequence writes a `hard_bounce` suppression and exits the contact. A transient bounce writes no suppression.
 
-OpenSequence checks suppressions at enrollment and again at send time, because a contact can opt out in between. The [consent and suppressions page](https://docs.opensequence.dev/docs/contacts/consent-and-suppressions) lists every source.
+OpenSequence checks suppressions at enrollment and again at send time, because a contact can opt out in between. The [consent and suppressions page](https://docs.opensequence.dev/docs/concepts/contact) lists every source.
 
 ## One-click unsubscribe (RFC 8058)
 
@@ -108,7 +123,7 @@ The problem is link scanners. Many corporate mail filters fetch the URLs in a me
 
 ## Stopping on a meeting or a CRM change
 
-A sequencer only sees its own channels. OpenSequence does not read calendars, so it cannot see a booked meeting, a deal moved to "closed won" or a do-not-contact flag in your CRM. Your app reports those through the [contact events API](https://docs.opensequence.dev/docs/contacts/events), which is idempotent on your event id. A homegrown sequencer has the same problem, so budget the CRM webhooks either way. The [CRM integration tutorial](/blog/add-sales-sequences-to-your-crm) shows that code for OpenSequence. OpenSequence does not watch the CRM. A `condition` step can still read a live value from Attio, such as `crm.deal.stage`, when it decides a branch.
+A sequencer only sees its own channels. OpenSequence does not read calendars, so it cannot see a booked meeting, a deal moved to "closed won" or a do-not-contact flag in your CRM. Your app reports those through the [contact events API](https://docs.opensequence.dev/docs/get-started/integrate#report-what-the-service-cannot-see), which is idempotent on your event id. A homegrown sequencer has the same problem, so budget the CRM webhooks either way. The [CRM integration tutorial](/blog/add-sales-sequences-to-your-crm) shows that code for OpenSequence. OpenSequence does not watch the CRM. A `condition` step can still read a live value from Attio, such as `crm.deal.stage`, when it decides a branch.
 
 A reply can also arrive in the second between the last check and the provider call. The enrollment row lock and a last-moment status check catch almost all of these. No design can close the remaining race, so OpenSequence logs those cases instead of hiding them.
 
@@ -144,36 +159,52 @@ This is our estimate for one senior engineer who has built queue-backed systems 
 
 Most of the range comes from the inbound side, where you keep finding bounce and auto-reply formats your parser does not handle. Each extra mailbox provider adds weeks. If you send through the Gmail API instead of SMTP and your OAuth client is public rather than internal to your Workspace, Google reviews apps that request restricted Gmail scopes. You do not control how long that review takes. After launch, someone has to handle login failures, provider API changes and the occasional stuck enrollment.
 
-## When building your own is the right call
+## Build or use an open source engine
 
 Build it when sequencing is your product, or when your volume is tiny. A founder sending 20 emails a day from one inbox can get by with a script and a spreadsheet. Also build it when your rules fall far outside what any tool models and an engineer will own the code for years.
 
 Buy a SaaS tool when nobody on the team can own a service, when reps need a finished UI tomorrow, or when you need Outlook mailboxes, open tracking or A/B tests on content. OpenSequence has none of those last three today. The [migration guide](/blog/replace-your-sales-sequencing-software) covers moving off a SaaS tool, and the [Outreach vs Salesloft cost breakdown](/blog/outreach-vs-salesloft-cost) prices the buy side.
 
-Self-host an open source engine when you want to own the data and drop per-seat pricing without spending the 20 weeks. OpenSequence is headless, so you bring the UI. It runs as one container on a Postgres database you own. [How it works](https://docs.opensequence.dev/docs/get-started/how-it-works) is the 10-minute version of this post, and the [self-hosted deliverability guide](/blog/cold-email-deliverability-self-hosted) covers DNS and warm-up.
+Use an open source engine when you want to own the data and drop per-seat pricing without spending the 20 weeks. OpenSequence is the open source option: Apache-2.0, self-hosted, with an API, a TypeScript SDK (`npm install @opensequence/sdk`) and an MCP server. It is headless, so you bring the UI. It runs as one container on a Postgres database you own. [Enrollment](https://docs.opensequence.dev/docs/concepts/enrollment) is the 10-minute version of this post, and the [self-hosted deliverability guide](/blog/cold-email-deliverability-self-hosted) covers DNS and warm-up.
 
 ## FAQ
 
-### How long does it take to build a sales sequencer?
+### How do I build a sales sequencing tool?
 
-A script that sends a follow-up after N days takes a few days. A production sequencer with time zones, idempotent sends, reply and bounce detection, one-click unsubscribe and versioning is a bigger job. We estimate about 16 to 24 engineer-weeks for one mailbox provider.
+Build seven parts: contacts, senders, versioned sequence definitions, enrollments, a scheduler, channel executors and webhooks. Plan for 16 to 24 engineer-weeks for one mailbox provider, most of it on replies, bounces and idempotent sends.
+
+### What is a sales sequencing tool?
+
+It sends a planned series of emails, texts and call tasks to each prospect from a rep's own accounts. It stops the series when the prospect replies, books a meeting, bounces or opts out.
+
+### Is there an open source alternative to Outreach or Salesloft sequences?
+
+Yes. OpenSequence is an Apache-2.0, self-hosted engine for the sequencing part of Outreach and Salesloft, with no per-seat price and no UI of its own.
+
+### How do I add email and SMS sequences to my CRM?
+
+Run a sequencing engine next to your CRM and call its API from your backend: upsert contacts and senders by your own ids, enroll people, and write the webhooks back to your records. The [CRM tutorial](/blog/add-sales-sequences-to-your-crm) shows the code with OpenSequence.
+
+### Is there a self-hosted sales engagement API?
+
+Yes. OpenSequence runs as one Docker image on your Postgres and exposes sequences, enrollments, senders, tasks, webhooks and analytics as a REST API.
 
 ### Can I use a cron job to send follow-up emails?
 
-For one inbox and a few dozen emails a day, yes. It breaks once you run two workers, retry after a crash, or need to stop the moment someone replies. At that point you need row-level ownership of each step and an idempotency key on each send.
-
-### Do cold emails need RFC 8058 one-click unsubscribe?
-
-Google's and Yahoo's rules require it for bulk senders, which Google defines as senders of more than 5,000 messages a day to Gmail accounts. Most 1:1 sales email falls under that line. Adding the `List-Unsubscribe` and `List-Unsubscribe-Post` headers costs little and turns a likely spam complaint into an unsubscribe.
+For one inbox and a few dozen emails a day, yes. It breaks once you run two workers, retry after a crash, or need to stop the moment someone replies.
 
 ### How do I tell an out-of-office reply from a real reply?
 
-Check the `Auto-Submitted` header from RFC 3834 first, then `X-Autoreply`, `X-Autorespond` and `Precedence: auto_reply`, then the subject line. Some auto-replies set none of these headers, so the subject check is not optional. Pause the sequence on an out-of-office instead of exiting it.
+Check the RFC 3834 `Auto-Submitted` header, then `X-Autoreply`, `X-Autorespond` and `Precedence: auto_reply`, then the subject line. Pause the sequence on an out-of-office instead of exiting it.
+
+### Do cold emails need RFC 8058 one-click unsubscribe?
+
+Google and Yahoo require it from bulk senders, meaning more than 5,000 messages a day to Gmail accounts. Most 1:1 sales email is under that line, but the two headers cost little and turn a spam complaint into an unsubscribe.
 
 ### How many emails can a Google Workspace user send per day?
 
-Google's published limit is 2,000 messages a day per user, or 500 on trial accounts. For cold outreach from a rep's own inbox, stay far below that. OpenSequence defaults to 30 a day per sender.
+Google's limit is 2,000 messages a day per user, or 500 on trial accounts. For cold outreach stay far below it; OpenSequence defaults to 30 a day per sender.
 
 ### Does OpenSequence work with Outlook or Microsoft 365?
 
-Not today. OpenSequence sends over SMTP and reads replies over IMAP, and Microsoft 365 no longer accepts password sign-in for either. Gmail, Google Workspace and most other providers work.
+Not today. Microsoft 365 no longer accepts password sign-in for SMTP and IMAP, which OpenSequence uses.

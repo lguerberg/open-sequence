@@ -2,5 +2,13 @@
   "title": "Reference",
   "description": "Generated from the code: schema, fields, events, configuration, errors",
   "root": true,
-  "pages": ["glossary", "limits", "definition-schema", "nodes", "condition-fields", "webhook-events", "configuration", "error-codes"]
+  "pages": [
+    "limits",
+    "definition-schema",
+    "nodes",
+    "condition-fields",
+    "webhook-events",
+    "configuration",
+    "error-codes"
+  ]
 }

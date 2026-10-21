@@ -79,7 +79,7 @@ Pricing is the weakest argument here, but it is real. Customer.io bills by profi
 
 In the setup we recommend, Customer.io keeps sending every message to users, and a separate sales sequencer handles the cases where a rep should get involved. Both tools get the product events your app already emits.
 
-This is how it works with OpenSequence. Each rep is a sender who connects their mailbox once over SMTP and IMAP, Gmail included ([Email setup](https://docs.opensequence.dev/docs/sending/email-smtp)). Emails leave from that mailbox, and follow-ups can reply in the same thread. The engine reads the inbox for replies to the emails it sent. A sequence can mix email, a text, a wait, a call task and a manual task of your own kind. An opt-out or a hard bounce always exits the enrollment. A reply or a booking on the rep's calendar exits it when the sequence lists that event in `exit_on`.
+This is how it works with OpenSequence. Each rep is a sender who connects their mailbox once over SMTP and IMAP, Gmail included ([Email setup](https://docs.opensequence.dev/docs/modules/email)). Emails leave from that mailbox, and follow-ups can reply in the same thread. The engine reads the inbox for replies to the emails it sent. A sequence can mix email, a text, a wait, a call task and a manual task of your own kind. An opt-out or a hard bounce always exits the enrollment. A reply or a booking on the rep's calendar exits it when the sequence lists that event in `exit_on`.
 
 ### 1. Decide in your code who gets a human
 
@@ -113,13 +113,13 @@ export async function onTeammatesInvited(user: User, workspace: Workspace) {
 }
 ```
 
-The enroll call upserts the inline contact before it creates the enrollment, so you need no separate sync job. It also refuses a contact who is already in any active sequence. That check keeps two reps from emailing the same trial user ([Enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)).
+The enroll call upserts the inline contact before it creates the enrollment, so you need no separate sync job. It also refuses a contact who is already in any active sequence. That check keeps two reps from emailing the same trial user ([Enrollment](https://docs.opensequence.dev/docs/concepts/enrollment)).
 
 You could call the enroll endpoint from a Customer.io webhook action instead. We would not. Customer.io retries a webhook that returns 409 up to 11 times over about an hour, and here a 409 is a correct answer, not a failure. A ten-line handler in your backend can catch the 409 and return, as the code above does.
 
 ### 2. Pause Customer.io's drips while a rep works the account
 
-A trial user in a sales sequence should not also get the generic "upgrade now" drip. Register an OpenSequence webhook for `enrollment.created` and `enrollment.exited` ([Receiving webhooks](https://docs.opensequence.dev/docs/webhooks/overview)) and copy the state onto the Customer.io profile:
+A trial user in a sales sequence should not also get the generic "upgrade now" drip. Register an OpenSequence webhook for `enrollment.created` and `enrollment.exited` ([Webhooks to your app](https://docs.opensequence.dev/docs/modules/webhooks)) and copy the state onto the Customer.io profile:
 
 ```ts
 import express from 'express';
@@ -145,13 +145,13 @@ In Customer.io, add `in_sales_sequence is true` as an exit condition on the upgr
 
 ### 3. Send events back to OpenSequence
 
-Some product events should end the sales sequence. If the user upgrades on their own, exit their enrollment with `oseq.enrollments.exitMany({ contact: user.id, label: 'self-serve upgrade' })`. If they unsubscribe in Customer.io, or your CRM marks them do-not-contact, report it as a contact event so OpenSequence suppresses them ([Contact events](https://docs.opensequence.dev/docs/contacts/events)). The engine only sees its own channels, so you have to report anything that happens elsewhere.
+Some product events should end the sales sequence. If the user upgrades on their own, exit their enrollment with `oseq.enrollments.exitMany({ contact: user.id, label: 'self-serve upgrade' })`. If they unsubscribe in Customer.io, or your CRM marks them do-not-contact, report it as a contact event so OpenSequence suppresses them ([Contact events](https://docs.opensequence.dev/docs/get-started/integrate#report-what-the-service-cannot-see)). The engine only sees its own channels, so you have to report anything that happens elsewhere.
 
 When someone opts out from a sales email, OpenSequence sends a `signal.received` webhook. Whether that also unsubscribes the person from product email is a policy decision for you and your counsel. Copying it to Customer.io's `unsubscribed` attribute is the conservative default.
 
 ### What this costs you
 
-OpenSequence is headless. It has no inbox UI for reps, so you build the task list in your app or CRM ([Tasks](https://docs.opensequence.dev/docs/enrollments/tasks)). You also run one container plus Postgres ([Install](https://docs.opensequence.dev/docs/self-hosting/install)). It sends email over SMTP and IMAP, so Microsoft 365 mailboxes, which no longer allow password sign-in, cannot connect. The project has not reached 1.0. If those trade-offs are wrong for you, the same split works with a hosted sequencer. Our [guide to replacing your sales sequencing software](/blog/replace-your-sales-sequencing-software) compares the options, and [building your own sequencer](/blog/build-your-own-sales-sequencer) covers what you take on if you write the engine yourself.
+OpenSequence is headless. It has no inbox UI for reps, so you build the task list in your app or CRM ([Tasks](https://docs.opensequence.dev/docs/modules/sms/allo)). You also run one container plus Postgres ([Install](https://docs.opensequence.dev/docs/self-hosting/install)). It sends email over SMTP and IMAP, so Microsoft 365 mailboxes, which no longer allow password sign-in, cannot connect. The project has not reached 1.0. If those trade-offs are wrong for you, the same split works with a hosted sequencer. Our [guide to replacing your sales sequencing software](/blog/replace-your-sales-sequencing-software) compares the options, and [building your own sequencer](/blog/build-your-own-sales-sequencer) covers what you take on if you write the engine yourself.
 
 ## When Customer.io alone is enough
 

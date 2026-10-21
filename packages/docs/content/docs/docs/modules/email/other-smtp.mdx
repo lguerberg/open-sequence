@@ -1,0 +1,70 @@
+---
+title: "Connect any other SMTP and IMAP mail provider"
+nav: "Other SMTP"
+icon: email
+description: "How to connect any mailbox with SMTP and IMAP to OpenSequence: host, port and TLS settings, with Fastmail, Zoho, iCloud, Proton Bridge and self-hosted examples."
+---
+
+This page connects any mailbox that offers SMTP and IMAP. You need its host names, ports and a login.
+
+## What it gives you
+
+The rep's emails leave from their own address, and replies come back over IMAP. See [Email](/docs/modules/email) for limits and send windows.
+
+## What you need
+
+- The SMTP and IMAP host and port, from the provider's help pages.
+- A login. Use an app password where the provider offers one.
+- An OpenSequence `admin` key and the [sender](/docs/concepts/sender) id.
+
+## Settings
+
+`secure: true` is TLS from the first byte, usually ports 465 (SMTP) and 993 (IMAP). `secure: false` is STARTTLS, usually ports 587 (SMTP) and 143 (IMAP). STARTTLS is required unless the host is `localhost`, so a password never crosses the network in clear.
+
+| Provider | SMTP | IMAP | Notes |
+|---|---|---|---|
+| Fastmail | `smtp.fastmail.com`, 465, `true` | `imap.fastmail.com`, 993, `true` | An app password with SMTP and IMAP access. |
+| Zoho Mail | `smtp.zoho.com`, 465, `true` | `imap.zoho.com`, 993, `true` | Organization accounts use `smtppro.zoho.com` and `imappro.zoho.com`. Turn on IMAP access. |
+| iCloud Mail | `smtp.mail.me.com`, 587, `false` | `imap.mail.me.com`, 993, `true` | An app-specific password. |
+| Proton Mail | `127.0.0.1`, 1025, `false` | `127.0.0.1`, 1143, `false` | Through Proton Mail Bridge on the server's host. Trust Bridge's certificate with `NODE_EXTRA_CA_CERTS`. |
+| Your own server | your host | your host | Any server with SMTP AUTH and IMAP. |
+
+## Steps
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/senders/u_42/channels/email -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{
+  "provider": "smtp",
+  "from": "max@acme.com",
+  "smtp": { "host": "smtp.fastmail.com", "port": 465, "secure": true, "user": "max@acme.com", "password": "app-password" },
+  "imap": { "host": "imap.fastmail.com", "port": 993, "secure": true, "user": "max@acme.com", "password": "app-password" }
+}'
+```
+
+```ts title="TypeScript"
+const login = { user: 'max@acme.com', password: process.env.MAX_APP_PASSWORD! };
+await oseq.senders.setSmtp('u_42', {
+  provider: 'smtp',
+  from: 'max@acme.com',
+  smtp: { host: 'smtp.fastmail.com', port: 465, secure: true, ...login },
+  imap: { host: 'imap.fastmail.com', port: 993, secure: true, ...login },
+});
+```
+
+</CodeGroup>
+
+Set `from` when the SMTP login is not an email address.
+
+## Check it works
+
+`GET /v1/senders/u_42/readiness` returns `"email": { "ok": true }`. Send yourself a test sequence and reply: the enrollment exits with `replied` within about a minute.
+
+## Common errors
+
+| Error | Fix |
+|---|---|
+| `422 SMTP_AUTH_FAILED`, `IMAP_AUTH_FAILED` | Wrong login, or SMTP or IMAP access is off. Use an app password. |
+| `422 SMTP_UNREACHABLE`, `IMAP_UNREACHABLE` | Wrong host or port, a firewall, or a certificate the server does not trust. Set `NODE_EXTRA_CA_CERTS` for a private certificate authority. |
+| `422 SMTP_REFUSED`, `IMAP_REFUSED` | Often `secure` does not match the port: `true` for 465 and 993, `false` for 587 and 143. |
+| iCloud refuses the full address on IMAP | Try the part before the `@` as the IMAP user. |

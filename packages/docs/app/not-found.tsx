@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 
 const links = [
   { href: '/docs/get-started/quickstart', text: 'Quickstart' },
-  { href: '/docs', text: 'Docs' },
+  { href: '/docs/get-started/quickstart', text: 'Docs' },
   { href: '/api/conventions', text: 'API reference' },
   { href: '/sdks/typescript', text: 'SDKs and CLI' },
-  { href: '/reference/glossary', text: 'Reference' },
+  { href: '/reference/limits', text: 'Reference' },
 ];
 
 /** The 404 page (`404.html` in the static export). */

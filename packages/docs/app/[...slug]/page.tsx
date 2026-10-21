@@ -3,6 +3,7 @@ import { createRelativeLink } from 'fumadocs-ui/mdx';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { OpenAPIPage } from '@/components/api-page';
+import { hasLogo, ModuleLogo } from '@/components/logos';
 import { getMDXComponents } from '@/components/mdx';
 import { jsonLdHtml, pageGithubUrl, pageJsonLd, pageMetadata } from '@/lib/seo';
 import { getPageMarkdownUrl } from '@/lib/shared';
@@ -40,7 +41,10 @@ export default async function Page(props: Params) {
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
       {jsonLd}
-      <DocsTitle>{page.data.title}</DocsTitle>
+      <DocsTitle className="flex items-center gap-3">
+        {hasLogo(page.data.icon) ? <ModuleLogo name={page.data.icon} size={28} /> : null}
+        {page.data.title}
+      </DocsTitle>
       <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
       <div className="flex flex-row flex-wrap gap-2 items-center border-b pb-6">
         <MarkdownCopyButton markdownUrl={markdownUrl} />

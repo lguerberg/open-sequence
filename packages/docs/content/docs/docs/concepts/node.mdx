@@ -1,0 +1,27 @@
+---
+title: "Node: one step of a sequence"
+nav: "Node"
+description: "What a node is and the seven node types: start, outreach, wait, wait_for, condition, task and end, with where each one goes next."
+---
+
+A node is one step of a sequence. Each node lists where to go next for each outcome.
+
+| Type | Does | Goes next on |
+|---|---|---|
+| `start` | Marks the entry. Optional. | `then` |
+| `outreach` | Sends an email or a text from the sender. | `sent`, `skipped`, `failed` |
+| `wait` | Waits a duration, like `2d` or `2bd` (business days). | `then` |
+| `wait_for` | Waits for a reply, a connected call or a booked meeting, with a timeout. | one key per event, `timeout` |
+| `condition` | Checks rules on contact, sender, history or CRM data. | `yes`, `no` |
+| `task` | Gives the sender a task, such as a call, and waits for its outcome. | `completed`, `no_answer`, or an outcome |
+| `end` | Ends the enrollment as completed. | none |
+
+```json
+"check_plan": {
+  "type": "condition",
+  "params": { "mode": "all", "rules": [{ "field": "attrs.plan", "op": "is", "value": "trial" }] },
+  "next": { "yes": "call_1", "no": "end" }
+}
+```
+
+An exit that is taken but not wired ends the enrollment as completed. Every type with its params: [Nodes](/docs/sequences/nodes).

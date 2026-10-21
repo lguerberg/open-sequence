@@ -1,6 +1,7 @@
 ---
-title: "Templates"
-description: "Syntax, paths, fallbacks, text and html bodies, branded HTML emails with images, the unsubscribe link, and what is recorded."
+title: "Message templates and variables"
+nav: "Templates"
+description: "How message templates work: syntax, paths, fallbacks, text and html bodies, branded HTML emails with images, and the unsubscribe link."
 ---
 
 ```text
@@ -22,7 +23,7 @@ Subjects, bodies, task titles, bodies and links are rendered by one small engine
 | `attrs.<path>` | the contact's attrs (`contact.attrs.<path>` is accepted as an alias) |
 | `sender.name`, `sender.first_name`, `sender.email`, `sender.timezone` | the sender's columns |
 | `sender.attrs.<path>` | the sender's attrs |
-| `sender.signature` | the sender's signature: the sanitized HTML in an html body, the text twin in a text body. The only path rendered without escaping ([Senders](/docs/sending/senders)) |
+| `sender.signature` | the sender's signature: the sanitized HTML in an html body, the text twin in a text body. The only path rendered without escaping ([Sender](/docs/concepts/sender)) |
 | `sequence.name` | the sequence's name |
 | `unsubscribe_url` | the opt-out link for this run: your own page when the project sets `unsubscribe_url`, else the page this server hosts |
 
@@ -37,7 +38,7 @@ Store each sender's signature once (`PUT /v1/senders/{id}` with `signature_html`
 "format": "html"
 ```
 
-The HTML is sanitized when saved with an email allowlist: table layouts, inline styles, links (`http`, `https`, `mailto`, `tel`) and images over `https` or as base64 stay; scripts, forms, frames, event handlers and CSS that loads anything are dropped ([Senders](/docs/sending/senders#the-signature)). An empty signature renders as nothing, or as the fallback when you give one.
+The HTML is sanitized when saved with an email allowlist: table layouts, inline styles, links (`http`, `https`, `mailto`, `tel`) and images over `https` or as base64 stay; scripts, forms, frames, event handlers and CSS that loads anything are dropped ([Sender](/docs/concepts/sender#the-signature)). An empty signature renders as nothing, or as the fallback when you give one.
 
 ## Missing values and fallbacks
 
@@ -96,7 +97,7 @@ In the definition the HTML is the `body` string, with `"format": "html"`. Embedd
 
 ## The unsubscribe link
 
-`{{ unsubscribe_url }}` renders a signed link, valid for 90 days, that writes an email suppression and exits the enrollment with one click. By default it points at a page this server hosts, `SEQ_PUBLIC_URL/u/{token}`. When the project setting `unsubscribe_url` is set, for example `https://app.example.com/u/{token}`, it renders that URL with the token in place of `{token}`, so the link is on your own domain. Every email also carries `List-Unsubscribe` and `List-Unsubscribe-Post` headers with the same URL. An email body without it publishes with the warning `NO_UNSUBSCRIBE`. See [Consent and suppressions](/docs/contacts/consent-and-suppressions#host-the-unsubscribe-page-in-your-app).
+`{{ unsubscribe_url }}` renders a signed link, valid for 90 days, that writes an email suppression and exits the enrollment with one click. By default it points at a page this server hosts, `SEQ_PUBLIC_URL/u/{token}`. When the project setting `unsubscribe_url` is set, for example `https://app.example.com/u/{token}`, it renders that URL with the token in place of `{token}`, so the link is on your own domain. Every email also carries `List-Unsubscribe` and `List-Unsubscribe-Post` headers with the same URL. An email body without it publishes with the warning `NO_UNSUBSCRIBE`. See [Host the unsubscribe page in your app](/docs/modules/email#host-the-unsubscribe-page-in-your-app).
 
 ## What is recorded
 
@@ -104,4 +105,4 @@ Every run that rendered something stores the values it used in `result.rendered`
 
 ## Preview
 
-Render a definition against a sample contact before publishing: the `POST /v1/sequences:simulate` endpoint the architecture document describes is **not implemented yet**. Use `POST /v1/sequences:validate` for the template path and fallback checks, and a `dry_run` enrollment ([Enrolling](/docs/contacts/enrolling)) to see rendered outreach steps recorded as `skipped_dry_run`.
+Render a definition against a sample contact before publishing: the `POST /v1/sequences:simulate` endpoint the architecture document describes is **not implemented yet**. Use `POST /v1/sequences:validate` for the template path and fallback checks, and a `dry_run` enrollment (`mode: "dry_run"` when you enroll) to see rendered outreach steps recorded as `skipped_dry_run`.

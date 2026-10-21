@@ -1,0 +1,33 @@
+---
+title: "Project: one tenant per customer or workspace"
+nav: "Project"
+description: "What a project is in OpenSequence: one tenant with its own API keys, provider credentials, settings and data, so one install can serve many customers."
+---
+
+A project is one tenant. Give each of your customers or workspaces its own project.
+
+Everything else (senders, contacts, sequences, enrollments, webhooks) belongs to exactly one project. A key from one project never sees another project's data. The operator creates projects with `SEQ_ADMIN_TOKEN`, and each new project comes with its first `admin` key.
+
+```bash
+curl -X POST $SEQ/v1/admin/projects -H "Authorization: Bearer $SEQ_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" -d '{"slug":"acme","name":"Acme"}'
+# {"success":true,"data":{"project":{"id":"prj_…","slug":"acme",…},"api_key":"sk_live_…"}}   the key is shown once
+```
+
+A project also holds its provider credentials (an Allo key and an Attio key, both write-only) and its settings, such as the countries texts may go to.
+
+## API keys
+
+Each key has one scope. Each scope includes the ones above it.
+
+| Scope | Can |
+|---|---|
+| `read` | Read senders, contacts, sequences, journeys, tasks and analytics. |
+| `enroll` | Also upsert contacts, enroll, pause and resume, complete tasks and report contact events. |
+| `admin` | Also manage senders, sequences, webhooks, keys, SMS consent, provider credentials and settings, and exit enrollments. |
+
+Give your app an `enroll` key. Keep the `admin` key for setup screens.
+
+```ts
+const { api_key } = await oseq.project.apiKeys.create({ name: 'crm-backend', scopes: ['enroll'] }); // POST /v1/api-keys
+```

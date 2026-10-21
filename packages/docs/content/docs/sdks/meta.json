@@ -1,6 +1,12 @@
 {
-  "title": "SDKs",
-  "description": "@opensequence/sdk, @opensequence/auth, the MCP server and oseq",
+  "title": "SDK reference",
+  "description": "@opensequence/sdk method by method, @opensequence/auth, other languages and the oseq CLI",
   "root": true,
-  "pages": ["typescript", "auth-package", "mcp", "python", "go", "cli"]
+  "pages": [
+    "typescript",
+    "auth-package",
+    "python",
+    "go",
+    "cli"
+  ]
 }

@@ -1,0 +1,119 @@
+---
+title: "Webhooks to your app: receive signed events"
+nav: "Webhooks"
+icon: webhook
+description: "How to register a webhook endpoint in OpenSequence, verify the Standard Webhooks signature with or without the SDK, dedupe by event id and handle retries."
+---
+
+Webhooks tell your backend what happened: sent, replied, exited, task created. Register one HTTPS endpoint, then verify every delivery.
+
+## What it gives you
+
+- Signed events for every enrollment, step, task and inbound reply or opt-out.
+- Retries with backoff, ordering per enrollment, and replay of anything that failed.
+
+## What you need
+
+- A public HTTPS URL on your backend that reads the raw request body.
+- An OpenSequence `admin` key.
+
+## Steps
+
+<Steps>
+<Step title="Register the endpoint">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/webhooks -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"url":"https://app.example.com/hooks/opensequence","event_types":["*"]}'
+# {"success":true,"data":{"endpoint":{"id":"wep_…",…},"secret":"whsec_…"}}
+```
+
+```ts title="TypeScript"
+const { endpoint, secret } = await oseq.webhooks.create({ url: 'https://app.example.com/hooks/opensequence', event_types: ['*'] });
+```
+
+</CodeGroup>
+
+The secret is shown once. Store it encrypted. `event_types` is a list of event names, or `["*"]` (the default).
+
+</Step>
+<Step title="Verify each delivery">
+
+<CodeGroup>
+
+```ts title="With the SDK"
+import express from 'express';
+import { verifyWebhook, WebhookVerificationError } from '@opensequence/sdk';
+
+app.post('/hooks/opensequence', express.raw({ type: 'application/json' }), async (req, res) => {
+  try {
+    const event = verifyWebhook({ secret: process.env.OSEQ_WEBHOOK_SECRET!, headers: req.headers, body: req.body });
+    if (await alreadyHandled(event.id)) return res.sendStatus(200); // dedupe by event id
+    await handle(event);
+    res.sendStatus(200);
+  } catch (err) {
+    if (err instanceof WebhookVerificationError) return res.status(401).send(err.code);
+    res.sendStatus(500); // OpenSequence retries
+  }
+});
+```
+
+```ts title="Without the SDK"
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+function verify(secret: string, headers: Record<string, string>, rawBody: string) {
+  const id = headers['webhook-id'], ts = headers['webhook-timestamp'], sigs = headers['webhook-signature'];
+  if (Math.abs(Date.now() / 1000 - Number(ts)) > 300) throw new Error('stale');
+  const key = Buffer.from(secret.replace(/^whsec_/, ''), 'base64');
+  const expected = Buffer.from(createHmac('sha256', key).update(`${id}.${ts}.${rawBody}`).digest('base64'));
+  const ok = sigs.split(' ').some((s) => {
+    const got = Buffer.from(s.replace(/^v1,/, ''));
+    return got.length === expected.length && timingSafeEqual(got, expected);
+  });
+  if (!ok) throw new Error('bad signature');
+  return JSON.parse(rawBody);
+}
+```
+
+</CodeGroup>
+
+Use the raw body: a parsed and re-serialized body will not verify. Answer any `2xx` within 10 seconds.
+
+</Step>
+</Steps>
+
+## The events
+
+| Event | When |
+|---|---|
+| `enrollment.created` | A contact was enrolled. |
+| `enrollment.exited` | It left early, with `exit_reason`. |
+| `enrollment.completed` | It reached the end. |
+| `enrollment.paused`, `enrollment.resumed` | It was paused or resumed, with `pause_reason`. |
+| `run.done` | A step ran, such as an email sent. |
+| `run.skipped`, `run.failed`, `run.needs_review` | A step did not run, with a reason. |
+| `task.created`, `task.expired` | A task appeared, or closed without the rep. |
+| `signal.received` | A reply, bounce, opt-out, out-of-office, booked meeting or connected call arrived. |
+| `sender.channel_status` | A mailbox or number changed status, for example `credentials_needed`. |
+| `endpoint.disabled` | An endpoint was disabled after three days of failures. |
+
+Every payload field: [Webhook events](/reference/webhook-events).
+
+## Check it works
+
+Enroll a test contact, then read `GET /v1/webhooks/{id}/deliveries` (`oseq.webhooks.deliveries(id)`). Each delivery shows its status, attempts and your last response code.
+
+## Retries and duplicates
+
+A non-`2xx`, a timeout or a connection error is retried: nine attempts over about a day and a half. Deliveries for one enrollment arrive in order. A delivery can arrive twice, so dedupe by `event.id`. Replay one with `POST /v1/webhooks/deliveries/{id}/replay`, or everything that failed since a time with `POST /v1/webhooks/{id}/recover`. Details: [Retries and recovery](/docs/webhooks/retries-and-recovery).
+
+## Common errors
+
+| Error | Fix |
+|---|---|
+| `422 UNSAFE_URL` | The URL must be `https`, carry no credentials and resolve to a public address. |
+| `WebhookVerificationError` `NO_MATCHING_SIGNATURE` | You verified a parsed body, or used an old secret. Verify the raw bytes with the current secret. |
+| `TIMESTAMP_OUT_OF_TOLERANCE` | Your server's clock is off by more than five minutes. |
+| Endpoint `status: "disabled"` | It failed for three days. Fix it, then `POST /v1/webhooks/{id}/enable` replays what was held. |

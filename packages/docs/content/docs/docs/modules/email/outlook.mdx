@@ -1,0 +1,64 @@
+---
+title: "Connect Outlook and Microsoft 365 mailboxes over SMTP and IMAP"
+nav: "Outlook"
+icon: outlook
+description: "How to connect an Outlook or Microsoft 365 mailbox to OpenSequence: the servers and ports, Authenticated SMTP, app passwords with MFA, and what Microsoft blocks."
+---
+
+This page connects a Microsoft mailbox as a sender's email channel. Read the limits below first: most Microsoft 365 mailboxes cannot connect today.
+
+## What it gives you
+
+The rep's emails leave from their own Microsoft address, and replies come back over IMAP. See [Email](/docs/modules/email) for limits and send windows.
+
+<Warning>OpenSequence signs in to SMTP and IMAP with a password. Exchange Online (Microsoft 365) turned off password sign-in for IMAP in 2022, and app passwords count as password sign-in. Outlook.com accounts need Microsoft's OAuth sign-in too. OpenSequence has no Microsoft OAuth sign-in yet, so these mailboxes are not supported: saving one fails with `IMAP_AUTH_FAILED`. The steps below work only for a Microsoft mailbox that still accepts a password on both SMTP and IMAP, such as an on-premises Exchange server.</Warning>
+
+## What you need
+
+- Authenticated SMTP turned on for the mailbox. In Microsoft 365 an admin turns it on in the admin center under the user's Mail settings, "Manage email apps".
+- IMAP turned on for the mailbox, in the same place.
+- With MFA on, an app password instead of the normal password, where the organization allows app passwords.
+- An OpenSequence `admin` key and the [sender](/docs/concepts/sender) id.
+
+## Steps
+
+| | Host | Port | `secure` |
+|---|---|---|---|
+| SMTP | `smtp.office365.com` | 587 | `false` (STARTTLS) |
+| IMAP | `outlook.office365.com` | 993 | `true` |
+
+For an on-premises Exchange server, use its own host names. The user is the full address.
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/senders/u_42/channels/email -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" -d '{
+  "provider": "smtp",
+  "smtp": { "host": "smtp.office365.com", "port": 587, "secure": false, "user": "max@acme.com", "password": "app-password" },
+  "imap": { "host": "outlook.office365.com", "port": 993, "secure": true, "user": "max@acme.com", "password": "app-password" }
+}'
+```
+
+```ts title="TypeScript"
+const login = { user: 'max@acme.com', password: process.env.MAX_APP_PASSWORD! };
+await oseq.senders.setSmtp('u_42', {
+  provider: 'smtp',
+  smtp: { host: 'smtp.office365.com', port: 587, secure: false, ...login },
+  imap: { host: 'outlook.office365.com', port: 993, secure: true, ...login },
+});
+```
+
+</CodeGroup>
+
+## Check it works
+
+`GET /v1/senders/u_42/readiness` returns `"email": { "ok": true }`. Send yourself a test sequence and reply: the enrollment exits with `replied` within about a minute.
+
+## Common errors
+
+| Error | Fix |
+|---|---|
+| `422 IMAP_AUTH_FAILED` on Microsoft 365 or Outlook.com | Microsoft refuses password sign-in for IMAP. This mailbox cannot connect until OpenSequence supports Microsoft OAuth. |
+| `422 SMTP_AUTH_FAILED` with "SmtpClientAuthentication is disabled" | Authenticated SMTP is off. An admin turns it on for the mailbox. |
+| `422 SMTP_AUTH_FAILED` with MFA on | Use an app password, not the normal password. |
+| `422 SMTP_REFUSED` | `secure` must be `false` on port 587, so the connection upgrades with STARTTLS. |

@@ -27,7 +27,7 @@ const cols = [
       ['Security', links.security],
       ['Webhooks', links.webhooks],
       ['Configuration', links.configuration],
-      ['Extending', links.extending],
+      ['Modules', links.extending],
     ],
   },
 ] as const;

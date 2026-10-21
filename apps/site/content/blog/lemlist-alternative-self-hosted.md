@@ -41,13 +41,13 @@ OpenSequence is one Docker image and a Postgres database, version 14 or later. Y
 
 ### You bring your own mailboxes, but not Microsoft 365
 
-lemlist also sends through your mailboxes, so the mailbox bill stays the same. What changes is who holds the connection. Each rep connects their mailbox once with its SMTP and IMAP settings and an app password ([Email setup](https://docs.opensequence.dev/docs/sending/email-smtp)), and the engine checks both logins before it saves them. Each email leaves from the rep's own mail server, and follow-ups appear in the same thread as the first email.
+lemlist also sends through your mailboxes, so the mailbox bill stays the same. What changes is who holds the connection. Each rep connects their mailbox once with its SMTP and IMAP settings and an app password ([Email setup](https://docs.opensequence.dev/docs/modules/email)), and the engine checks both logins before it saves them. Each email leaves from the rep's own mail server, and follow-ups appear in the same thread as the first email.
 
 Gmail, Google Workspace, Fastmail, Zoho and most company mail servers work. Microsoft 365 does not, because Microsoft turned off password sign-in for SMTP and IMAP. If your reps work in Outlook, stop here and stay on lemlist.
 
 ### You own the sending limits
 
-Every sender's email channel has a `daily_limit`, which defaults to 30 sends in a rolling 24 hours, and a `min_gap_seconds`, which defaults to 60. When a sender reaches the cap, the step waits an hour and the enrollment shows `waiting_limit`. Each sequence also has a send window in the contact's time zone. You change a rep's limits with one call ([Senders](https://docs.opensequence.dev/docs/senders/senders)):
+Every sender's email channel has a `daily_limit`, which defaults to 30 sends in a rolling 24 hours, and a `min_gap_seconds`, which defaults to 60. When a sender reaches the cap, the step waits an hour and the enrollment shows `waiting_limit`. Each sequence also has a send window in the contact's time zone. You change a rep's limits with one call ([Sender](https://docs.opensequence.dev/docs/concepts/sender)):
 
 ```bash
 curl -X PATCH $SEQ/v1/senders/u_42/channels/email \
@@ -55,17 +55,17 @@ curl -X PATCH $SEQ/v1/senders/u_42/channels/email \
   -d '{"daily_limit":50,"min_gap_seconds":90}'
 ```
 
-Enrollment spreads the first emails according to that cap. If you enroll 300 contacts for a rep with a cap of 30 a day, the first emails go out over ten days ([Enrolling](https://docs.opensequence.dev/docs/enrollments/enrolling)). Google's own limit is higher, at 2,000 messages a day per Workspace user and 500 on a trial account ([Gmail sending limits](https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace)). The cap that protects your domain is the number you set. No vendor algorithm changes it. The channel also stores a `weekly_limit`, but the executors do not enforce it yet.
+Enrollment spreads the first emails according to that cap. If you enroll 300 contacts for a rep with a cap of 30 a day, the first emails go out over ten days ([Enrollment](https://docs.opensequence.dev/docs/concepts/enrollment)). Google's own limit is higher, at 2,000 messages a day per Workspace user and 500 on a trial account ([Gmail sending limits](https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace)). The cap that protects your domain is the number you set. No vendor algorithm changes it. The channel also stores a `weekly_limit`, but the executors do not enforce it yet.
 
 ### Warm-up is your job
 
 OpenSequence is not a warm-up service and runs no warm-up network. A new mailbox on a new domain has no reputation, and a sequencer cannot give it one. You can buy warm-up separately. lemwarm sells standalone at $29 per mailbox per month, or $24 billed yearly, according to [lemwarm.com/pricing](https://www.lemwarm.com/pricing). Or you can raise the volume by hand. We would start a new mailbox at a `daily_limit` of 10 and raise it each week while bounces stay low and Postmaster Tools shows no complaints. Our guide to [cold email deliverability when you self-host](/blog/cold-email-deliverability-self-hosted) covers the DNS records and the ramp.
 
-Google sets the rules you must meet. Every sender to Gmail needs SPF or DKIM and a spam rate below 0.3% in Postmaster Tools. Senders of more than 5,000 messages a day to Gmail also need SPF, DKIM and DMARC, and one-click unsubscribe ([Google's email sender guidelines](https://support.google.com/a/answer/81126)). Every OpenSequence email includes `List-Unsubscribe` and `List-Unsubscribe-Post` headers at any volume. An opt-out, a hard bounce or a complaint suppresses the contact and exits the enrollment ([Consent and suppressions](https://docs.opensequence.dev/docs/contacts/consent-and-suppressions)).
+Google sets the rules you must meet. Every sender to Gmail needs SPF or DKIM and a spam rate below 0.3% in Postmaster Tools. Senders of more than 5,000 messages a day to Gmail also need SPF, DKIM and DMARC, and one-click unsubscribe ([Google's email sender guidelines](https://support.google.com/a/answer/81126)). Every OpenSequence email includes `List-Unsubscribe` and `List-Unsubscribe-Post` headers at any volume. An opt-out, a hard bounce or a complaint suppresses the contact and exits the enrollment ([Contact](https://docs.opensequence.dev/docs/concepts/contact)).
 
 ### Social steps become tasks again
 
-This is the largest functional gap against lemlist Multichannel. OpenSequence automates email, SMS and the dialer push, and nothing else. Any other step is a task. The rep gets "Connect with Dana" with a link and a due date, does it by hand, and completes the task with an outcome. A task completed with an outcome the node lists in `connected_outcomes` counts as a reply in exits and analytics, and `branches_by_outcome` routes the flow on any other outcome ([Task node](https://docs.opensequence.dev/docs/sequences/task-node)).
+This is the largest functional gap against lemlist Multichannel. OpenSequence automates email, SMS and the dialer push, and nothing else. Any other step is a task. The rep gets "Connect with Dana" with a link and a due date, does it by hand, and completes the task with an outcome. A task completed with an outcome the node lists in `connected_outcomes` counts as a reply in exits and analytics, and `branches_by_outcome` routes the flow on any other outcome ([Task node](https://docs.opensequence.dev/docs/modules/sms/allo)).
 
 We chose tasks because the social networks forbid bots and other unauthorized automated methods in their user agreements, and the account at risk is the rep's own profile. A sequencer that sends invitations and messages on a rep's behalf puts that profile on the line every day. We would rather a person spend thirty seconds on the step than lose the account that holds their network. Nothing in OpenSequence drives a social account, and nothing of the kind is on the roadmap.
 

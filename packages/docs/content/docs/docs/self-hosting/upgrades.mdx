@@ -1,6 +1,7 @@
 ---
-title: "Upgrades"
-description: "Move a running install to a new image: back up, migrate once, roll the api and worker, and roll back or stop sending safely when something goes wrong."
+title: "Upgrading and rolling back"
+nav: "Upgrades"
+description: "How to move a running install to a new image: back up, migrate once, roll the api and worker, and roll back or stop sending safely if something breaks."
 ---
 
 An upgrade is a new image plus the migrations it carries. This page gives the order that keeps sends flowing, how to roll back, and how to go live the first time.
@@ -71,4 +72,4 @@ See [Scaling](/docs/self-hosting/scaling) for what each one leaves running.
 4. Point your application at the service, behind your own feature flag.
 5. Enroll one contact with `"mode": "dry_run"` and check the journey. Then turn `global` on and enroll a small batch.
 
-See [Enrolling](/docs/contacts/enrolling) for dry runs.
+A dry run is an enrollment with `mode: "dry_run"`: it runs every wait and condition and sends nothing.

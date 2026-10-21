@@ -12,7 +12,8 @@ export function Hero() {
           Sales sequences, <span className="text-brand">as&nbsp;code.</span>
         </h1>
         <p className="t-sub mt-6 max-w-[34rem] sm:mt-8">
-          Own your sales sequencing infrastructure without building it from scratch.
+          OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS
+          and call tasks for any CRM.
         </p>
         <div className="mt-12 sm:mt-16">
           <HeroCanvas />

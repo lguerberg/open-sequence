@@ -1,0 +1,35 @@
+---
+title: "Sequence: a named flow with versioned JSON definitions"
+nav: "Sequence"
+description: "What a sequence is: a named flow whose steps live in versioned JSON definitions, a draft you edit and published versions that never change."
+---
+
+A sequence is a named flow, such as "Trial intro". This page explains how its versions work.
+
+The steps live in a JSON document called the **definition**: [nodes](/docs/concepts/node) joined by named exits.
+
+```json
+{
+  "schema_version": 1,
+  "entry": "intro",
+  "exit_on": ["reply"],
+  "nodes": {
+    "intro": { "type": "outreach", "channel": "email", "action": "send",
+               "params": { "subject": "Hi {{ contact.first_name | \"there\" }}", "body": "…" },
+               "next": { "sent": "wait_2d" } },
+    "wait_2d": { "type": "wait", "params": { "duration": "2bd" }, "next": { "then": "end" } },
+    "end": { "type": "end" }
+  }
+}
+```
+
+## Versions
+
+A sequence holds versions (`v1`, `v2`, …). You edit a **draft**, then publish it. A published version never changes, and new enrollments use it. To change a live flow, copy it into a new draft, edit it and publish again. Contacts already enrolled stay pinned to the version they started on.
+
+```ts
+const { sequence, version } = await oseq.sequences.create({ name: 'Trial intro', definition }); // a v1 draft
+await oseq.sequences.versions.publish(sequence.id, version.id);
+```
+
+Validation errors block publishing. Warnings, such as a missing unsubscribe link, do not. Details: [The definition](/docs/sequences/definition) and [Versions](/docs/sequences/versions).

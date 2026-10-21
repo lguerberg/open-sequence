@@ -1,9 +1,10 @@
 ---
-title: "Install"
-description: "The production path: build the one image, point it at your Postgres, run the api and worker roles with real secrets, then create the first project."
+title: "Install OpenSequence in production"
+nav: "Install"
+description: "How to install for production: build the one image, point it at your Postgres, run the api and worker roles with real secrets, create the first project."
 ---
 
-This page takes you from a clone to a production install: one Docker image, a Postgres you own, an `api` role and a `worker` role. For a laptop with mock providers, use [Docker Compose](/docs/self-hosting/docker-compose) instead.
+This page takes you from a clone to a production install: one Docker image, a Postgres you own, an `api` role and a `worker` role. To try it on a laptop with mock providers, run `docker compose up` from a clone, as in the [Quickstart](/docs/get-started/quickstart).
 
 ```mermaid
 flowchart LR
@@ -104,9 +105,9 @@ With mock providers off, nothing is sent until the project has credentials. Each
 
 | What you want | What to register |
 |---|---|
-| Email | each sender's SMTP and IMAP settings, Gmail included: [Email via SMTP and IMAP](/docs/sending/email-smtp) |
-| SMS and call tasks | one Allo API key per project, then a number and user per sender: [SMS and calls via Allo](/docs/sending/sms-and-calls-allo) |
-| `crm.*` conditions | one Attio API key per project: [CRM conditions](/docs/sequences/crm-conditions) |
+| Email | each sender's SMTP and IMAP settings, Gmail included: [Email](/docs/modules/email) |
+| SMS and call tasks | one Allo API key per project, then a number and user per sender: [Allo](/docs/modules/sms/allo) |
+| `crm.*` conditions | one Attio API key per project: [Attio](/docs/modules/crm/attio) |
 
 `GET /v1/project` shows the inbound webhook URL (`webhook_urls.allo`), built from `SEQ_PUBLIC_URL`.
 
@@ -128,7 +129,7 @@ Logs are Pino JSON on stdout. See [Observability](/docs/self-hosting/observabili
 
 <Cards>
 <Card title="Configuration" href="/docs/self-hosting/configuration">Every SEQ_ variable, its default and when it is required.</Card>
-<Card title="Security hardening" href="/docs/self-hosting/security-hardening">What to lock down before you expose the API.</Card>
+<Card title="Security hardening" href="/docs/security/security-hardening">What to lock down before you expose the API.</Card>
 <Card title="Deploy on Qovery" href="/docs/self-hosting/deploy-qovery">Two services from one Dockerfile and a managed Postgres.</Card>
 <Card title="Deploy on Fly.io" href="/docs/self-hosting/deploy-fly">One fly.toml with api and worker process groups.</Card>
 <Card title="Deploy on Kubernetes" href="/docs/self-hosting/deploy-kubernetes">Manifests for both roles, probes and a migration Job.</Card>

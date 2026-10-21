@@ -18,9 +18,9 @@ export const siteLink: LinkItemType = { text: 'opensequence.dev', url: projectUr
 
 /** The top bar of the home and 404 pages; inside the docs the first three are the tabs. */
 export const sectionLinks: LinkItemType[] = [
-  { text: 'Docs', url: '/docs', active: 'nested-url' },
+  { text: 'Docs', url: '/docs/get-started/quickstart', active: 'nested-url' },
   { text: 'API', url: '/api/conventions', active: 'nested-url' },
   { text: 'SDKs', url: '/sdks/typescript', active: 'nested-url' },
-  { text: 'Reference', url: '/reference/glossary', active: 'nested-url' },
+  { text: 'Reference', url: '/reference/limits', active: 'nested-url' },
   siteLink,
 ];

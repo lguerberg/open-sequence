@@ -1,0 +1,154 @@
+---
+title: "Connect Allo for texts and call tasks"
+nav: "Allo"
+icon: allo
+description: "How to connect Allo to OpenSequence: the API key and its permissions, each sender's number, allowed countries, SMS consent, quiet hours, STOP and call tasks."
+---
+
+The Allo module sends texts from each rep's Allo number and closes call tasks when the rep calls. Set one key per project, then one number per sender.
+
+## What it gives you
+
+- Texts from the sender's own number, with replies read back.
+- A reply made only of STOP (or QUIT, END, CANCEL, UNSUBSCRIBE, OPT OUT, STOPALL) suppresses SMS for the contact and exits their enrollments.
+- Call tasks that complete themselves when the rep calls the contact from Allo.
+- Optional: call tasks pushed into the rep's Allo power dialer.
+
+## What you need
+
+- An [Allo](https://withallo.com) workspace API key with these permissions: `SMS_SEND`, `WEBHOOKS_READ_WRITE`, `PHONE_NUMBERS_READ`, `USERS_READ`, `CONVERSATIONS_READ` and `DIALING_QUEUE_READ_WRITE`.
+- `SEQ_PUBLIC_URL` set to an HTTPS address Allo can reach.
+- An OpenSequence `admin` key.
+
+## Steps
+
+<Steps>
+<Step title="Save the Allo key">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/project/providers/allo -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"api_key":"allo_…"}'
+```
+
+```ts title="TypeScript"
+await oseq.project.setProvider('allo', { api_key: process.env.ALLO_API_KEY! });
+```
+
+</CodeGroup>
+
+OpenSequence registers its own webhook at Allo for inbound texts, sent texts and finished calls, at `SEQ_PUBLIC_URL/hooks/allo/{project slug}`. It keeps the signing secret. There is nothing to set up in Allo. Then it checks the key's permissions and stores the key encrypted.
+
+</Step>
+<Step title="Give each sender a number">
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/project/providers/allo/users -H "Authorization: Bearer $ADMIN_KEY"     # [{ id: "usr-…", email, name }]
+curl $SEQ/v1/project/providers/allo/numbers -H "Authorization: Bearer $ADMIN_KEY"   # [{ address, capabilities, users }]
+curl -X PUT $SEQ/v1/senders/u_42/channels/sms -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"allo_user_id":"usr-…","number":"+14155551234"}'
+```
+
+```ts title="TypeScript"
+const users = await oseq.project.alloUsers();
+const numbers = await oseq.project.alloNumbers();
+const max = users.find((u) => u.email === 'max@acme.com')!;
+const line = numbers.find((n) => n.users.some((u) => u.id === max.id) && n.capabilities.includes('SMS'))!;
+await oseq.senders.setSms('u_42', { allo_user_id: max.id, number: line.address });
+```
+
+</CodeGroup>
+
+`allo_user_id` is Allo's `usr-…` id, not an email. Set it for senders who only call, too: call tasks are matched by this number.
+
+</Step>
+<Step title="Choose the countries texts may go to">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/project/settings -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"sms_countries":["US","CA"]}'
+```
+
+```ts title="TypeScript"
+await oseq.project.updateSettings({ sms_countries: ['US', 'CA'] });
+```
+
+</CodeGroup>
+
+The default is `["US"]`. A contact's `country` (ISO-2) must be in the list.
+
+</Step>
+<Step title="Record consent per contact">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/contacts/p_7/sms-consent -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"consent":true,"source":"signup form"}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.setSmsConsent('p_7', { consent: true, source: 'signup form' });
+```
+
+</CodeGroup>
+
+Only an `admin` key can record consent.
+
+</Step>
+</Steps>
+
+## Rules every text follows
+
+These checks are fixed. A text is skipped when one fails, except quiet hours, which wait.
+
+| Check | Skip reason |
+|---|---|
+| The contact has SMS consent | `no_consent` |
+| The contact has a phone number | `no_phone` |
+| The contact's `country` is in `sms_countries` | `country_not_allowed` |
+| The contact's time zone is known, from `timezone`, the phone number or a one-zone country | `no_timezone` |
+| No SMS suppression | `suppressed` |
+| Quiet hours: only 08:00 to 21:00 in the contact's zone, every day | waits until 08:00 |
+
+The default limit is 100 texts a day per sender. Nothing is appended to the body, so write "Reply STOP to opt out" yourself.
+
+## Call tasks
+
+A `task` step with `kind: "call"` gives the rep a call to make. When Allo reports a finished outbound call from the sender's number to the contact, the open call task completes by itself:
+
+| Allo result | Outcome |
+|---|---|
+| `ANSWERED`, `TRANSFERRED_AI`, `TRANSFERRED_EXTERNAL` | `connected` |
+| `VOICEMAIL` | `voicemail` |
+| anything else | `no_answer` |
+
+Allo's call summary becomes the task note. Change the mapping with `PUT /v1/project/settings` and `{ "allo": { "outcome_map": { "VOICEMAIL": "no_answer" } } }`. With `dialer: true` on the step, the contact's number goes into the rep's Allo power dialer within a minute.
+
+Your app can also complete a task: `POST /v1/tasks/{id}/complete` with an `outcome` (`oseq.tasks.complete()`).
+
+## Check it works
+
+1. `GET /v1/project` shows `webhook_urls.allo` and the Allo credential.
+2. `GET /v1/senders/u_42/readiness` returns `"sms": { "ok": true }`.
+3. Enroll a consenting test contact with your own phone in a one-text sequence, between 08:00 and 21:00 their time. Reply to the text: the enrollment exits with `replied` when `exit_on` lists `reply`.
+
+## Common errors
+
+| Error | Fix |
+|---|---|
+| `422 INVALID_CREDENTIAL` | The key is wrong or lacks a permission. `details.missing` lists the missing ones. |
+| `401` or `403` with an Allo error code | Allo refused the webhook registration. The key needs `WEBHOOKS_READ_WRITE`. |
+| `422 UNKNOWN_NUMBER` | The key cannot see that number. Pick one from `GET /v1/project/providers/allo/numbers`. |
+| `422 NUMBER_HAS_NO_SMS` | The number cannot send texts. Pick one with `SMS` in `capabilities`. |
+| Texts skip with `no_consent` or `country_not_allowed` | Record consent, set the contact's `country`, or add it to `sms_countries`. |
+| No replies arrive | `SEQ_PUBLIC_URL` was not reachable when you saved the key. Fix it and save the key again. |
+
+Each save registers a new webhook at Allo. Delete old OpenSequence webhooks in Allo's settings after a rotation.
+
+A text whose result is unknown is never retried blindly: the run becomes `needs_review`, because a double text is worse than a late one.

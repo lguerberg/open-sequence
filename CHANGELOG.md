@@ -1,0 +1,48 @@
+# OpenSequence changelog
+
+What changed in each release, one section per version.
+
+The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this file says when it does.
+
+## 0.1.2
+
+- Branded HTML emails: an `html` body may hold up to 5,000,000 characters (text bodies stay at 100,000), and the definition limit is now 10 MB (was 256 KB). Base64 images (`<img src="data:image/png;base64,...">`, PNG, JPEG, GIF or WebP) are sent as inline attachments in a `multipart/related` with `cid:` references, so Gmail, Outlook and Apple Mail show them; identical images are attached once; hosted `https` images are untouched. An image over 1 MB fails the step with `IMAGE_TOO_LARGE`, a message over 10 MB with `MESSAGE_TOO_LARGE`. The validator warns `HEAVY_EMAIL` above 400 KB of embedded images. The text alternative shows images as `[alt]`. See [HTML emails and images](/docs/sequences/templates#html-emails-and-images).
+- Rich signatures: `signature_html` up to 1 MB, sanitized with an email allowlist that keeps table layouts, inline styles (an allowlist of CSS properties) and `https` or base64 images. Images over plain `http` are now dropped. The text twin shows images as `[alt]`.
+- The unsubscribe link on your domain: the project setting `unsubscribe_url` (an `https` URL with `{token}`) is used by `{{ unsubscribe_url }}` and the `List-Unsubscribe` headers. `GET /v1/unsubscribes/{token}` reads a token, `POST /v1/unsubscribes/{token}` applies it (scope `enroll`); SDK `unsubscribes.get(token)` and `unsubscribes.apply(token)`. See [Host the unsubscribe page in your app](/docs/contacts/consent-and-suppressions#host-the-unsubscribe-page-in-your-app).
+- Fix: the hosted unsubscribe page at `/u/{token}` answered `414` for every real token, because the router capped path parameters at 100 characters. The cap is now 2,048.
+- No migration.
+
+## 0.1.1
+
+- Fix: an outreach step with `settings.jitter` rolled a new jitter every time its own deferral fired, so with `jitter: "20m"` each wake-up had about a 5% chance to send, and sends slid by hours or into the next day. Jitter is now rolled once when the step picks its send time; the wake-up that time produces sends if it is inside the send window. A step woken outside the window (for example, resumed after a pause) is moved into the next window with one new roll. Migration `0004_step_deferral` adds the nullable `seq.enrollments.deferral` column and runs at boot.
+
+## 0.1.0 (unreleased)
+
+The first version. The server image is published on every push to `main` as `ghcr.io/lguerberg/open-sequence:main` and `:sha-<commit>`; version tags come with the first release. `@opensequence/sdk` 0.1.0 is on npm (`npm install @opensequence/sdk`); the MCP server ships from the repository and the image.
+
+**Engine**
+
+- The sequence definition: `start`, `outreach`, `wait`, `wait_for`, `condition`, `task` and `end` nodes; durations in `m`, `h`, `d` and `bd`; send windows and jitter; `exit_on` for replies and meetings; validation with a path, a stable code and a sentence per problem.
+- Versions: drafts with an optimistic lock, immutable published versions, archiving.
+- Enrollment with the one-active-sequence rule, the re-enrollment setting, capacity staggering, preview and dry run.
+- The planner, `advance` with run ownership, the email and SMS executors with idempotent sends, the signal pipeline with attribution, the reaper, the retention job, per-project and platform kill switches.
+- Conditions on `contact.*`, `attrs.*`, `sender.*`, `history.*` and live `crm.*` facts, every read recorded on the run.
+- Templates with fallbacks, and sender signatures: `signature_html` and `signature_text` on `PUT /v1/senders/{id}`, sanitized on save and rendered by `{{ sender.signature }}`.
+
+**Channels and providers**
+
+- Email through the sender's own mailbox over SMTP and IMAP, Gmail and Google Workspace included with an app password (`PUT /v1/senders/{id}/channels/email`, `senders.setSmtp`): both logins checked on save, passwords encrypted and write-only, a copy filed in Sent, replies, bounces and auto-replies read from the IMAP inbox every minute. `DELETE /v1/senders/{id}/channels/email` removes the channel and its passwords. A follow-up sent with `reply_in_thread` carries the full `References` chain of the thread. Microsoft 365 is not supported.
+- SMS and call completion through Allo (consent, country, time zone and quiet-hours gates on every text, with no limit on texts per sequence; STOP words; `call.completed` completing call tasks).
+- Attio as the read-only CRM behind `crm.*` conditions.
+- A mock provider for development and CI, with `POST /hooks/mock/{slug}` to simulate inbound events.
+
+**Interfaces**
+
+- The REST API under `/v1` with an OpenAPI document, Swagger UI at `/docs`, a response envelope and stable error codes.
+- Outbound webhooks signed with Standard Webhooks, retried for three days, ordered per enrollment, with recover and replay.
+- Analytics: replies and meetings per sequence, step and channel, and the cross-sequence table.
+- `@opensequence/sdk` (TypeScript), `@opensequence/auth`, `@opensequence/mcp` (19 tools over HTTP or stdio) and the `oseq` operator CLI.
+
+**Operations**
+
+- One image, roles by `SEQ_ROLES`, migrations at boot under a row lock, Postgres, Redis or in-memory queues, encrypted write-only secrets, health endpoints, this site.

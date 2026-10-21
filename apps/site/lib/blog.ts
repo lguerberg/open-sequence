@@ -41,6 +41,8 @@ export type Post = {
   author: string;
   tags: string[];
   keyword?: string;
+  /** `guide` marks a how-to that answers one question end to end; its structured data is a TechArticle. */
+  kind: 'post' | 'guide';
   html: string;
   toc: TocItem[];
   faq: FaqItem[];
@@ -70,6 +72,7 @@ const frontmatter = z.object({
   author: z.string().trim().min(1).default('Leo Guerberg'),
   tags: z.array(z.string().trim().min(1)).default([]),
   keyword: z.string().trim().min(1).optional(),
+  kind: z.enum(['post', 'guide']).default('post'),
 });
 
 class BlogContentError extends Error {
@@ -299,6 +302,7 @@ async function readPost(file: string, slugs: Set<string>): Promise<Post> {
     author: fm.author,
     tags: fm.tags,
     keyword: fm.keyword,
+    kind: fm.kind,
     html: String(vfile),
     toc,
     faq,

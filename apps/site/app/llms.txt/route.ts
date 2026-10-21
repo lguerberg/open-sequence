@@ -1,43 +1,42 @@
 import { getAllPosts } from '@/lib/blog';
+import { DOCS, GITHUB } from '@/lib/links';
 import { SITE_URL } from '@/lib/site';
 
 export const dynamic = 'force-static';
 
-/** The site in llms.txt format: what OpenSequence is, where the docs and source live, and the blog. */
+/** `/llms.txt` (llmstxt.org): what OpenSequence is, then where the docs, the guides and the source live. */
 const intro = `# OpenSequence
 
-> Open source, self-hosted sales sequencing for any CRM. Multi-step email, SMS and call-task sequences, sent through each rep's own mailbox, with replies, exits, webhooks and analytics behind an API, a TypeScript SDK and an MCP server. Apache-2.0.
+> OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS and call tasks for any CRM. It is an alternative to the sequencing part of Outreach, Salesloft, Apollo and lemlist: one Docker image on your own Postgres, no per-seat price, Apache-2.0. Install the client with \`npm install @opensequence/sdk\`.
 
-OpenSequence is an alternative to the sequencing part of Outreach, Salesloft, Apollo, lemlist and Customer.io. It runs as one Docker image on a Postgres you own; there is no per-seat price.
+## Docs
 
-`;
-
-const reference = `## Docs
-
-- [Documentation](https://docs.opensequence.dev): guides, API reference, SDK and CLI
-- [Docs for LLMs](https://docs.opensequence.dev/llms.txt): the docs index in llms.txt format
-- [Docs, full text](https://docs.opensequence.dev/llms-full.txt): every docs page in one file
-- [Quickstart](https://docs.opensequence.dev/docs/get-started/quickstart)
-- [API reference](https://docs.opensequence.dev/api/conventions)
-- [TypeScript SDK](https://docs.opensequence.dev/sdks/typescript)
+- [Docs index for LLMs](${DOCS}/llms.txt): every docs page in reading order, one line each
+- [Docs, full text](${DOCS}/llms-full.txt): every docs page in one file
+- [Quickstart](${DOCS}/docs/get-started/quickstart): run the server, create a project, connect a mailbox and enroll a first contact
+- [Integrate OpenSequence into your product](${DOCS}/docs/get-started/integrate): the checklist, one call per step
+- [Modules](${DOCS}/docs/modules): email (Gmail, Outlook, any SMTP), SMS with Allo, CRM with Attio, webhooks, MCP and the TypeScript SDK
 
 ## Source
 
-- [GitHub repository](https://github.com/lguerberg/open-sequence)
-- [Architecture](https://github.com/lguerberg/open-sequence/blob/main/docs/ARCHITECTURE.md)
+- [GitHub repository](${GITHUB})
+- [TypeScript SDK on npm](https://www.npmjs.com/package/@opensequence/sdk)
 `;
 
 export async function GET() {
-  const posts = await getAllPosts();
-  const blog = posts.length
+  // Guides first: they answer one question end to end.
+  const posts = [...(await getAllPosts())].sort(
+    (a, b) => Number(b.kind === 'guide') - Number(a.kind === 'guide')
+  );
+  const guides = posts.length
     ? [
-        '## Blog',
         '',
-        `- [Blog index](${SITE_URL}/blog): every post, newest first ([RSS](${SITE_URL}/blog/rss.xml))`,
+        '## Guides',
+        '',
         ...posts.map((p) => `- [${p.h1}](${SITE_URL}/blog/${p.slug}): ${p.description}`),
-        '',
       ].join('\n')
     : '';
-  const body = `${intro}${reference}${blog ? `\n${blog}` : ''}`;
-  return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  return new Response(`${intro}${guides}\n`, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  });
 }

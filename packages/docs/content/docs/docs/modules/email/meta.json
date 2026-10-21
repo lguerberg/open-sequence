@@ -1,0 +1,5 @@
+{
+  "title": "Email",
+  "icon": "email",
+  "pages": ["index", "gmail", "outlook", "other-smtp"]
+}

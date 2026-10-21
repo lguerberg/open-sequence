@@ -5,7 +5,7 @@ export const SITE_NAME = 'OpenSequence';
 
 /** Under 160 characters, so search results show it whole. */
 export const SITE_DESCRIPTION =
-  'Open source alternative to Outreach, Salesloft and Apollo sequences. Self-host email, SMS and call sequences for any CRM, run through an API or MCP.';
+  'OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS and call tasks for any CRM. An alternative to Outreach and Salesloft.';
 
 /** The share text: the headline promise and the saving. */
 export const SHARE_TITLE = 'Sales sequences, as code.';

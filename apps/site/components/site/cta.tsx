@@ -21,12 +21,12 @@ export function Cta({ n = '05' }: { n?: string | null } = {}) {
               Stop paying per seat to send sequences.
             </h2>
             <p className="t-body mt-6 max-w-[34rem]">
-              Start the image, create a project and follow the six calls in the quickstart. Mock
-              providers are on in development, so nothing leaves your machine until you connect a
-              real account.
+              Install the SDK, start the image and follow the quickstart. Mock providers are on in
+              development, so nothing leaves your machine until you connect a real account.
             </p>
           </div>
           <div className="flex flex-col gap-3">
+            <CopyCommand tone="band" command="npm install @opensequence/sdk" />
             <CopyCommand tone="band" command="docker compose up" />
             <div className="flex flex-wrap gap-3">
               <Button asChild variant="dark" size="lg">

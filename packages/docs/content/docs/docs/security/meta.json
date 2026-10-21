@@ -1,4 +1,4 @@
 {
   "title": "Security",
-  "pages": ["security", "data-retention"]
+  "pages": ["security", "security-hardening", "data-retention"]
 }

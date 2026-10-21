@@ -1,0 +1,34 @@
+---
+title: "Attributes: custom data on contacts and senders"
+nav: "Attributes"
+description: "How contact attrs and sender attrs work: free JSON you store once and read in templates and conditions, such as a plan, a company or a calendar URL."
+---
+
+Attributes are your own data on a contact or a sender. Templates and conditions read them.
+
+Both are free JSON objects named `attrs`.
+
+| | Contact `attrs` | Sender `attrs` |
+|---|---|---|
+| Set with | `PUT` or `PATCH /v1/contacts/{id}` | `PUT /v1/senders/{id}` |
+| On update | Merged by top-level key | Replaced as a whole |
+| In templates | `{{ attrs.plan }}` (or `{{ contact.attrs.plan }}`) | `{{ sender.attrs.calendar_url }}` |
+| In conditions | `attrs.plan` | `sender.attrs.region` |
+
+## Example
+
+```ts
+await oseq.contacts.upsert('p_7', { attrs: { plan: 'trial', company: { name: 'Example Inc', size: 40 } } });
+await oseq.senders.upsert('u_42', { name: 'Max Rivera', attrs: { calendar_url: 'https://cal.com/max-rivera/30min' } });
+```
+
+```text
+Hi {{ contact.first_name | "there" }}, how is the trial going at {{ attrs.company.name | "your team" }}?
+If it helps, grab 20 minutes here: {{ sender.attrs.calendar_url }}
+```
+
+Nested paths work with dots. A missing value renders empty, so give it a fallback: `{{ attrs.company.name | "your team" }}`.
+
+A contact upsert that sends `{ "attrs": { "company": { "size": 50 } } }` replaces the whole `company` object and keeps `plan`. Send the full nested object when you change part of it.
+
+To show typed pickers in a condition editor, describe your contact attributes once in `settings.attrs_schema` (`PUT /v1/project/settings`). `GET /v1/schema/fields` returns them.

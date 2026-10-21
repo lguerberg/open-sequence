@@ -51,7 +51,7 @@ await oseq.sequences.versions.publish(sequence.id, version.id);`,
     file: 'enroll.ts',
     meta: '@opensequence/sdk',
     lang: 'typescript',
-    href: '/docs/enrollments/enrolling',
+    href: '/docs/concepts/enrollment',
     claim: 'Enroll a contact with a sender. The engine schedules and sends every step after that.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
@@ -110,7 +110,7 @@ await oseq.sequences.versions.publish(ukIntro.id, draft.id);`,
     file: 'add-call-task.ts',
     meta: '@opensequence/sdk',
     lang: 'typescript',
-    href: '/docs/sequences/task-node',
+    href: '/docs/modules/sms/allo',
     claim: 'A call step is a task for the rep. Allo dials it, and the outcome moves the sequence on.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
@@ -134,7 +134,7 @@ const callStep = {
     file: 'connect-mailbox.ts',
     meta: '@opensequence/sdk',
     lang: 'typescript',
-    href: '/docs/sending/email-smtp',
+    href: '/docs/modules/email',
     claim: 'Each rep connects their mailbox once. Every email leaves from their inbox.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
@@ -369,6 +369,10 @@ export const faq: Array<{ q: string; a: string }> = [
   {
     q: 'Does it send email itself?',
     a: "Yes, through each sender's own mailbox over SMTP, and it reads replies over IMAP. Gmail and Google Workspace work with an app password. It sets its own Message-ID, adds List-Unsubscribe, replies in thread when asked, and never exceeds the channel's daily limit. There is no shared sending pool.",
+  },
+  {
+    q: 'How do I add sales sequences to my app?',
+    a: 'Run the Docker image next to a Postgres, then npm install @opensequence/sdk in your backend. Upsert contacts and senders by your own ids, publish a sequence, enroll people and handle the signed webhooks. The integration checklist in the docs lists every call in order.',
   },
   {
     q: 'What do I need to run it?',

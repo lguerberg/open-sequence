@@ -10,8 +10,9 @@
 <p align="center">
   <a href="https://opensequence.dev">Website</a> ·
   <a href="https://docs.opensequence.dev">Docs</a> ·
+  <a href="https://docs.opensequence.dev/docs/modules">Modules</a> ·
   <a href="https://docs.opensequence.dev/docs/self-hosting/install">Self-hosting</a> ·
-  <a href="https://docs.opensequence.dev/api">API reference</a> ·
+  <a href="https://docs.opensequence.dev/api/conventions">API reference</a> ·
   <a href="../../issues">Issues</a>
 </p>
 
@@ -25,8 +26,8 @@
 
 ## What is OpenSequence?
 
-OpenSequence runs multi-step outreach (emails, threaded follow-ups, texts, call tasks, manual
-steps) for any CRM, with the shape of a self-hosted [Svix](https://github.com/svix/svix-webhooks):
+OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS and call
+tasks for any CRM. It has the shape of a self-hosted [Svix](https://github.com/svix/svix-webhooks):
 one Docker image, a Postgres you own, per-project API keys, and signed webhooks back to your app.
 
 You register **senders**, **contacts** and **sequences** (versioned JSON definitions), **enroll**
@@ -70,8 +71,13 @@ curl -X POST http://localhost:8080/v1/admin/projects \
 
 ## Use it from your code
 
-The TypeScript SDK ([`packages/sdk`](packages/sdk)) is typed from the OpenAPI file. Create and
-publish a sequence:
+Install the TypeScript SDK from npm. It is typed from the OpenAPI file.
+
+```bash
+npm install @opensequence/sdk
+```
+
+Create and publish a sequence:
 
 ```ts
 import { OpenSequence } from '@opensequence/sdk';
@@ -125,7 +131,7 @@ app.post('/hooks/seq', express.raw({ type: '*/*' }), (req, res) => {
 app.listen(3000);
 ```
 
-Prefer plain HTTP? Every call above is one request; see the [API reference](https://docs.opensequence.dev/api).
+Prefer plain HTTP? Every call above is one request; see the [API reference](https://docs.opensequence.dev/api/conventions).
 
 ## Let your agent drive
 
@@ -215,7 +221,8 @@ HTTP app, the planner and the executors, an inbound reply, the exit and the anal
 ## Status
 
 OpenSequence is pre-1.0. The API is stable enough to build on, but may still change between minor
-versions. The SDK and MCP packages are not on npm yet; use them from this repository until they are.
+versions. The SDK is on npm as [`@opensequence/sdk`](https://www.npmjs.com/package/@opensequence/sdk);
+the MCP server ships from this repository and the Docker image.
 
 ## Contributing
 

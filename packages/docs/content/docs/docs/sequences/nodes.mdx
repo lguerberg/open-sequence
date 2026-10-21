@@ -1,6 +1,7 @@
 ---
-title: "Nodes"
-description: "Every node type with its params and transitions, one example each."
+title: "Sequence node types"
+nav: "Nodes"
+description: "Every sequence node type with its params and transitions, one example each, and which node types count as touches."
 ---
 
 | `type` | Params | Transitions | Runs |
@@ -74,7 +75,9 @@ A timer. `bd` counts business days in the contact's zone (the sender's when the 
 }
 ```
 
-The only event wait. Events: `reply`, `reply:email`, `reply:sms`, `call_connected`, `meeting_booked`. Each waited event needs a transition (`BAD_EVENT`); `timeout` is optional, and without one the enrollment waits forever (or until something exits it). A `reply` on any channel matches `reply` and `reply:<channel>`; a connected call matches `call_connected` and `reply`. Details in [Wait for](/docs/sequences/wait-for).
+The only event wait. Events: `reply`, `reply:email`, `reply:sms`, `call_connected`, `meeting_booked`. Each waited event needs a transition (`BAD_EVENT`); `timeout` is optional, and without one the enrollment waits forever (or until something exits it). A `reply` on any channel matches `reply` and `reply:<channel>`; a connected call matches `call_connected` and `reply`.
+
+When an awaited event arrives, the enrollment moves on at once. When the timeout passes first, it takes `timeout`. An event that arrives while the enrollment is not waiting for it does not wake anything, but a reply still exits when `exit_on` lists `reply`.
 
 ## `condition`
 
@@ -101,7 +104,19 @@ The only event wait. Events: `reply`, `reply:email`, `reply:sms`, `call_connecte
 }
 ```
 
-Creates a task for the sender and waits. Completing it with an outcome takes `branches_by_outcome[outcome]`, else `completed`; expiry takes `no_answer`. Everything about kinds, outcomes and the dialer: [Call tasks](/docs/sending/call-tasks).
+Creates a task for the sender and waits. Completing it with an outcome takes `branches_by_outcome[outcome]`, else `completed`. Expiry or cancellation takes `no_answer`.
+
+| Param | Meaning |
+|---|---|
+| `kind` | Required. `call` gets the Allo behaviour; any other kind, such as `linkedin` or `manual`, is yours to render. |
+| `title`, `body`, `link` | Templates, rendered once when the task is created. |
+| `due` | Required. A duration on the sender's calendar, like `2h` or `1bd`. |
+| `expire` | When the task expires if nobody completes it. Default: seven days after `due`. |
+| `connected_outcomes` | Outcomes that count as a reply. Default `["connected"]`. |
+| `dialer` | Push the contact into the sender's Allo power dialer. Default `false`. |
+| `auto_complete` | Let Allo's finished call complete a `call` task. Default `true`. |
+
+Your app completes a task with `POST /v1/tasks/{id}/complete` and an `outcome`. A `call` task also completes by itself when the rep calls from Allo: see [Allo](/docs/modules/sms/allo#call-tasks). A task is not a touch.
 
 ## `end`
 
