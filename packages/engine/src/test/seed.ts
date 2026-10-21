@@ -64,6 +64,7 @@ export function enrollmentRow(seed: Seed, contactId: string, patch: Partial<Enro
     nextRunAt: new Date(Date.now() - 1000),
     ownerRunId: null,
     waiting: null,
+    deferral: null,
     pausedUntil: null,
     pauseReason: null,
     exitReason: null,

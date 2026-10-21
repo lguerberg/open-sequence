@@ -36,6 +36,7 @@ export async function applyEffect(deps: Deps, scope: TransactionScope, state: En
       const next = { ...state, currentNodeId: effect.nodeId };
       if (effect.at && effect.at.getTime() > now.getTime()) {
         patch.nextRunAt = effect.at;
+        if (effect.deferred) patch.deferral = { nodeId: effect.nodeId, until: effect.at.toISOString() };
         return { state: next, stop: true };
       }
       return { state: next, stop: false };

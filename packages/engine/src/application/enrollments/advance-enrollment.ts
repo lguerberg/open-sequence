@@ -38,7 +38,9 @@ export async function advanceEnrollment(deps: Deps, enrollmentId: string, opts: 
     const contactTz = resolveContactTimezone({ timezone: ctx.contact.timezone, phone: ctx.contact.phone, country: ctx.contact.country })?.zone ?? null;
 
     let state: Enrollment = { ...e, ownerRunId: null };
-    const patch: Partial<Enrollment> = { ownerRunId: null, nextRunAt: null };
+    const patch: Partial<Enrollment> = { ownerRunId: null, nextRunAt: null, deferral: null };
+    // The step this tick wakes up, if it is the one that deferred itself: it must not re-roll jitter.
+    let deferral = e.deferral;
 
     // A timed wait or a task that came due: close the waiting run on its timeout branch first.
     if (state.waiting) {
@@ -72,6 +74,7 @@ export async function advanceEnrollment(deps: Deps, enrollmentId: string, opts: 
           touchCount: state.touchCount,
           lastTouchAt: state.lastTouchAt,
           status: 'active',
+          deferredUntil: deferral && deferral.nodeId === state.currentNodeId ? new Date(deferral.until) : null,
         },
         facts: makeFactReader({
           repos,
@@ -90,6 +93,7 @@ export async function advanceEnrollment(deps: Deps, enrollmentId: string, opts: 
         factLog: [],
       };
       const { effects } = await interpret(ictx);
+      deferral = null; // only the first node of this tick is the one that was deferred
       let stop = false;
       for (const effect of effects) {
         const out = await applyEffect(deps, scope, state, patch, effect, now);

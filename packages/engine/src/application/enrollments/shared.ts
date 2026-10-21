@@ -133,6 +133,7 @@ export function finishEnrollment(scope: TransactionScope, e: Enrollment, patch: 
   patch.nextRunAt = null;
   patch.ownerRunId = null;
   patch.waiting = null;
+  patch.deferral = null;
   if (status === 'exited') patch.exitReason = reason ?? 'manual';
   scope.raise({
     type: status === 'exited' ? 'enrollment.exited' : 'enrollment.completed',

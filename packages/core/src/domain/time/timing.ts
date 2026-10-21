@@ -88,3 +88,34 @@ export function computeNextAt(input: ComputeNextAtInput): Date {
   }
   return at;
 }
+
+/** How close to now a computed send time must be for the step to send instead of deferring. */
+export const SEND_TOLERANCE_MS = 60_000;
+
+export interface StepSendAtInput extends ComputeNextAtInput {
+  /**
+   * The time this step chose for itself when it last deferred (or its executor deferred it), or
+   * null when the step is being entered fresh.
+   */
+  deferredUntil: Date | null;
+}
+
+/**
+ * When an outreach step should send. Jitter is rolled once each time the step has to pick a new
+ * send time, never on the wake-up that time produced:
+ *
+ * - Entered fresh: computeNextAt with jitter (the step defers unless the roll is under a minute).
+ * - Woken by its own deferral and inside the window: send now, no new roll.
+ * - Woken by its own deferral but outside the window (resumed after a pause, the window closed,
+ *   or a weekend in between): pushed into the next window with one fresh roll, and the deferral
+ *   that produces sends when it fires. The fresh roll keeps resumed enrollments from bursting
+ *   on the hour the window opens.
+ *
+ * The caller sends when the result is within SEND_TOLERANCE_MS of now, and defers otherwise.
+ */
+export function stepSendAt(input: StepSendAtInput): Date {
+  const { deferredUntil, ...rest } = input;
+  const resumed = deferredUntil !== null && input.now.getTime() >= deferredUntil.getTime() - SEND_TOLERANCE_MS;
+  if (resumed && (!input.window || isInsideWindow(input.now, input.window, input.zone))) return input.now;
+  return computeNextAt(rest);
+}

@@ -5,11 +5,11 @@ import type { Definition, DefinitionInput } from '../definition/schema.js';
 import { interpret } from './interpret.js';
 import type { Effect, InterpretContext } from './effects.js';
 
-const def = (): Definition => {
+const def = (jitter?: string): Definition => {
   const input: DefinitionInput = {
     schema_version: 1,
     entry: 'start',
-    settings: { send_window: { days: ['mon', 'tue', 'wed', 'thu', 'fri'], from: '08:00', to: '18:00', tz: 'contact' }, reenroll: 'never' },
+    settings: { send_window: { days: ['mon', 'tue', 'wed', 'thu', 'fri'], from: '08:00', to: '18:00', tz: 'contact' }, reenroll: 'never', ...(jitter ? { jitter } : {}) },
     exit_on: ['reply'],
     nodes: {
       start: { type: 'start', next: { then: 'email_1' } },
@@ -26,14 +26,20 @@ const def = (): Definition => {
   return r.definition;
 };
 
-const ctxAt = (nodeId: string, now: Date, facts: Record<string, FactValue> = {}): InterpretContext => {
+interface CtxOptions {
+  jitter?: string;
+  random?: () => number;
+  deferredUntil?: Date | null;
+}
+
+const ctxAt = (nodeId: string, now: Date, facts: Record<string, FactValue> = {}, opts: CtxOptions = {}): InterpretContext => {
   const reader: FactReader = { get: async (f) => facts[f] ?? null };
   return {
-    definition: def(),
-    state: { enrollmentId: 'enr_1', versionId: 'ver_1', contactId: 'ctc_1', senderId: 'snd_1', currentNodeId: nodeId, touchCount: 0, lastTouchAt: null, status: 'active' },
+    definition: def(opts.jitter),
+    state: { enrollmentId: 'enr_1', versionId: 'ver_1', contactId: 'ctc_1', senderId: 'snd_1', currentNodeId: nodeId, touchCount: 0, lastTouchAt: null, status: 'active', deferredUntil: opts.deferredUntil ?? null },
     facts: reader,
     now,
-    timing: { contactTz: 'Europe/London', senderTz: 'America/New_York', random: () => 0 },
+    timing: { contactTz: 'Europe/London', senderTz: 'America/New_York', random: opts.random ?? (() => 0) },
     template: { contact: { first_name: 'Dana' }, sender: { name: 'Max' }, sequence: { name: 'UK intro' }, unsubscribe_url: 'https://x/u/t' },
     factLog: [],
   };
@@ -56,7 +62,7 @@ describe('interpret', () => {
 
   it('an outreach step outside the window comes back when it opens', async () => {
     const r = await interpret(ctxAt('email_1', new Date('2026-10-17T10:00:00Z'))); // Saturday
-    expect(r.effects[0]).toEqual({ kind: 'goto', nodeId: 'email_1', at: new Date('2026-10-19T07:00:00.000Z') }); // Monday 08:00 BST
+    expect(r.effects[0]).toEqual({ kind: 'goto', nodeId: 'email_1', at: new Date('2026-10-19T07:00:00.000Z'), deferred: true }); // Monday 08:00 BST
   });
 
   it('a wait is a goto with a time, in the contact zone, through the weekend', async () => {
@@ -89,5 +95,78 @@ describe('interpret', () => {
   it('end completes', async () => {
     const r = await interpret(ctxAt('end', new Date()));
     expect(kinds(r.effects)).toEqual(['record', 'complete']);
+  });
+});
+
+/** A random source that returns the given rolls in order and counts how often it was asked. */
+const rolls = (...values: number[]) => {
+  const fn = Object.assign(() => {
+    fn.calls++;
+    return values.shift() ?? 0.99;
+  }, { calls: 0 });
+  return fn;
+};
+
+describe('outreach jitter is rolled once per send time', () => {
+  // The 2026-10-21 production bug: every wake-up of a self-deferred step rolled a new jitter, so
+  // with jitter "20m" each wake-up had about a 5% chance to send and sends slid by hours.
+
+  it('an outreach step entered at 10:00 with a 20m jitter defers once to 10:00 plus the roll, then sends when it fires', async () => {
+    const random = rolls(0.6, 0.6, 0.6);
+    const entered = new Date('2026-10-14T09:00:00Z'); // Wed 10:00 BST
+    const first = await interpret(ctxAt('email_1', entered, {}, { jitter: '20m', random }));
+    const at = new Date('2026-10-14T09:12:00.000Z'); // + 0.6 x 20m
+    expect(first.effects).toEqual([{ kind: 'goto', nodeId: 'email_1', at, deferred: true }]);
+    expect(random.calls).toBe(1);
+
+    // The deferral fires at the time it chose: send, with no second roll and no second deferral.
+    const woken = await interpret(ctxAt('email_1', at, {}, { jitter: '20m', random, deferredUntil: at }));
+    expect(kinds(woken.effects)).toEqual(['enqueue']);
+    expect(random.calls).toBe(1);
+
+    // A planner tick a little late still sends.
+    const late = await interpret(ctxAt('email_1', new Date(at.getTime() + 45_000), {}, { jitter: '20m', random, deferredUntil: at }));
+    expect(kinds(late.effects)).toEqual(['enqueue']);
+  });
+
+  it('the window still defers correctly from outside it, then sends at the jittered opening', async () => {
+    const random = rolls(0.5);
+    const saturday = new Date('2026-10-17T10:00:00Z');
+    const first = await interpret(ctxAt('email_1', saturday, {}, { jitter: '20m', random }));
+    const at = new Date('2026-10-19T07:10:00.000Z'); // Monday 08:00 BST + 10m
+    expect(first.effects).toEqual([{ kind: 'goto', nodeId: 'email_1', at, deferred: true }]);
+    const woken = await interpret(ctxAt('email_1', at, {}, { jitter: '20m', random, deferredUntil: at }));
+    expect(kinds(woken.effects)).toEqual(['enqueue']);
+    expect(random.calls).toBe(1);
+  });
+
+  it('a roll that crosses the end of the window moves to the next opening, which sends', async () => {
+    const random = rolls(0.5);
+    const friday = new Date('2026-10-16T16:55:00Z'); // Fri 17:55 BST; +10m is past 18:00
+    const first = await interpret(ctxAt('email_1', friday, {}, { jitter: '20m', random }));
+    const at = new Date('2026-10-19T07:00:00.000Z'); // Monday 08:00 BST
+    expect(first.effects).toEqual([{ kind: 'goto', nodeId: 'email_1', at, deferred: true }]);
+    const woken = await interpret(ctxAt('email_1', at, {}, { jitter: '20m', random, deferredUntil: at }));
+    expect(kinds(woken.effects)).toEqual(['enqueue']);
+  });
+
+  it('a re-entry after a pause still respects the window', async () => {
+    // Deferred to Friday 10:12 BST, paused, resumed on Saturday: pushed into Monday's window with
+    // one fresh roll (so resumed enrollments do not all send at 08:00), and that deferral sends.
+    const random = rolls(0.25);
+    const deferredUntil = new Date('2026-10-16T09:12:00Z');
+    const resumed = await interpret(ctxAt('email_1', new Date('2026-10-17T10:00:00Z'), {}, { jitter: '20m', random, deferredUntil }));
+    const at = new Date('2026-10-19T07:05:00.000Z'); // Monday 08:00 BST + 5m
+    expect(resumed.effects).toEqual([{ kind: 'goto', nodeId: 'email_1', at, deferred: true }]);
+    const woken = await interpret(ctxAt('email_1', at, {}, { jitter: '20m', random, deferredUntil: at }));
+    expect(kinds(woken.effects)).toEqual(['enqueue']);
+    expect(random.calls).toBe(1);
+  });
+
+  it('a re-entry after a pause that lands inside the window sends at once', async () => {
+    const random = rolls(0.9);
+    const r = await interpret(ctxAt('email_1', new Date('2026-10-15T12:00:00Z'), {}, { jitter: '20m', random, deferredUntil: new Date('2026-10-14T09:12:00Z') }));
+    expect(kinds(r.effects)).toEqual(['enqueue']);
+    expect(random.calls).toBe(0);
   });
 });

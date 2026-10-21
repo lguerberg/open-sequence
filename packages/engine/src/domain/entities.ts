@@ -132,6 +132,12 @@ export interface Waiting {
   onTimeout?: string;
 }
 
+/** A step that deferred itself to `until` (ISO time); see the `deferral` column. */
+export interface Deferral {
+  nodeId: string;
+  until: string;
+}
+
 export interface Enrollment {
   id: string;
   projectId: string;
@@ -147,6 +153,7 @@ export interface Enrollment {
   nextRunAt: Date | null;
   ownerRunId: string | null;
   waiting: Waiting | null;
+  deferral: Deferral | null;
   pausedUntil: Date | null;
   pauseReason: string | null;
   exitReason: string | null;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDuration, computeNextAt, isInsideWindow, nextInsideWindow, SMS_WINDOW } from './timing.js';
+import { addDuration, computeNextAt, isInsideWindow, nextInsideWindow, SMS_WINDOW, stepSendAt } from './timing.js';
 import { resolveContactTimezone, timezoneFromPhone } from './timezones.js';
 
 const window = { days: ['mon', 'tue', 'wed', 'thu', 'fri'] as const, from: '08:00', to: '18:00', tz: 'contact' as const };
@@ -68,5 +68,31 @@ describe('resolving a contact time zone', () => {
   it('derives a zone from non-NANP numbers through the country', () => {
     expect(timezoneFromPhone('+442071234567')).toBe('Europe/London');
     expect(timezoneFromPhone('+61212345678')).toBeNull(); // Australia has several zones
+  });
+});
+
+describe('stepSendAt', () => {
+  const zone = 'Europe/London';
+  const now = new Date('2026-10-14T09:00:00Z'); // Wed 10:00 BST
+
+  it('rolls jitter on a fresh entry, exactly like computeNextAt', () => {
+    expect(stepSendAt({ now, window, jitter: '20m', zone, random: () => 0.6, deferredUntil: null }).toISOString()).toBe('2026-10-14T09:12:00.000Z');
+  });
+
+  it('sends now on the wake-up it asked for, without asking for randomness', () => {
+    const random = () => {
+      throw new Error('jitter must not be rolled again');
+    };
+    expect(stepSendAt({ now, window, jitter: '20m', zone, random, deferredUntil: now })).toEqual(now);
+  });
+
+  it('treats a wake-up well before its time as a fresh entry', () => {
+    const deferredUntil = new Date(now.getTime() + 10 * 60_000);
+    expect(stepSendAt({ now, window, jitter: '20m', zone, random: () => 0.5, deferredUntil }).toISOString()).toBe('2026-10-14T09:10:00.000Z');
+  });
+
+  it('pushes a due wake-up outside the window into it, with one roll', () => {
+    const sat = new Date('2026-10-17T10:00:00Z');
+    expect(stepSendAt({ now: sat, window, jitter: '20m', zone, random: () => 0.5, deferredUntil: new Date('2026-10-16T09:00:00Z') }).toISOString()).toBe('2026-10-19T07:10:00.000Z');
   });
 });

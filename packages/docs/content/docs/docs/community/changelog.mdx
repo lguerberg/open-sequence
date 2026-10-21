@@ -5,6 +5,10 @@ description: "Release notes for OpenSequence, one section per version."
 
 The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this page says when it does.
 
+## 0.1.1
+
+- Fix: an outreach step with `settings.jitter` rolled a new jitter every time its own deferral fired, so with `jitter: "20m"` each wake-up had about a 5% chance to send, and sends slid by hours or into the next day. Jitter is now rolled once when the step picks its send time; the wake-up that time produces sends if it is inside the send window. A step woken outside the window (for example, resumed after a pause) is moved into the next window with one new roll. Migration `0004_step_deferral` adds the nullable `seq.enrollments.deferral` column and runs at boot.
+
 ## 0.1.0 (unreleased)
 
 The first version. The server image is published on every push to `main` as `ghcr.io/lguerberg/open-sequence:main` and `:sha-<commit>`; version tags come with the first release. Nothing is on npm yet.

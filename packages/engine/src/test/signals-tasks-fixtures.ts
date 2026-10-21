@@ -140,6 +140,7 @@ export async function seedEnrollment(deps: Deps, w: World, patch: Partial<Enroll
       nextRunAt: null,
       ownerRunId: null,
       waiting: null,
+      deferral: null,
       pausedUntil: null,
       pauseReason: null,
       exitReason: null,

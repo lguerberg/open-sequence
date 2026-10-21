@@ -39,7 +39,17 @@ export interface TaskDraft {
 
 export type Effect =
   | { kind: 'record'; run: RunDraft; status: 'done' | 'skipped'; branch?: string }
-  | { kind: 'goto'; nodeId: string; at?: Date }
+  | {
+      kind: 'goto';
+      nodeId: string;
+      at?: Date;
+      /**
+       * A node putting itself off until `at` (outreach outside its send time). The shell persists
+       * the time so that, when the step runs again, `state.deferredUntil` tells it this is the
+       * wake-up it asked for and not a fresh entry.
+       */
+      deferred?: true;
+    }
   | { kind: 'enqueue'; queue: string; run: RunDraft }
   | { kind: 'create_task'; task: TaskDraft; run: RunDraft }
   | {
@@ -62,6 +72,12 @@ export interface EnrollmentState {
   touchCount: number;
   lastTouchAt: Date | null;
   status: 'active' | 'paused' | 'waiting_limit';
+  /**
+   * Set when the current node is running again because it deferred itself (a `goto` with
+   * `deferred: true`) or its executor deferred it: the time that deferral was for. Null on a
+   * fresh entry into the node.
+   */
+  deferredUntil: Date | null;
 }
 
 export interface TimingContext {

@@ -175,6 +175,7 @@ export async function enrollContacts(deps: Deps, projectId: string, idOrExternal
           nextRunAt: at,
           ownerRunId: null,
           waiting: null,
+          deferral: null,
           pausedUntil: null,
           pauseReason: null,
           exitReason: null,

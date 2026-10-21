@@ -124,7 +124,8 @@ export async function skipRun(deps: Deps, run: Run, reason: string, now: Date): 
 export async function deferRun(deps: Deps, run: Run, at: Date, reason: string): Promise<void> {
   await deps.uow.transaction(async (scope) => {
     await scope.repos.runs.update(run.id, { status: 'deferred', result: { ...run.result, deferred: reason, retry_at: at.toISOString() } });
-    await handBack(deps, scope, run, { nextRunAt: at, status: reason === 'daily_limit' ? 'waiting_limit' : 'active' });
+    // The executor chose the time, so the wake-up sends inside the window without a new jitter roll.
+    await handBack(deps, scope, run, { nextRunAt: at, deferral: { nodeId: run.nodeId, until: at.toISOString() }, status: reason === 'daily_limit' ? 'waiting_limit' : 'active' });
   });
 }
 

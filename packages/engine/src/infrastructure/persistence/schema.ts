@@ -279,6 +279,12 @@ export const enrollments = seq.table(
     ownerRunId: text('owner_run_id'),
     /** For a waiting step: the events it waits for and where each leads, plus the timeout target. */
     waiting: jsonb('waiting').$type<{ runId: string; events: Record<string, string>; onTimeout?: string } | null>(),
+    /**
+     * An outreach step that put itself off (send time or jitter), or whose executor deferred it:
+     * the node and the time it chose. When that wake-up comes the step sends inside the window
+     * instead of rolling jitter again. Cleared by the next advance.
+     */
+    deferral: jsonb('deferral').$type<{ nodeId: string; until: string } | null>(),
     pausedUntil: ts('paused_until'),
     pauseReason: text('pause_reason'),
     exitReason: text('exit_reason'),

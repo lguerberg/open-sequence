@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { conditionParamsSchema, evaluate, OPERATORS_BY_TYPE, operatorNeedsValue } from '../conditions/evaluate.js';
 import type { Effect, InterpretContext, RunDraft } from '../interpreter/effects.js';
 import { render } from '../template/render.js';
-import { addDuration, computeNextAt } from '../time/timing.js';
+import { addDuration, SEND_TOLERANCE_MS, stepSendAt } from '../time/timing.js';
 import { durationSchema, DEFINITION_LIMITS } from './schema.js';
 import { registry, type RegisteredNode, type ValidationProblem } from './registry.js';
 
@@ -219,10 +219,12 @@ export function registerBuiltins(): void {
       const action = channel && node.action ? channel.actions[node.action] : undefined;
       if (!channel || !action) throw new Error(`outreach step "${node.id}" has an unknown channel or action`);
       const window = ctx.definition.settings.send_window;
-      const at = computeNextAt({ now: ctx.now, window, jitter: ctx.definition.settings.jitter, zone: zoneFor(ctx), random: ctx.timing.random });
-      if (at.getTime() > ctx.now.getTime() + 60_000) {
-        // Outside the send window: come back when it opens. The executor re-checks the window anyway.
-        return [{ kind: 'goto', nodeId: node.id, at }];
+      // Jitter is rolled when the step picks its send time, not again when that time arrives
+      // (re-rolling on every wake-up made a 20m jitter defer over and over; see stepSendAt).
+      const at = stepSendAt({ now: ctx.now, window, jitter: ctx.definition.settings.jitter, zone: zoneFor(ctx), random: ctx.timing.random, deferredUntil: ctx.state.deferredUntil });
+      if (at.getTime() > ctx.now.getTime() + SEND_TOLERANCE_MS) {
+        // Not yet (outside the window, or jittered forward): come back then. The executor re-checks the window anyway.
+        return [{ kind: 'goto', nodeId: node.id, at, deferred: true }];
       }
       return [{ kind: 'enqueue', queue: channel.queue, run: draft(node, action.touch) }];
     },
