@@ -1,6 +1,6 @@
 {
   "title": "Docs",
-  "description": "Guides: get started, concepts, modules, sequences, webhooks, analytics, self-hosting and security.",
+  "description": "Guides: get started, concepts, modules, developers, analytics, self-hosting and security.",
   "root": true,
-  "pages": ["get-started", "concepts", "modules", "sequences", "webhooks", "analytics", "self-hosting", "security"]
+  "pages": ["get-started", "concepts", "modules", "developers", "analytics", "self-hosting", "security"]
 }

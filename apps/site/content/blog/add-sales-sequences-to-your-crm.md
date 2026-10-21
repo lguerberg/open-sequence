@@ -132,7 +132,7 @@ const { sequence, version } = await oseq.sequences.create({ name: 'Inbound demo 
 await oseq.sequences.versions.publish(sequence.id, version.id);
 ```
 
-A template that reads `contact.first_name` without a fallback fails to publish, because some contacts have no first name. A body without `{{ unsubscribe_url }}` publishes with a warning. A published version cannot change, so contacts already in it finish the version they started; edits go into a new version ([versions](https://docs.opensequence.dev/docs/sequences/versions)).
+A template that reads `contact.first_name` without a fallback fails to publish, because some contacts have no first name. A body without `{{ unsubscribe_url }}` publishes with a warning. A published version cannot change, so contacts already in it finish the version they started; edits go into a new version ([versions](https://docs.opensequence.dev/docs/concepts/sequence/versions)).
 
 Keep the definitions in your repository next to the code that enrolls into them. A pull request then shows what a sequence change does, and a deploy script can create the new version and publish it.
 
@@ -212,7 +212,7 @@ export async function POST(req: Request) {
 }
 ```
 
-`signal.received` covers replies, bounces, opt-outs, meetings, connected calls and completed tasks, and it carries your id for the contact. `run.done` fires for every sent step if you want each email on the timeline too. `enrollment.exited` and `enrollment.completed` tell you a person left a sequence and why. Deliveries retry for three days and arrive in order per enrollment, but they can arrive twice, which is why the handler upserts by `event.id` ([receiving webhooks](https://docs.opensequence.dev/docs/webhooks/overview)).
+`signal.received` covers replies, bounces, opt-outs, meetings, connected calls and completed tasks, and it carries your id for the contact. `run.done` fires for every sent step if you want each email on the timeline too. `enrollment.exited` and `enrollment.completed` tell you a person left a sequence and why. Deliveries retry for three days and arrive in order per enrollment, but they can arrive twice, which is why the handler upserts by `event.id` ([receiving webhooks](https://docs.opensequence.dev/docs/developers/webhooks/events)).
 
 Create the endpoint once with `oseq.webhooks.create({ url, event_types: ['signal.received', 'enrollment.exited', 'task.created', 'task.expired'] })` and store the secret it returns. The call needs an admin-scoped key.
 

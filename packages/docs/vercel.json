@@ -109,12 +109,12 @@
     },
     {
       "source": "/docs/tutorials/build-a-sequence-editor",
-      "destination": "/docs/sequences/definition",
+      "destination": "/docs/concepts/sequence/definition",
       "permanent": true
     },
     {
       "source": "/docs/tutorials/agent-enrollment",
-      "destination": "/docs/modules/mcp",
+      "destination": "/docs/developers/mcp",
       "permanent": true
     },
     {
@@ -234,7 +234,7 @@
     },
     {
       "source": "/docs/sequences/wait-for",
-      "destination": "/docs/sequences/nodes",
+      "destination": "/docs/concepts/sequence/nodes",
       "permanent": true
     },
     {
@@ -244,22 +244,22 @@
     },
     {
       "source": "/docs/sequences/building-a-canvas",
-      "destination": "/docs/sequences/definition",
+      "destination": "/docs/concepts/sequence/definition",
       "permanent": true
     },
     {
       "source": "/docs/sequences/canvas-react-example",
-      "destination": "/docs/sequences/definition",
+      "destination": "/docs/concepts/sequence/definition",
       "permanent": true
     },
     {
       "source": "/docs/webhooks/polling",
-      "destination": "/docs/webhooks/overview",
+      "destination": "/docs/developers/webhooks/events",
       "permanent": true
     },
     {
       "source": "/docs/webhooks/recipes",
-      "destination": "/docs/modules/webhooks",
+      "destination": "/docs/developers/webhooks",
       "permanent": true
     },
     {
@@ -309,7 +309,7 @@
     },
     {
       "source": "/sdks/mcp",
-      "destination": "/docs/modules/mcp",
+      "destination": "/docs/developers/mcp",
       "permanent": true
     },
     {
@@ -334,7 +334,72 @@
     },
     {
       "source": "/docs/sequences/show-where-a-contact-is",
-      "destination": "/docs/concepts/enrollment",
+      "destination": "/docs/concepts/enrollment/where-a-contact-is",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/definition",
+      "destination": "/docs/concepts/sequence/definition",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/nodes",
+      "destination": "/docs/concepts/sequence/nodes",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/conditions",
+      "destination": "/docs/concepts/sequence/conditions",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/templates",
+      "destination": "/docs/concepts/sequence/templates",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/validation",
+      "destination": "/docs/concepts/sequence/validation",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sequences/versions",
+      "destination": "/docs/concepts/sequence/versions",
+      "permanent": true
+    },
+    {
+      "source": "/docs/concepts/node",
+      "destination": "/docs/concepts/sequence/nodes",
+      "permanent": true
+    },
+    {
+      "source": "/docs/webhooks/overview",
+      "destination": "/docs/developers/webhooks/events",
+      "permanent": true
+    },
+    {
+      "source": "/docs/webhooks/verifying",
+      "destination": "/docs/developers/webhooks/verifying",
+      "permanent": true
+    },
+    {
+      "source": "/docs/webhooks/retries-and-recovery",
+      "destination": "/docs/developers/webhooks/retries-and-recovery",
+      "permanent": true
+    },
+    {
+      "source": "/docs/modules/webhooks",
+      "destination": "/docs/developers/webhooks",
+      "permanent": true
+    },
+    {
+      "source": "/docs/modules/mcp",
+      "destination": "/docs/developers/mcp",
+      "permanent": true
+    },
+    {
+      "source": "/docs/modules/typescript-sdk",
+      "destination": "/docs/developers/typescript-sdk",
       "permanent": true
     }
   ]

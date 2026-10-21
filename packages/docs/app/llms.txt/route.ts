@@ -25,8 +25,8 @@ function urls(nodes: Node[]): string[] {
 
 /**
  * `/llms.txt` (llmstxt.org): one paragraph on what OpenSequence is, then every page in sidebar
- * order (Get started, Concepts, Modules, Sequences, Webhooks, Analytics, Self-hosting, Security,
- * then the references), one line each. The per-endpoint API pages are left out: openapi.json has them.
+ * order (Get started, Concepts, Modules, Developers, Analytics, Self-hosting, Security, then the
+ * references), one line each. The per-endpoint API pages are left out: openapi.json has them.
  */
 export async function GET() {
   const pages = new Map(source.getPages().filter((p) => p.type !== 'openapi').map((p) => [p.url, p]));

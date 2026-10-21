@@ -1,6 +1,6 @@
 ---
 title: "Webhooks to your app: receive signed events"
-nav: "Webhooks"
+nav: "Overview"
 icon: webhook
 description: "How to register a webhook endpoint in OpenSequence, verify the Standard Webhooks signature with or without the SDK, dedupe by event id and handle retries."
 ---
@@ -107,7 +107,7 @@ Enroll a test contact, then read `GET /v1/webhooks/{id}/deliveries` (`oseq.webho
 
 ## Retries and duplicates
 
-A non-`2xx`, a timeout or a connection error is retried: nine attempts over about a day and a half. Deliveries for one enrollment arrive in order. A delivery can arrive twice, so dedupe by `event.id`. Replay one with `POST /v1/webhooks/deliveries/{id}/replay`, or everything that failed since a time with `POST /v1/webhooks/{id}/recover`. Details: [Retries and recovery](/docs/webhooks/retries-and-recovery).
+A non-`2xx`, a timeout or a connection error is retried: nine attempts over about a day and a half. Deliveries for one enrollment arrive in order. A delivery can arrive twice, so dedupe by `event.id`. Replay one with `POST /v1/webhooks/deliveries/{id}/replay`, or everything that failed since a time with `POST /v1/webhooks/{id}/recover`. Details: [Retries and recovery](/docs/developers/webhooks/retries-and-recovery).
 
 ## Common errors
 

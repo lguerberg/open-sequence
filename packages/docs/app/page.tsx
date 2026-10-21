@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   ...socialMetadata({ title, description: siteDescription, url: '/', image: getPageImage([]).url }),
 };
 
+const developers = [
+  { href: '/docs/developers/webhooks', title: 'Webhooks', text: 'signed events to your app', logo: 'webhook' },
+  { href: '/docs/developers/mcp', title: 'MCP', text: 'for AI agents', logo: 'mcp' },
+  { href: '/docs/developers/typescript-sdk', title: 'TypeScript SDK', text: 'npm install @opensequence/sdk', logo: 'typescript' },
+];
+
 const start = [
   { href: '/docs/get-started/quickstart', title: 'Quickstart', text: 'Run the server, create a project, connect a mailbox and enroll a first contact.', icon: Rocket },
   { href: '/docs/get-started/integrate', title: 'Integrate into your product', text: 'The checklist: one call per step, from senders to webhooks.', icon: ListChecks },
@@ -30,9 +36,6 @@ const modules = [
   { href: '/docs/modules/email/outlook', title: 'Outlook', text: 'and Microsoft 365', logo: 'outlook' },
   { href: '/docs/modules/sms/allo', title: 'Allo', text: 'texts and call tasks', logo: 'allo' },
   { href: '/docs/modules/crm/attio', title: 'Attio', text: 'live CRM conditions', logo: 'attio' },
-  { href: '/docs/modules/webhooks', title: 'Webhooks', text: 'signed events to your app', logo: 'webhook' },
-  { href: '/docs/modules/mcp', title: 'MCP', text: 'for AI agents', logo: 'mcp' },
-  { href: '/docs/modules/typescript-sdk', title: 'TypeScript SDK', text: 'npm install @opensequence/sdk', logo: 'typescript' },
 ];
 
 function FlowNode({ label, sub, strong }: { label: string; sub: string; strong?: boolean }) {
@@ -138,7 +141,7 @@ export default function HomePage() {
           </div>
         </Section>
 
-        <Section kicker="Modules" title="What you can connect">
+        <Section kicker="Modules" title="What a sequence can use">
           <div className="flex flex-wrap gap-2.5">
             {modules.map((m) => (
               <Link key={m.href} href={m.href} className="inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-card py-1.5 pr-4 pl-2 text-sm transition-colors hover:border-fd-primary/60 hover:bg-fd-accent/60">
@@ -150,6 +153,17 @@ export default function HomePage() {
           <p className="text-xs text-fd-muted-foreground">Logos identify each integration and imply no endorsement.</p>
         </Section>
 
+        <Section kicker="Developers" title="Build on it">
+          <div className="flex flex-wrap gap-2.5">
+            {developers.map((m) => (
+              <Link key={m.href} href={m.href} className="inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-card py-1.5 pr-4 pl-2 text-sm transition-colors hover:border-fd-primary/60 hover:bg-fd-accent/60">
+                <ModuleLogo name={m.logo} size={22} />
+                <span className="font-semibold">{m.title}</span> <span className="text-fd-muted-foreground">{m.text}</span>
+              </Link>
+            ))}
+          </div>
+        </Section>
+
         <footer className="grid gap-8 border-t border-fd-border pt-10 text-sm sm:grid-cols-3">
           <div className="flex flex-col gap-2">
             <p className="font-semibold">Run it</p>
@@ -159,9 +173,9 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-2">
             <p className="font-semibold">Build on it</p>
-            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/modules/typescript-sdk">TypeScript SDK</Link>
-            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/modules/mcp">MCP server</Link>
-            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/modules/webhooks">Webhooks</Link>
+            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/developers/typescript-sdk">TypeScript SDK</Link>
+            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/developers/mcp">MCP server</Link>
+            <Link className="text-fd-muted-foreground hover:text-fd-foreground" href="/docs/developers/webhooks">Webhooks</Link>
           </div>
           <div className="flex flex-col gap-2">
             <p className="font-semibold">For agents and tools</p>

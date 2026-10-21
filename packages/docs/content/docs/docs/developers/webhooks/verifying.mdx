@@ -80,7 +80,7 @@ A receiver without the SDK should keep a **list** of accepted secrets per endpoi
 3. Watch the deliveries log (`GET /v1/webhooks/{id}/deliveries`) until nothing signed with the old secret is still pending: a retry of a delivery first attempted before the rotation is re-signed with the **current** secret at each attempt, so this is quick, and it is only in-flight attempts between your call and your store update that can still carry the old signature.
 4. Drop the old secret.
 
-If you cannot change your receiver to accept two secrets, rotate at a quiet moment and accept that deliveries in that window fail once and are retried with the new signature five seconds later ([Retries and recovery](/docs/webhooks/retries-and-recovery)).
+If you cannot change your receiver to accept two secrets, rotate at a quiet moment and accept that deliveries in that window fail once and are retried with the new signature five seconds later ([Retries and recovery](/docs/developers/webhooks/retries-and-recovery)).
 
 ## Errors the SDK throws
 

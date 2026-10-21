@@ -1,12 +1,12 @@
 ---
 title: "Sequence: a named flow with versioned JSON definitions"
-nav: "Sequence"
+nav: "Overview"
 description: "What a sequence is: a named flow whose steps live in versioned JSON definitions, a draft you edit and published versions that never change."
 ---
 
 A sequence is a named flow, such as "Trial intro". This page explains how its versions work.
 
-The steps live in a JSON document called the **definition**: [nodes](/docs/concepts/node) joined by named exits.
+The steps live in a JSON document called the **definition**: [nodes](/docs/concepts/sequence/nodes) joined by named exits.
 
 ```json
 {
@@ -32,4 +32,4 @@ const { sequence, version } = await oseq.sequences.create({ name: 'Trial intro',
 await oseq.sequences.versions.publish(sequence.id, version.id);
 ```
 
-Validation errors block publishing. Warnings, such as a missing unsubscribe link, do not. Details: [The definition](/docs/sequences/definition) and [Versions](/docs/sequences/versions).
+Validation errors block publishing. Warnings, such as a missing unsubscribe link, do not. Details: [The definition](/docs/concepts/sequence/definition) and [Versions](/docs/concepts/sequence/versions).

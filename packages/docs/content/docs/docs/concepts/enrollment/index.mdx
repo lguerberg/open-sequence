@@ -1,0 +1,40 @@
+---
+title: "Enrollment: where a contact is in a sequence"
+nav: "Overview"
+description: "What an enrollment is: one contact in one sequence version, its status, its current step and its journey, and how to show where a contact is."
+---
+
+An enrollment is one contact going through one sequence version as one sender. This page covers its status, its current step and its journey.
+
+## Enrolling
+
+You enroll contacts with an `enroll` key. A contact can be in one active sequence per project. A second enrollment fails with `409 ALREADY_IN_SEQUENCE`, and nobody in that batch is enrolled.
+
+```ts
+const { enrollments } = await oseq.sequences.enroll(sequenceId, { contacts: ['p_7'], sender: 'u_42' }); // POST /v1/sequences/{id}/enrollments
+```
+
+The enrollment stays pinned to the version it started on, even after you publish a new one.
+
+## Status
+
+| Status | Meaning |
+|---|---|
+| `active` | Moving through the flow, or waiting for a timer, an event or a task. |
+| `paused` | Paused by you, by an out-of-office reply (until the return date or 7 days) or by a failed step. |
+| `waiting_limit` | Held by the sender's daily limit. It retries an hour later. |
+| `completed` | Reached an `end` node or an unwired exit. |
+| `exited` | Left early. `exitReason` is `replied`, `meeting_booked`, `opt_out`, `bounced`, `suppressed`, `manual` or `deleted`. |
+| `failed` | Reserved. The engine does not set it today: a failed step pauses the enrollment with `pauseReason: "step_failed"`. |
+
+The current step is `currentNodeId`. `nextRunAt` is when the engine looks at it next.
+
+Replies, bookings and opt-outs end the enrollment. An unsubscribe, a STOP text, a hard bounce or a suppression always exits. A reply or a booked meeting exits when the definition's `exit_on` lists it, and otherwise can wake a `wait_for`.
+
+Pause, resume and exit: `POST /v1/enrollments/{id}/pause`, `/resume` (`enroll` key) and `/exit` (`admin` key).
+
+## The journey
+
+`GET /v1/enrollments/{id}` (`oseq.enrollments.get()`) returns the journey: the enrollment, the contact, the pinned version with its definition, and what happened. Each step that ran is a run, in `runs[]`: its `nodeId`, `status`, the `branch` it took, and a `result` with what it saw and did (`result.facts` for a condition, `result.skip_reason` for a skipped step, `result.until` for a wait). `messages[]` are the emails and texts, each linked to its step by `runId`. `signals[]` are the replies, bounces, opt-outs and other events that came back, and `tasks[]` are the tasks.
+
+To draw this as a path on your sequence, see [Where a contact is](/docs/concepts/enrollment/where-a-contact-is).

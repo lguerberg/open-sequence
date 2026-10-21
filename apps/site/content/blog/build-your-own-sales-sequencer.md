@@ -129,7 +129,7 @@ A reply can also arrive in the second between the last check and the provider ca
 
 ## Editing a live sequence
 
-Someone deletes step 3 while 200 people wait on it. OpenSequence makes published versions immutable, with a trigger that raises an error on any update to a non-draft definition. Each enrollment stays on the version id it started with, and new enrollments use the new default. To move people, you exit and re-enroll them. Drafts use an optimistic lock, so two editors cannot overwrite each other. The [versions page](https://docs.opensequence.dev/docs/sequences/versions) has the details.
+Someone deletes step 3 while 200 people wait on it. OpenSequence makes published versions immutable, with a trigger that raises an error on any update to a non-draft definition. Each enrollment stays on the version id it started with, and new enrollments use the new default. To move people, you exit and re-enroll them. Drafts use an optimistic lock, so two editors cannot overwrite each other. The [versions page](https://docs.opensequence.dev/docs/concepts/sequence/versions) has the details.
 
 ## Call tasks
 

@@ -71,7 +71,7 @@ const { ok, problems } = await oseq.sequences.validate(definition);
 | `exit_on` | `reply`, `meeting_booked`, both, or none (default `[]`). See below |
 | `nodes` | a flat map from id to node. Ids are `lower_snake_case`, up to 64 characters, chosen by you |
 
-A node is `{ type, name?, channel?, action?, params?, next, branches_by_outcome? }`. `next` maps each transition key the node emits to a node id; a key left unwired ends the enrollment (`completed`) when taken, except the keys a node type requires (`then`, `yes`, `no`). `branches_by_outcome` is for `task` nodes only. The full list of node types, params and transitions: [Nodes](/docs/sequences/nodes) and the generated [catalogue](/reference/nodes).
+A node is `{ type, name?, channel?, action?, params?, next, branches_by_outcome? }`. `next` maps each transition key the node emits to a node id; a key left unwired ends the enrollment (`completed`) when taken, except the keys a node type requires (`then`, `yes`, `no`). `branches_by_outcome` is for `task` nodes only. The full list of node types, params and transitions: [Nodes](/docs/concepts/sequence/nodes) and the generated [catalogue](/reference/nodes).
 
 ## Durations
 

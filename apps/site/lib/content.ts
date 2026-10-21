@@ -20,7 +20,7 @@ export const useCases: UseCase[] = [
     file: 'create-sequence.ts',
     meta: '@opensequence/sdk',
     lang: 'typescript',
-    href: '/docs/sequences/definition',
+    href: '/docs/concepts/sequence/definition',
     claim: 'A sequence is a JSON document. Create it with one call.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
@@ -77,7 +77,7 @@ await oseq.sequences.enroll(ukIntro.id, { contacts: ['dana'], sender: 'max' });`
     file: 'add-email-step.ts',
     meta: '@opensequence/sdk',
     lang: 'typescript',
-    href: '/docs/sequences/nodes',
+    href: '/docs/concepts/sequence/nodes',
     claim: 'Copy the live version, add a step, publish. Running enrollments keep their version.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
@@ -159,7 +159,7 @@ await oseq.senders.setSmtp('max', {
     file: 'webhooks.ts',
     meta: 'Standard Webhooks',
     lang: 'typescript',
-    href: '/docs/webhooks/overview',
+    href: '/docs/developers/webhooks/events',
     claim: 'Register an endpoint once. Exits, replies and tasks arrive signed.',
     code: `import express from 'express';
 import { OpenSequence, verifyWebhook } from '@opensequence/sdk';

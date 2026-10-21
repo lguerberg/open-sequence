@@ -1,10 +1,10 @@
 ---
-title: "Modules: what you can connect to OpenSequence"
+title: "Modules: the channels and data a sequence can use"
 nav: "Overview"
-description: "Every OpenSequence module in one table: email, SMS with Allo, CRM conditions with Attio, webhooks, MCP and the TypeScript SDK, and which ones you need."
+description: "Every OpenSequence module in one table: email over SMTP and IMAP with Gmail, Outlook or any provider, SMS with Allo and CRM conditions with Attio."
 ---
 
-Each module connects OpenSequence to one outside system. This page lists them all and says which ones you need.
+A module is something a sequence step can use: a channel to send on, or data to branch on. This page lists them and says which ones you need.
 
 Every install needs the server and one Postgres first: see the [Quickstart](/docs/get-started/quickstart) or [Install](/docs/self-hosting/install).
 
@@ -16,9 +16,8 @@ Every install needs the server and one Postgres first: see the [Quickstart](/doc
 | <ModuleLogo name="email" size={32} /> | Email: [Other SMTP providers](/docs/modules/email/other-smtp) | The Email module with Fastmail, Zoho, iCloud or your own server. | One email provider |
 | <ModuleLogo name="allo" size={32} /> | SMS: [Allo](/docs/modules/sms/allo) | Texts, inbound replies and STOP, and call tasks that complete themselves. | For SMS and call steps |
 | <ModuleLogo name="attio" size={32} /> | CRM: [Attio](/docs/modules/crm/attio) | Lets conditions read live person, company and deal data. | For `crm.*` conditions |
-| <ModuleLogo name="webhook" size={32} /> | [Webhooks to your app](/docs/modules/webhooks) | Sends signed events to your backend: sent, replied, exited, task created. | Recommended |
-| <ModuleLogo name="mcp" size={32} /> | [MCP for AI agents](/docs/modules/mcp) | Lets Claude, Cursor or any MCP client build sequences and enroll people. | Optional |
-| <ModuleLogo name="typescript" size={32} /> | [TypeScript SDK](/docs/modules/typescript-sdk) | A typed client and webhook verification: `npm install @opensequence/sdk`. | Optional |
+
+Webhooks, MCP and the TypeScript SDK are in [Developers](/docs/developers/webhooks).
 
 Every module page follows the same order: what it gives you, what you need, the steps with curl and the SDK, how to check it works, and common errors.
 

@@ -1,4 +1,4 @@
 {
   "title": "Modules",
-  "pages": ["index", "email", "sms", "crm", "webhooks", "mcp", "typescript-sdk"]
+  "pages": ["index", "email", "sms", "crm"]
 }

@@ -20,7 +20,7 @@ Validation runs on `POST /v1/sequences:validate`, on every draft save (problems 
 | `UNREACHABLE_NODE` | error | a node no path from `entry` reaches | wire it or delete it |
 | `CYCLE` | error | a loop with no timed step on it (a `wait`, a `task`, or a `wait_for` with a `timeout`) | put a wait on the loop, or break it |
 | `UNKNOWN_FIELD` | error | a condition names a field the registry does not know | pick one from `GET /v1/schema/fields` |
-| `BAD_OPERATOR` | error | the operator does not fit the field's type (`gte` on text, `contains` on a bool) | see the operators per type in [Conditions](/docs/sequences/conditions) |
+| `BAD_OPERATOR` | error | the operator does not fit the field's type (`gte` on text, `contains` on a bool) | see the operators per type in [Conditions](/docs/concepts/sequence/conditions) |
 | `BAD_VALUE` | error | a missing value where the operator needs one, a non-number for a number field, a value outside an enum | fix the value |
 | `BAD_EVENT` | error | a `wait_for` lists an event with no transition | wire `next.<event>` |
 | `BAD_TEMPLATE` | error | a `{{ path }}` outside the known roots, or `contact.first_name`, `contact.last_name`, `contact.email` without a fallback | use `contact.*`, `attrs.*`, `sender.*`, `sequence.name`, `unsubscribe_url`; add `\| "fallback"` |

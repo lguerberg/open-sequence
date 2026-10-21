@@ -119,7 +119,7 @@ You could call the enroll endpoint from a Customer.io webhook action instead. We
 
 ### 2. Pause Customer.io's drips while a rep works the account
 
-A trial user in a sales sequence should not also get the generic "upgrade now" drip. Register an OpenSequence webhook for `enrollment.created` and `enrollment.exited` ([Webhooks to your app](https://docs.opensequence.dev/docs/modules/webhooks)) and copy the state onto the Customer.io profile:
+A trial user in a sales sequence should not also get the generic "upgrade now" drip. Register an OpenSequence webhook for `enrollment.created` and `enrollment.exited` ([Webhooks to your app](https://docs.opensequence.dev/docs/developers/webhooks)) and copy the state onto the Customer.io profile:
 
 ```ts
 import express from 'express';

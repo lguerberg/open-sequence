@@ -1,8 +1,10 @@
 ---
-title: "Sequence node types"
+title: "Sequence nodes: every node type and its exits"
 nav: "Nodes"
 description: "Every sequence node type with its params and transitions, one example each, and which node types count as touches."
 ---
+
+A node is one step of a sequence. Each node lists where to go next for each outcome, in `next`.
 
 | `type` | Params | Transitions | Runs |
 |---|---|---|---|
@@ -91,7 +93,7 @@ When an awaited event arrives, the enrollment moves on at once. When the timeout
 }
 ```
 
-`all` or `any` over 1 to 20 rules; `yes` and `no` both required. Evaluation is lazy (stops at the first decisive rule) and every value read is recorded on the run. Missing data never matches. Fields and operators: [Conditions](/docs/sequences/conditions).
+`all` or `any` over 1 to 20 rules; `yes` and `no` both required. Evaluation is lazy (stops at the first decisive rule) and every value read is recorded on the run. Missing data never matches. Fields and operators: [Conditions](/docs/concepts/sequence/conditions).
 
 ## `task`
 

@@ -633,7 +633,7 @@ ${JSON.stringify(json, null, 2)}
       GENERATED_NOTE('packages/core/src/domain/definition/builtins.ts') +
       `
 
-The engine holds no list of node types or channels: both are registries (docs/ARCHITECTURE.md section 20). \`GET /v1/schema\` serves the same catalogue. For examples of each node see [Nodes](/docs/sequences/nodes).
+The engine holds no list of node types or channels: both are registries (docs/ARCHITECTURE.md section 20). \`GET /v1/schema\` serves the same catalogue. For examples of each node see [Nodes](/docs/concepts/sequence/nodes).
 
 ## Node types
 
@@ -661,7 +661,7 @@ ${channelsMd}`,
       GENERATED_NOTE('packages/core/src/domain/definition/builtins.ts and packages/core/src/domain/conditions/evaluate.ts') +
       `
 
-A condition is \`{ "mode": "all" | "any", "rules": [{ "field", "op", "value?" }] }\` with 1 to 20 rules. \`GET /v1/schema/fields\` serves this registry plus the project's \`attrs_schema\`. **Missing data never matches**: a \`null\` fact fails every operator, including \`is_not\` and \`ne\`, so the contact takes \`no\`. See [Conditions](/docs/sequences/conditions).
+A condition is \`{ "mode": "all" | "any", "rules": [{ "field", "op", "value?" }] }\` with 1 to 20 rules. \`GET /v1/schema/fields\` serves this registry plus the project's \`attrs_schema\`. **Missing data never matches**: a \`null\` fact fails every operator, including \`is_not\` and \`ne\`, so the contact takes \`no\`. See [Conditions](/docs/concepts/sequence/conditions).
 
 ## Operators by type
 
@@ -710,7 +710,7 @@ async function generateEvents(): Promise<void> {
       GENERATED_NOTE('packages/engine/src/domain/shared/events.ts') +
       `
 
-\`GET /v1/schema/events\` returns the same list. Every delivery body has the shape below, five fields and nothing else; the fields in the table are inside \`data\`. Subscribe to \`"*"\` or to a list of types when you create an endpoint. See [Receiving webhooks](/docs/webhooks/overview).
+\`GET /v1/schema/events\` returns the same list. Every delivery body has the shape below, five fields and nothing else; the fields in the table are inside \`data\`. Subscribe to \`"*"\` or to a list of types when you create an endpoint. See [Receiving webhooks](/docs/developers/webhooks/events).
 
 \`\`\`json
 {
@@ -853,7 +853,7 @@ ${envelope}
 ${httpTable}
 ## Validation problems
 
-Returned by \`POST /v1/sequences:validate\`, \`PUT .../draft\` (as \`problems\`, saving is allowed) and \`POST .../publish\` (inside a 422 \`INVALID_DEFINITION\`). Each problem is \`{ path, code, message, severity }\`. See [Validation](/docs/sequences/validation) for the fix of each one.
+Returned by \`POST /v1/sequences:validate\`, \`PUT .../draft\` (as \`problems\`, saving is allowed) and \`POST .../publish\` (inside a 422 \`INVALID_DEFINITION\`). Each problem is \`{ path, code, message, severity }\`. See [Validation](/docs/concepts/sequence/validation) for the fix of each one.
 
 ${validationTable}`,
   );
