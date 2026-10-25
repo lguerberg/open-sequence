@@ -38,14 +38,15 @@ import {
  * message, which is ours. Every call opens its own short-lived connection.
  */
 export class SmtpEmailProvider implements EmailProvider {
-  private readonly includeBodies: boolean;
+  /** Set by the constructor option, it wins over each poll's `includeBodies`. */
+  private readonly includeBodies: boolean | undefined;
   private readonly now: () => Date;
 
   constructor(
     private readonly secrets: ConnectionSecretSource,
     private readonly opts: SmtpProviderOptions = {}
   ) {
-    this.includeBodies = opts.includeBodies ?? false;
+    this.includeBodies = opts.includeBodies;
     this.now = opts.now ?? (() => new Date());
   }
 
@@ -128,13 +129,14 @@ export class SmtpEmailProvider implements EmailProvider {
     cursor: string | null;
     threadRefs: string[];
     messageIds: string[];
+    includeBodies?: boolean;
   }): Promise<{ events: InboundEvent[]; cursor: string | null }> {
     const creds = await smtpCredentialsFor(this.secrets, req.channel);
     const scope = {
       ours: indexIds(req.messageIds),
       threads: indexIds(req.threadRefs),
       self: req.channel.address.toLowerCase(),
-      includeBodies: this.includeBodies,
+      includeBodies: this.includeBodies ?? req.includeBodies ?? false,
       now: this.now,
     };
     try {

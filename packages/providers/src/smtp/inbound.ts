@@ -19,6 +19,7 @@ import {
   parseUntil,
   type DeliveryStatus,
 } from '../email/inbound.js';
+import { htmlReplyText, stripQuotedReply } from '../email/reply-text.js';
 
 /** The headers fetched for every new message, beside the envelope. */
 export const INBOUND_HEADERS = [
@@ -141,7 +142,7 @@ export async function classifyInbound(
     threadRef,
     subject: meta.subject,
     inReplyTo: inReplyTo ? scope.ours.get(inReplyTo) : meta.referenced[0],
-    body: scope.includeBodies ? text : undefined,
+    body: scope.includeBodies && text ? stripQuotedReply(text) : undefined,
   };
   if (auto) {
     const until = parseUntil(meta.subject, scope.now()) ?? parseUntil(text, scope.now());
@@ -255,13 +256,7 @@ export function firstAddress(value: AddressObject | AddressObject[] | undefined)
   return first?.value[0]?.address ?? '';
 }
 
+/** The plain text of a message; HTML-only mail is cut before its marked-up quote and stripped of tags. */
 function bodyText(parsed: ParsedMail): string | undefined {
-  return (parsed.text ?? (parsed.html ? stripTags(parsed.html) : undefined))?.trim();
-}
-
-function stripTags(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, '')
-    .replace(/\s+\n/g, '\n')
-    .trim();
+  return (parsed.text ?? (parsed.html ? htmlReplyText(parsed.html) : undefined))?.trim();
 }

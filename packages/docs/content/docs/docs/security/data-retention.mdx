@@ -30,7 +30,7 @@ await oseq.project.updateSettings({ store_inbound_bodies: false });
 |---|---|---|
 | Contacts, senders | what you send, `attrs` included | to address and personalize messages |
 | Outbound messages | subject and body as rendered, addresses, provider ids, thread reference | to match replies and show the timeline |
-| Inbound replies | addresses, subject, thread reference, provider id. The body only when `store_inbound_bodies` is on (default off) | to stop the sequence and attribute the reply |
+| Inbound replies | addresses, subject, thread reference, provider id. The body only when `store_inbound_bodies` is on (default off): plain text, the quoted history cut off, at most 20,000 characters. With the setting off the service does not even download the body, except to read the return date of an out-of-office reply. Turning it on applies to replies that arrive afterwards; earlier replies stay without a body | to stop the sequence and attribute the reply, and to show what the contact wrote |
 | Runs | node, status, branch, the facts a condition read, the values a template rendered, provider references | the journey of each enrollment |
 | Signals | kind, channel, source, external id, attribution, a small payload | replies, bounces, opt-outs, calls, meetings |
 | Tasks | title, body and link as rendered, outcome, note (an Allo call summary when completed automatically) | the reps' task inbox |

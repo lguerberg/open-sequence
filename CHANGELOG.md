@@ -4,6 +4,13 @@ What changed in each release, one section per version.
 
 The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this file says when it does.
 
+## 0.1.3
+
+- Fix: the project setting `store_inbound_bodies` did nothing for mailboxes connected over SMTP and IMAP. The poller never asked the mailbox for reply text, so every inbound message was stored without a body even with the setting on. The poll now carries the project's setting (`includeBodies` on the email provider's `poll` request), and a reply's body is read and stored when it is on. The `SmtpProviderOptions.includeBodies` constructor option still forces it on or off for every poll when set.
+- A stored reply body is the plain text of what the contact wrote: the quoted history is cut at the attribution line (`On … wrote:`, wrapped or in Spanish, Portuguese, French, German, Italian, Dutch or Swedish), at an Outlook header block (`From:` / `Sent:` / `To:` / `Subject:`, after a rule or `-----Original Message-----`), and `>` quoted lines are dropped. An HTML-only reply is cut before its `gmail_quote` or `blockquote`. Bodies are capped at 20,000 characters.
+- Turning the setting on applies to replies that arrive afterwards; earlier replies stay without a body.
+- The SDK is unchanged (0.1.2). No migration.
+
 ## 0.1.2
 
 - Branded HTML emails: an `html` body may hold up to 5,000,000 characters (text bodies stay at 100,000), and the definition limit is now 10 MB (was 256 KB). Base64 images (`<img src="data:image/png;base64,...">`, PNG, JPEG, GIF or WebP) are sent as inline attachments in a `multipart/related` with `cid:` references, so Gmail, Outlook and Apple Mail show them; identical images are attached once; hosted `https` images are untouched. An image over 1 MB fails the step with `IMAGE_TOO_LARGE`, a message over 10 MB with `MESSAGE_TOO_LARGE`. The validator warns `HEAVY_EMAIL` above 400 KB of embedded images. The text alternative shows images as `[alt]`. See [HTML emails and images](https://docs.opensequence.dev/docs/concepts/sequence/templates#html-emails-and-images).

@@ -102,6 +102,15 @@ describe('replies', () => {
     expect(event?.kind === 'reply' ? event.body : null).toBe('Sure, let’s talk Thursday.');
   });
 
+  it('keeps only the new text of a reply, without the quoted history', async () => {
+    const off = await classify('reply-quoted.eml');
+    expect(off?.kind === 'reply' ? off.body : 'set').toBeUndefined();
+    const on = await classify('reply-quoted.eml', { includeBodies: true });
+    expect(on?.kind === 'reply' ? on.body : null).toBe(
+      'Thursday at 3pm works.\nSend me the invite.'
+    );
+  });
+
   it('an auto-reply carries autoReply.until from its text', async () => {
     const event = await classify('auto-reply.eml', { includeBodies: true });
     expect(event?.kind).toBe('reply');

@@ -8,6 +8,7 @@
 import type { ChannelRef } from '@opensequence/core';
 import type { SenderChannel } from '../../domain/entities.js';
 import type { Deps } from '../deps.js';
+import { effectiveSettings } from '../projects/shared.js';
 import { setChannelStatus } from '../senders/set-channel-status.js';
 import { EMAIL_PROVIDER } from '../senders/shared.js';
 import { ingestInboundEvents } from '../signals/ingest-inbound-events.js';
@@ -49,7 +50,10 @@ export async function pollChannel(deps: Deps, channel: SenderChannel, now: Date)
 
   if (deps.providers.email.poll) {
     const { threadRefs, messageIds } = await repos.messages.outboundThreadRefs(channel.senderId, 'email', new Date(now.getTime() - THREAD_WINDOW_MS));
-    const mail = await deps.providers.email.poll({ channel: ref, cursor: cursorOf(config, CURSOR_KEY), threadRefs, messageIds });
+    // Bodies are read only for projects that keep them; the ingest stores them under the same setting.
+    const project = await repos.projects.byId(channel.projectId);
+    const includeBodies = project ? effectiveSettings(project).store_inbound_bodies : false;
+    const mail = await deps.providers.email.poll({ channel: ref, cursor: cursorOf(config, CURSOR_KEY), threadRefs, messageIds, includeBodies });
     if (mail.events.length) await ingestInboundEvents(deps, channel.projectId, EMAIL_PROVIDER, mail.events);
     config = { ...config, [CURSOR_KEY]: mail.cursor };
     await repos.senders.updateChannel(channel.id, { config });

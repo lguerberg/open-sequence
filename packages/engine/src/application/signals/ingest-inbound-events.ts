@@ -23,6 +23,9 @@ export interface IngestOptions {
   channelId?: string;
 }
 
+/** The longest inbound body kept; a reply past it is cut, never dropped. */
+export const MAX_INBOUND_BODY = 20_000;
+
 const DEFAULT_CALL_OUTCOMES: Record<string, string> = {
   ANSWERED: 'connected',
   TRANSFERRED_AI: 'connected',
@@ -112,7 +115,7 @@ async function ingestReply(deps: Deps, scope: TransactionScope, projectId: strin
       fromAddress: event.from,
       toAddress: event.to,
       subject: event.subject ?? null,
-      body: settings.store_inbound_bodies ? (event.body ?? null) : null,
+      body: settings.store_inbound_bodies ? capBody(event.body) : null,
       status: 'received',
       provider,
       providerId: event.externalId,
@@ -198,4 +201,10 @@ async function ingestCallCompleted(deps: Deps, projectId: string, settings: Effe
 
 async function signal(deps: Deps, scope: TransactionScope, projectId: string, contact: Contact, provider: string, event: InboundEvent, kind: SignalKind, channel: string | null, payload: Record<string, unknown>): Promise<void> {
   await recordSignal(deps, scope, { projectId, contactId: contact.id, kind, channel, source: provider, externalId: event.externalId, occurredAt: event.occurredAt, payload });
+}
+
+function capBody(body: string | undefined): string | null {
+  const text = body?.trim();
+  if (!text) return null;
+  return text.length > MAX_INBOUND_BODY ? `${text.slice(0, MAX_INBOUND_BODY).trimEnd()}…` : text;
 }

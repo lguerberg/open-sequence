@@ -51,8 +51,11 @@ export interface EmailProvider {
   findSent(req: { channel: ChannelRef; messageId: string }): Promise<{ providerId: string; threadRef: string } | null>;
   /** Push adapters verify and normalize a webhook. */
   verifyWebhook?(req: { projectId: string; headers: Record<string, string | string[] | undefined>; rawBody: Buffer; secret: string }): Promise<InboundEvent[]>;
-  /** Pull adapters are polled with a cursor; `threadRefs` scopes the read to threads we started. */
-  poll?(req: { channel: ChannelRef; cursor: string | null; threadRefs: string[]; messageIds: string[] }): Promise<{ events: InboundEvent[]; cursor: string | null }>;
+  /**
+   * Pull adapters are polled with a cursor; `threadRefs` scopes the read to threads we started.
+   * `includeBodies` carries the project's `store_inbound_bodies`: read reply text only when it is on.
+   */
+  poll?(req: { channel: ChannelRef; cursor: string | null; threadRefs: string[]; messageIds: string[]; includeBodies?: boolean }): Promise<{ events: InboundEvent[]; cursor: string | null }>;
   health(channel: ChannelRef): Promise<'active' | 'credentials_needed' | 'restricted'>;
 }
 
