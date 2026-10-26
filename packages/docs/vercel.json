@@ -1,7 +1,40 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": ".next",
+  "headers": [
+    {
+      "source": "/:path((?!llms\\.txt$|robots\\.txt$).*\\.txt)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/llms.mdx/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    }
+  ],
   "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": {
+            "eq": "open-sequence-docs.vercel.app"
+          }
+        }
+      ],
+      "destination": "https://docs.opensequence.dev/:path*",
+      "permanent": true
+    },
     {
       "source": "/docs/senders/senders",
       "destination": "/docs/concepts/sender",
@@ -420,6 +453,21 @@
     {
       "source": "/docs/developers/mcp",
       "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/api",
+      "destination": "/api/conventions",
+      "permanent": true
+    },
+    {
+      "source": "/sdks",
+      "destination": "/sdks/typescript",
+      "permanent": true
+    },
+    {
+      "source": "/reference",
+      "destination": "/reference/limits",
       "permanent": true
     }
   ]

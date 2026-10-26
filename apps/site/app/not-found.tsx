@@ -4,7 +4,8 @@ import { SiteFooter } from '@/components/site/footer';
 import { SiteHeader } from '@/components/site/header';
 import { links } from '@/lib/links';
 
-export const metadata: Metadata = { title: 'Page not found', robots: { index: false } };
+// Next.js marks the 404 page noindex itself.
+export const metadata: Metadata = { title: 'Page not found' };
 
 export default function NotFound() {
   return (

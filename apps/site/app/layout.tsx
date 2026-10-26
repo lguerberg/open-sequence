@@ -35,7 +35,6 @@ export const metadata: Metadata = {
     'sales cadence software',
     'MCP server for sales outreach',
   ],
-  alternates: { canonical: '/' },
   robots: {
     index: true,
     follow: true,

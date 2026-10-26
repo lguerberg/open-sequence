@@ -90,4 +90,22 @@ export const redirects: Record<string, string> = {
   '/docs/developers/webhooks': '/docs/webhooks',
   '/docs/developers/typescript-sdk': '/sdks/typescript',
   '/docs/developers/mcp': '/',
+  // The tab roots have no page of their own: send them to the tab's first page.
+  '/api': '/api/conventions',
+  '/sdks': '/sdks/typescript',
+  '/reference': '/reference/limits',
 };
+
+/**
+ * The project's own *.vercel.app production alias serves the same pages as docs.opensequence.dev,
+ * indexable. Send it to the real host. Preview URLs are other hosts and keep working (Vercel
+ * protects them and marks them noindex).
+ */
+export const hostRedirects = [
+  {
+    source: '/:path*',
+    has: [{ type: 'host', value: { eq: 'open-sequence-docs.vercel.app' } }],
+    destination: 'https://docs.opensequence.dev/:path*',
+    permanent: true,
+  },
+];
