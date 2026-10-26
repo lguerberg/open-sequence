@@ -55,12 +55,16 @@ export function pageTitle(page: Page): string {
 /**
  * An API page's title is its route's one-line summary, which can run past 100 characters. For the
  * `<title>`, keep the first clause: "Remove a channel; its steps skip from now on. ..." becomes "Remove a channel".
- * The page's heading keeps the whole summary.
+ * A summary that is one long list keeps the items that fit in 60 characters. The page's heading
+ * keeps the whole summary.
  */
 function shortTitle(page: Page, title: string): string {
   if (page.type !== 'openapi' || title.length <= 60) return title;
   const clause = title.split(/[:;(]| \u2014 /)[0]!.trim();
-  return clause.length >= 12 ? clause : title;
+  if (clause.length >= 12 && clause.length <= 60) return clause;
+  // A list with no clause break ("Enrolled, active, exited, ..."): keep the items that fit.
+  const items = title.slice(0, 61).lastIndexOf(', ');
+  return items >= 30 ? title.slice(0, items) : title;
 }
 
 /** The meta description: the frontmatter one, or for an API page a sentence built from its operation. */
@@ -164,7 +168,8 @@ const organization = {
   '@id': `${projectUrl}/#organization`,
   name: siteName,
   url: projectUrl,
-  logo: absoluteUrl('/apple-icon.png'),
+  // The same node as on opensequence.dev (same @id), so the same logo: two hosts must not disagree.
+  logo: { '@type': 'ImageObject', url: `${projectUrl}/icon-512.png`, width: 512, height: 512 },
   sameAs: [repoUrl],
 };
 

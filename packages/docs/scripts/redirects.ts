@@ -4,7 +4,8 @@
  *   out/<old path>.html   a small page per moved URL: noindex, a canonical link to the new page,
  *                         a meta refresh and a script that keeps the #hash. Static hosts serve it
  *                         at the old URL, the way they serve every exported page.
- *   vercel.json           the same list as permanent (308) redirects, for the hosted deploy.
+ *   vercel.json           the same list as permanent (308) redirects, for the hosted deploy, after
+ *                         the host redirects (the *.vercel.app alias to docs.opensequence.dev).
  *
  * The stubs are not pages of the source, so the sitemap and the search index never list them.
  * Run with tsx from the package folder (the build script does).
@@ -13,7 +14,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { redirects } from '../lib/redirects.ts';
+import { hostRedirects, redirects } from '../lib/redirects.ts';
 import { siteUrl } from '../lib/shared.ts';
 
 const pkg = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -66,7 +67,7 @@ async function main(): Promise<void> {
 
   const vercelFile = path.join(pkg, 'vercel.json');
   const vercel = JSON.parse(await readFile(vercelFile, 'utf8')) as Record<string, unknown>;
-  vercel.redirects = pages.map(([source, destination]) => ({ source, destination, permanent: true }));
+  vercel.redirects = [...hostRedirects, ...pages.map(([source, destination]) => ({ source, destination, permanent: true }))];
   const next = `${JSON.stringify(vercel, null, 2)}\n`;
   if (next !== (await readFile(vercelFile, 'utf8'))) {
     await writeFile(vercelFile, next);

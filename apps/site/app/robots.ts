@@ -18,12 +18,16 @@ const namedCrawlers = [
   'CCBot',
 ];
 
-/** Everything is public except the design-system page, which is noindex. */
+/**
+ * Everything is open to crawl. The design-system page is kept out of search by its noindex meta tag,
+ * not here: a crawler blocked by robots.txt never reads that tag, and Google can still index a
+ * blocked URL from links alone.
+ */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: namedCrawlers, allow: '/', disallow: '/design' },
-      { userAgent: '*', allow: '/', disallow: '/design' },
+      { userAgent: namedCrawlers, allow: '/' },
+      { userAgent: '*', allow: '/' },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
