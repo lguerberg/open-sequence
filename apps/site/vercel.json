@@ -3,9 +3,9 @@
   "outputDirectory": ".next",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/:path(.*)",
       "has": [{ "type": "host", "value": { "eq": "open-sequence.vercel.app" } }],
-      "destination": "https://www.opensequence.dev/:path*",
+      "destination": "https://www.opensequence.dev/:path",
       "permanent": true
     }
   ],

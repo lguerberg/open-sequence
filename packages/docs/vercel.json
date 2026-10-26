@@ -23,7 +23,7 @@
   ],
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/:path(.*)",
       "has": [
         {
           "type": "host",
@@ -32,7 +32,7 @@
           }
         }
       ],
-      "destination": "https://docs.opensequence.dev/:path*",
+      "destination": "https://docs.opensequence.dev/:path",
       "permanent": true
     },
     {
