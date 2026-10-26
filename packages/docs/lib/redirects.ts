@@ -103,9 +103,9 @@ export const redirects: Record<string, string> = {
  */
 export const hostRedirects = [
   {
-    source: '/:path*',
+    source: '/:path(.*)',
     has: [{ type: 'host', value: { eq: 'open-sequence-docs.vercel.app' } }],
-    destination: 'https://docs.opensequence.dev/:path*',
+    destination: 'https://docs.opensequence.dev/:path',
     permanent: true,
   },
 ];
