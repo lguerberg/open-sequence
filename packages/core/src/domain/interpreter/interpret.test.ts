@@ -170,3 +170,59 @@ describe('outreach jitter is rolled once per send time', () => {
     expect(random.calls).toBe(0);
   });
 });
+
+describe('linkedin_connect', () => {
+  const linkedinDef = (note?: string): Definition => {
+    const r = validateDefinition({
+      schema_version: 1,
+      entry: 'start',
+      settings: { reenroll: 'never' },
+      exit_on: ['reply'],
+      nodes: {
+        start: { type: 'start', next: { then: 'li' } },
+        li: { type: 'linkedin_connect', params: note === undefined ? {} : { note }, next: { completed: 'end', no_answer: 'end', skipped: 'email_1' } },
+        email_1: { type: 'outreach', channel: 'email', action: 'send', params: { subject: 'Hi', body: 'x {{ unsubscribe_url }}' }, next: { sent: 'end' } },
+        end: { type: 'end' },
+      },
+    });
+    if (!r.ok || !r.definition) throw new Error(JSON.stringify(r.problems));
+    return r.definition;
+  };
+  const at = new Date('2026-10-16T14:00:00Z');
+  const ctx = (definition: Definition, contact: Record<string, unknown>): InterpretContext => ({
+    ...ctxAt('li', at),
+    definition,
+    template: { contact, sender: { name: 'Max' }, sequence: { name: 'UK intro' } },
+  });
+
+  it('creates a task with the profile and the rendered note, completed by opening it', async () => {
+    const r = await interpret(ctx(linkedinDef('Hi {{ contact.first_name | "there" }}, saw your post.'), { first_name: 'Dana', linkedin_url: 'https://www.linkedin.com/in/dana' }));
+    const eff = r.effects[0] as Extract<Effect, { kind: 'create_task' }>;
+    expect(eff.kind).toBe('create_task');
+    expect(eff.task).toMatchObject({ kind: 'linkedin_connect', title: 'Connect with Dana on LinkedIn', body: 'Hi Dana, saw your post.', link: 'https://www.linkedin.com/in/dana', completeOnOpen: 'sent', dialer: false, onCompleted: 'end', onExpired: 'end' });
+    expect(eff.task.dueAt).toEqual(at); // due as soon as the step runs
+    expect(eff.task.expiresAt.toISOString()).toBe('2026-10-23T14:00:00.000Z');
+  });
+
+  it('skips a contact without a LinkedIn URL down the skipped branch', async () => {
+    const r = await interpret(ctx(linkedinDef(), { first_name: 'Dana' }));
+    expect(r.effects[0]).toMatchObject({ kind: 'record', status: 'skipped', branch: 'skipped', run: { result: { reason: 'no_linkedin_url' } } });
+    expect(r.effects[1]).toEqual({ kind: 'goto', nodeId: 'email_1' });
+  });
+
+  it('cuts a rendered note over 300 characters at a word', async () => {
+    const r = await interpret(ctx(linkedinDef('{{ contact.first_name | "there" }} ' + 'word '.repeat(70)), { first_name: 'Dana', linkedin_url: 'https://www.linkedin.com/in/dana' }));
+    const body = (r.effects[0] as Extract<Effect, { kind: 'create_task' }>).task.body ?? '';
+    expect(body.length).toBeLessThanOrEqual(300);
+    expect(body.endsWith('word…')).toBe(true);
+  });
+
+  it('warns about notes free accounts cannot send', () => {
+    const r = validateDefinition({
+      schema_version: 1,
+      entry: 'start',
+      nodes: { start: { type: 'start', next: { then: 'li' } }, li: { type: 'linkedin_connect', params: { note: 'x'.repeat(250) } } },
+    });
+    expect(r.problems).toContainEqual(expect.objectContaining({ path: 'nodes.li.params.note', code: 'TOO_LONG', severity: 'warning' }));
+  });
+});

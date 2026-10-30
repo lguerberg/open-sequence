@@ -1222,6 +1222,13 @@
               "null"
             ]
           },
+          "linkedinUrl": {
+            "description": "https://www.linkedin.com/in/…",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "country": {
             "description": "ISO 3166-1 alpha-2, upper case.",
             "type": [
@@ -1280,6 +1287,7 @@
           "lastName",
           "email",
           "phone",
+          "linkedinUrl",
           "country",
           "timezone",
           "smsConsent",
@@ -1437,6 +1445,13 @@
               "null"
             ]
           },
+          "linkedinUrl": {
+            "description": "https://www.linkedin.com/in/…",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "country": {
             "description": "ISO 3166-1 alpha-2, upper case.",
             "type": [
@@ -1511,6 +1526,7 @@
           "lastName",
           "email",
           "phone",
+          "linkedinUrl",
           "country",
           "timezone",
           "smsConsent",
@@ -3461,7 +3477,7 @@
           },
           "kind": {
             "type": "string",
-            "description": "`call`, `linkedin`, `manual`, …"
+            "description": "The type of task: `call`, `linkedin_connect`, or any kind a `task` step names (`manual`, …)."
           },
           "title": {
             "type": "string"
@@ -3563,6 +3579,25 @@
               }
             ]
           },
+          "completeOnOpen": {
+            "description": "The outcome opening the task completes it with (`sent` for `linkedin_connect`); null when opening only records the time.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "openedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The first time the sender opened it."
+          },
           "completedAt": {
             "anyOf": [
               {
@@ -3606,6 +3641,8 @@
           "dialer",
           "autoComplete",
           "dialerPushedAt",
+          "completeOnOpen",
+          "openedAt",
           "completedAt",
           "createdAt",
           "updatedAt"
@@ -8671,6 +8708,18 @@
                       }
                     ]
                   },
+                  "linkedin_url": {
+                    "description": "LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "country": {
                     "anyOf": [
                       {
@@ -9032,6 +9081,18 @@
                       {
                         "type": "string",
                         "maxLength": 24
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "linkedin_url": {
+                    "description": "LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
                       },
                       {
                         "type": "null"
@@ -9420,6 +9481,18 @@
                             {
                               "type": "string",
                               "maxLength": 24
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "linkedin_url": {
+                          "description": "LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 2000
                             },
                             {
                               "type": "null"
@@ -13109,6 +13182,18 @@
                                 }
                               ]
                             },
+                            "linkedin_url": {
+                              "description": "LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps.",
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 2000
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
                             "country": {
                               "anyOf": [
                                 {
@@ -13389,6 +13474,18 @@
                                 {
                                   "type": "string",
                                   "maxLength": 24
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "linkedin_url": {
+                              "description": "LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps.",
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 2000
                                 },
                                 {
                                   "type": "null"
@@ -14960,6 +15057,147 @@
             }
           }
         },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Task"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "request_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "request_id"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tasks/{id}/open": {
+      "post": {
+        "summary": "The sender opened the task; a LinkedIn task completes as sent",
+        "tags": [
+          "Tasks"
+        ],
         "parameters": [
           {
             "schema": {

@@ -79,7 +79,7 @@ export class DrizzleTaskRepository implements TaskRepository {
     return page(rows, opts.limit);
   }
 
-  async update(id: string, patch: Partial<Pick<Task, 'status' | 'outcome' | 'note' | 'completedAt' | 'dialerPushedAt'>>): Promise<Task> {
+  async update(id: string, patch: Partial<Pick<Task, 'status' | 'outcome' | 'note' | 'completedAt' | 'dialerPushedAt' | 'openedAt'>>): Promise<Task> {
     const [row] = await this.db
       .update(tasks)
       .set({ ...patch, updatedAt: new Date() })

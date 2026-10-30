@@ -56,7 +56,7 @@ interface ErrEnvelope {
   meta?: { request_id?: string };
 }
 
-export const SDK_VERSION = '0.1.2';
+export const SDK_VERSION = '0.2.0';
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 /** Query string with Dates as ISO, arrays repeated, null/undefined dropped. */

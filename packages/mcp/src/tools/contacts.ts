@@ -26,6 +26,11 @@ export const contactFields = {
     .nullable()
     .optional()
     .describe('Phone in E.164 (+447700900123); needed for SMS and call steps.'),
+  linkedin_url: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('LinkedIn profile URL (linkedin.com/in/dana); needed for LinkedIn steps.'),
   country: z.string().nullable().optional().describe('Two-letter ISO country code (GB, US).'),
   timezone: z
     .string()

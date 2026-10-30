@@ -3,7 +3,8 @@
  *
  * The files live in public/logos and are never hotlinked. Gmail, Google, Model Context Protocol and
  * TypeScript come from Simple Icons (CC0-1.0, simple-icons 16.35.0); the Attio logomark from
- * attio.com/brand; the Allo app icon from withallo.com. Microsoft Outlook has no mark we can
+ * attio.com/brand; the Allo app icon from withallo.com; the LinkedIn "in" bug from LinkedIn's
+ * brand guidelines (brand.linkedin.com), in LinkedIn blue #0A66C2. Microsoft Outlook has no mark we can
  * redistribute, so outlook.svg is a neutral placeholder. Third-party marks only identify the
  * integration: they imply no endorsement. Email, SMS, CRM and webhooks use Lucide icons.
  *
@@ -19,6 +20,7 @@ const files: Record<string, { src: string; alt: string }> = {
   outlook: { src: '/logos/outlook.svg', alt: 'Microsoft Outlook' },
   allo: { src: '/logos/allo.svg', alt: 'Allo' },
   attio: { src: '/logos/attio.svg', alt: 'Attio' },
+  linkedin: { src: '/logos/linkedin.svg', alt: 'LinkedIn' },
   mcp: { src: '/logos/mcp.svg', alt: 'Model Context Protocol' },
   typescript: { src: '/logos/typescript.svg', alt: 'TypeScript' },
 };

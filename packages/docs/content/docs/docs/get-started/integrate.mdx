@@ -100,4 +100,4 @@ await oseq.enrollments.exit(enrollmentId, { label: 'deal closed' }); // POST /v1
 - **Sequences**: `GET /v1/sequences` and `GET /v1/analytics/sequences`.
 - **Where a contact is**: `GET /v1/enrollments/{id}`. See [Show where a contact is in a sequence](/docs/concepts/enrollment/where-a-contact-is).
 - **Senders and mailboxes**: `GET /v1/senders/{id}` for channels, status and readiness.
-- **Task list**: `GET /v1/tasks?sender=…&status=open`, then `POST /v1/tasks/{id}/complete`.
+- **Task list**: `GET /v1/tasks?sender=…&status=open`, then `POST /v1/tasks/{id}/complete`. Each task has a `kind` (`call`, `linkedin_connect`, …); a `linkedin_connect` task completes itself when you call `POST /v1/tasks/{id}/open` as the sender opens its profile ([LinkedIn](/docs/modules/linkedin)).

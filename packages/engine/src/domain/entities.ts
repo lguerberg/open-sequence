@@ -72,6 +72,7 @@ export interface Contact {
   lastName: string | null;
   email: string | null;
   phone: string | null;
+  linkedinUrl: string | null;
   country: string | null;
   timezone: string | null;
   smsConsent: boolean;
@@ -247,6 +248,10 @@ export interface Task {
   dialer: boolean;
   autoComplete: boolean;
   dialerPushedAt: Date | null;
+  /** The outcome opening the task completes it with; null when opening only records the time. */
+  completeOnOpen: string | null;
+  /** The first time the sender opened the task (its link). */
+  openedAt: Date | null;
   completedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

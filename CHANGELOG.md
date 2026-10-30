@@ -4,6 +4,14 @@ What changed in each release, one section per version.
 
 The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this file says when it does.
 
+## 0.2.0
+
+- LinkedIn connection requests, as a step the sender completes in one click. LinkedIn forbids automating invitations, so nothing is sent for the sender: the new `linkedin_connect` node renders the note (a template; cut at 300 characters, with a warning above 200, LinkedIn's limit without Premium) and creates a task of kind `linkedin_connect` with the contact's profile as `link` and the note as `body`. Transitions: `completed`, `no_answer` (expired or cancelled) and `skipped` (the contact has no LinkedIn URL). See [LinkedIn](https://docs.opensequence.dev/docs/modules/linkedin).
+- `POST /v1/tasks/{id}/open` (SDK `tasks.open(id)`): the sender opened the task. It records `openedAt` the first time; a task whose step says opening means doing it (`completeOnOpen`, `sent` on every LinkedIn task) completes there and the sequence moves on. Tasks carry the new fields `openedAt` and `completeOnOpen`, and `kind` is documented as the task's type (`call`, `linkedin_connect`, or what a `task` step names).
+- Contacts have a `linkedin_url` again. `linkedin.com/in/dana` and `https://www.linkedin.com/in/dana/` are stored as `https://www.linkedin.com/in/dana`; an address off linkedin.com is a `422 INVALID_CONTACT`. Templates read `{{ contact.linkedin_url }}` and conditions `contact.has_linkedin`.
+- The `task.created` webhook payload carries `opened_at`.
+- SDK 0.2.0. Migration `0005_linkedin_tasks` adds `seq.contacts.linkedin_url`, `seq.tasks.complete_on_open` and `seq.tasks.opened_at` (all nullable) and runs at boot.
+
 ## 0.1.3
 
 - Fix: the project setting `store_inbound_bodies` did nothing for mailboxes connected over SMTP and IMAP. The poller never asked the mailbox for reply text, so every inbound message was stored without a body even with the setting on. The poll now carries the project's setting (`includeBodies` on the email provider's `poll` request), and a reply's body is read and stored when it is on. The `SmtpProviderOptions.includeBodies` constructor option still forces it on or off for every poll when set.

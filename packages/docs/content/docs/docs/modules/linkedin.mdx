@@ -1,0 +1,144 @@
+---
+title: "LinkedIn connection requests with a note"
+nav: "LinkedIn"
+icon: linkedin
+description: "How OpenSequence puts LinkedIn connection requests in a sequence: a linkedin_connect step writes the note, the sender opens the profile in one click and the task completes itself."
+---
+
+The LinkedIn module adds connection requests to a sequence. A `linkedin_connect` step writes the note for each contact and gives the sender a task with the profile link. The sender opens the profile, pastes the note and clicks Send. Opening the task marks it done, so there is nothing to tick afterwards.
+
+## What it gives you
+
+- A `linkedin_connect` step with a templated note, like any other step on the canvas.
+- One task per contact, of kind `linkedin_connect`, with the profile as `link` and the rendered note as `body`.
+- The task completes as `sent` the moment the sender opens it (`POST /v1/tasks/{id}/open`), and the sequence moves on.
+- Contacts with no LinkedIn URL take the step's `skipped` branch instead of waiting.
+
+## What you need
+
+- Each contact's `linkedin_url`. `linkedin.com/in/dana` and `https://www.linkedin.com/in/dana/` are both accepted and stored as `https://www.linkedin.com/in/dana`.
+- An app that shows the sender their tasks: your CRM, or anything that calls the [tasks API](#show-the-tasks).
+- Nothing to connect. OpenSequence never logs in to LinkedIn and stores no LinkedIn credentials.
+
+## Steps
+
+<Steps>
+<Step title="Give contacts their LinkedIn URL">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"first_name":"Dana","linkedin_url":"linkedin.com/in/dana-whitfield"}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.upsert('p_7', { first_name: 'Dana', linkedin_url: 'linkedin.com/in/dana-whitfield' });
+```
+
+</CodeGroup>
+
+A URL that is not on linkedin.com is a `422 INVALID_CONTACT`.
+
+</Step>
+<Step title="Add the step to a sequence">
+
+```json
+"li_connect": {
+  "type": "linkedin_connect",
+  "params": {
+    "note": "Hi {{ contact.first_name | \"there\" }}, I work with teams like {{ attrs.company.name | \"yours\" }} on outbound. Happy to connect.",
+    "expire": "5bd"
+  },
+  "next": { "completed": "wait_3d", "no_answer": "email_2", "skipped": "email_2" }
+}
+```
+
+| Param | Meaning |
+|---|---|
+| `note` | The connection note, a template. Rendered notes over 300 characters are cut at a word. Without Premium or Sales Navigator, LinkedIn takes 200; the validator warns above that. |
+| `title` | The task's title. Default: `Connect with {{ contact.first_name \| "them" }} on LinkedIn`. |
+| `due` | A duration on the sender's calendar. Default: due as soon as the step runs. |
+| `expire` | When the task takes `no_answer` if nobody opens it. Default: seven days after `due`. |
+
+| Transition | When |
+|---|---|
+| `completed` | The sender opened the task (outcome `sent`), or your app completed it with another outcome. `branches_by_outcome` works as on a [`task`](/docs/concepts/sequence/nodes#task). |
+| `no_answer` | The task expired or was cancelled. |
+| `skipped` | The contact has no `linkedin_url`. |
+
+</Step>
+<Step title="Show the tasks">
+
+List a sender's open LinkedIn tasks:
+
+<CodeGroup>
+
+```bash title="curl"
+curl "$SEQ/v1/tasks?sender=u_42&status=open&kind=linkedin_connect" -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+const { items } = await oseq.tasks.list({ sender: 'u_42', status: 'open', kind: 'linkedin_connect' });
+```
+
+</CodeGroup>
+
+Each task carries what the button needs:
+
+```json
+{ "id": "task_01J…", "kind": "linkedin_connect", "title": "Connect with Dana on LinkedIn",
+  "link": "https://www.linkedin.com/in/dana-whitfield",
+  "body": "Hi Dana, I work with teams like Example Inc on outbound. Happy to connect.",
+  "status": "open", "completeOnOpen": "sent", "openedAt": null }
+```
+
+</Step>
+<Step title="Open it in one click">
+
+When the sender clicks the task, copy `body` to the clipboard, open `link` in a new tab and tell OpenSequence:
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X POST $SEQ/v1/tasks/task_01J…/open -H "Authorization: Bearer $KEY"
+```
+
+```ts title="TypeScript"
+await navigator.clipboard.writeText(task.body ?? '');
+window.open(task.link!, '_blank', 'noopener');
+await oseq.tasks.open(task.id); // completes it as "sent"
+```
+
+</CodeGroup>
+
+The task is now `done` with outcome `sent`, and the enrollment follows `completed`. Opening it again changes nothing. On LinkedIn the sender clicks Connect, then Add a note, pastes and sends.
+
+If the sender could not send it (already connected, no Connect button), complete it with your own outcome before opening, or route that outcome with `branches_by_outcome`:
+
+```ts
+await oseq.tasks.complete(task.id, { outcome: 'already_connected' });
+```
+
+</Step>
+</Steps>
+
+## Check it works
+
+1. Enroll a test contact with a `linkedin_url` in a sequence whose first step is `linkedin_connect`.
+2. `GET /v1/tasks?kind=linkedin_connect&status=open` lists one task with the profile and the note.
+3. `POST /v1/tasks/{id}/open` returns it with `status: "done"`, `outcome: "sent"` and `openedAt` set, and the contact's journey shows the step as done.
+
+## Why not automatic
+
+LinkedIn's User Agreement forbids sending invitations or messages with bots or other automated tools, and LinkedIn offers no API that sends a connection request for a member. Tools that automate it act as the member and put the member's account at risk of restriction. OpenSequence leaves the click to the sender: the step does the writing, the timing and the follow-up, and LinkedIn sees a person using LinkedIn.
+
+A connection request is not a touch and not a reply. The step does not detect acceptance; follow it with a `wait` and the next step, or report what you learn with a [contact event](/docs/get-started/integrate#report-what-the-service-cannot-see).
+
+## Common errors
+
+| Error | Cause | Fix |
+|---|---|---|
+| `422 INVALID_CONTACT` on `linkedin_url` | The URL is not on linkedin.com. | Send the profile URL, like `linkedin.com/in/dana`. |
+| The step always takes `skipped` | The contact has no `linkedin_url`. | Upsert the contact with one before the step runs. |
+| `TOO_LONG` warning | The note is over 200 (free accounts) or 300 characters. | Shorten it; variables make it longer once rendered. |

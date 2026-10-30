@@ -3244,6 +3244,8 @@ export interface paths {
                         last_name?: string | null;
                         email?: string | null;
                         phone?: string | null;
+                        /** @description LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps. */
+                        linkedin_url?: string | null;
                         country?: string | null;
                         timezone?: string | null;
                         attrs?: {
@@ -3468,6 +3470,8 @@ export interface paths {
                         last_name?: string | null;
                         email?: string | null;
                         phone?: string | null;
+                        /** @description LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps. */
+                        linkedin_url?: string | null;
                         country?: string | null;
                         timezone?: string | null;
                         attrs?: {
@@ -3594,6 +3598,8 @@ export interface paths {
                             last_name?: string | null;
                             email?: string | null;
                             phone?: string | null;
+                            /** @description LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps. */
+                            linkedin_url?: string | null;
                             country?: string | null;
                             timezone?: string | null;
                             attrs?: {
@@ -6253,6 +6259,8 @@ export interface paths {
                             last_name?: string | null;
                             email?: string | null;
                             phone?: string | null;
+                            /** @description LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps. */
+                            linkedin_url?: string | null;
                             country?: string | null;
                             timezone?: string | null;
                             attrs?: {
@@ -6394,6 +6402,8 @@ export interface paths {
                             last_name?: string | null;
                             email?: string | null;
                             phone?: string | null;
+                            /** @description LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps. */
+                            linkedin_url?: string | null;
                             country?: string | null;
                             timezone?: string | null;
                             attrs?: {
@@ -7512,6 +7522,123 @@ export interface paths {
                     };
                 };
             };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: components["schemas"]["Task"];
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{id}/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The sender opened the task; a LinkedIn task completes as sent */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
             responses: {
                 /** @description Default Response */
                 200: {
@@ -10049,6 +10176,8 @@ export interface components {
             email: string | null;
             /** @description E.164. */
             phone: string | null;
+            /** @description https://www.linkedin.com/in/… */
+            linkedinUrl: string | null;
             /** @description ISO 3166-1 alpha-2, upper case. */
             country: string | null;
             /** @description IANA zone. */
@@ -10100,6 +10229,8 @@ export interface components {
             email: string | null;
             /** @description E.164. */
             phone: string | null;
+            /** @description https://www.linkedin.com/in/… */
+            linkedinUrl: string | null;
             /** @description ISO 3166-1 alpha-2, upper case. */
             country: string | null;
             /** @description IANA zone. */
@@ -10548,7 +10679,7 @@ export interface components {
             runId: string;
             senderId: string;
             contactId: string;
-            /** @description `call`, `linkedin`, `manual`, … */
+            /** @description The type of task: `call`, `linkedin_connect`, or any kind a `task` step names (`manual`, …). */
             kind: string;
             title: string;
             body: string | null;
@@ -10571,6 +10702,10 @@ export interface components {
             dialer: boolean;
             autoComplete: boolean;
             dialerPushedAt: string | null;
+            /** @description The outcome opening the task completes it with (`sent` for `linkedin_connect`); null when opening only records the time. */
+            completeOnOpen: string | null;
+            /** @description The first time the sender opened it. */
+            openedAt: string | null;
             completedAt: string | null;
             /** Format: date-time */
             createdAt: string;

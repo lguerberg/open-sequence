@@ -104,6 +104,7 @@ export async function seedWorld(deps: Deps, exitOn: Array<'reply' | 'meeting_boo
       firstName: 'Sam',
       lastName: 'Lead',
       email: `sam+${tag}@example.com`,
+      linkedinUrl: null,
       phone: `+1415555${tag.replace(/\D/g, '0').slice(-4).padStart(4, '0')}`,
       country: 'US',
       timezone: 'America/Los_Angeles',
@@ -277,6 +278,8 @@ export async function seedCallTask(deps: Deps, e: Enrollment, patch: Partial<Tas
     dialer: true,
     autoComplete: true,
     dialerPushedAt: null,
+    completeOnOpen: null,
+    openedAt: null,
     completedAt: null,
     ...patch,
   });

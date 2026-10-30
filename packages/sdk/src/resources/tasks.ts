@@ -1,4 +1,4 @@
-/** Tasks the engine created for senders: list, read, complete, cancel (docs section 10.7). */
+/** Tasks the engine created for senders: list, read, open, complete, cancel (docs section 10.7). */
 import type { HttpClient, ListQuery, Page } from '../client.js';
 import type { Body, Task } from '../types.js';
 
@@ -20,6 +20,14 @@ export class Tasks {
 
   get(id: string): Promise<Task> {
     return this.http.request({ method: 'GET', path: `/v1/tasks/${enc(id)}` });
+  }
+
+  /**
+   * The sender opened the task (call this as you open its `link`). A `linkedin_connect` task
+   * completes as `sent` and the sequence moves on; any other task only records `openedAt`.
+   */
+  open(id: string): Promise<Task> {
+    return this.http.request({ method: 'POST', path: `/v1/tasks/${enc(id)}/open` });
   }
 
   /** `outcome` is matched against the node's `branches_by_outcome`; wakes the waiting step. */

@@ -1,4 +1,4 @@
-/** Tasks the engine created for senders (calls, manual steps): list and complete. */
+/** Tasks the engine created for senders (calls, LinkedIn connection requests, manual steps): list and complete. */
 import { z } from 'zod';
 import {
   bullets,
@@ -19,7 +19,7 @@ export const listTasks = defineTool({
   name: 'list_tasks',
   title: 'List tasks',
   description:
-    'Lists the tasks sequences created for senders (call, manual), with the rendered instructions. Filter by sender, status, kind or contact; use status "open" for a sender\'s to-do list.',
+    'Lists the tasks sequences created for senders (call, linkedin_connect, manual), with the rendered instructions. Filter by sender, status, kind or contact; use status "open" for a sender\'s to-do list.',
   scope: 'read',
   input: {
     sender: ref('sender', 'snd_01J9…', 'u_42').optional(),
@@ -30,7 +30,7 @@ export const listTasks = defineTool({
     kind: z
       .string()
       .optional()
-      .describe('Only this kind of task (call, manual).'),
+      .describe('Only this kind of task (call, linkedin_connect, manual).'),
     contact: ref('contact', 'ctc_01J9…', 'p_7').optional(),
     updated_since: updatedSince,
     ...paging,

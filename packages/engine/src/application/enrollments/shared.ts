@@ -48,7 +48,7 @@ export function templateContextFor(deps: Deps, ctx: StepContext, enrollment: Enr
   const exp = Math.floor(deps.clock.now().getTime() / 1000) + OPT_OUT_TOKEN_DAYS * 86_400;
   const token = runId ? deps.optOutToken({ projectId: enrollment.projectId, contactId: c.id, runId, exp }) : 'preview';
   return {
-    contact: { first_name: c.firstName, last_name: c.lastName, email: c.email, phone: c.phone, country: c.country, timezone: c.timezone, attrs: c.attrs },
+    contact: { first_name: c.firstName, last_name: c.lastName, email: c.email, phone: c.phone, country: c.country, timezone: c.timezone, linkedin_url: c.linkedinUrl, attrs: c.attrs },
     // `signature` is rendered raw by the template engine: the html in html emails, the text otherwise.
     sender: { name: ctx.sender.name, first_name: ctx.sender.name.split(' ')[0], email: ctx.sender.email, timezone: ctx.sender.timezone, attrs: ctx.sender.attrs, signature: { html: ctx.sender.signatureHtml ?? '', text: ctx.sender.signatureText ?? '' } },
     sequence: { name: ctx.sequenceName },
@@ -119,6 +119,7 @@ export function taskPayload(t: Task): Record<string, unknown> {
     title: t.title,
     body: t.body,
     link: t.link,
+    opened_at: t.openedAt?.toISOString() ?? null,
     due_at: t.dueAt?.toISOString() ?? null,
     expires_at: t.expiresAt?.toISOString() ?? null,
     status: t.status,

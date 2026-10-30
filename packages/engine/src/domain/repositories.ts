@@ -168,7 +168,7 @@ export interface TaskRepository {
   byRun(runId: string): Promise<Task | null>;
   lock(id: string): Promise<Task | null>;
   list(projectId: string, filter: { senderId?: string; status?: string; kind?: string; contactId?: string }, opts: ListOptions): Promise<Page<Task>>;
-  update(id: string, patch: Partial<Pick<Task, 'status' | 'outcome' | 'note' | 'completedAt' | 'dialerPushedAt'>>): Promise<Task>;
+  update(id: string, patch: Partial<Pick<Task, 'status' | 'outcome' | 'note' | 'completedAt' | 'dialerPushedAt' | 'openedAt'>>): Promise<Task>;
   expired(now: Date, limit: number): Promise<Task[]>;
   /** The open call task for a sender and contact, if any (Allo auto-complete). */
   openCall(senderId: string, contactId: string): Promise<Task | null>;

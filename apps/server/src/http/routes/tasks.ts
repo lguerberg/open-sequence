@@ -1,8 +1,8 @@
-/** Tasks the engine created for senders: list, read, complete, cancel. */
+/** Tasks the engine created for senders: list, read, open, complete, cancel. */
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { cancelTask, completeTask, getTask, listTasks } from '@opensequence/engine';
+import { cancelTask, completeTask, getTask, listTasks, openTask } from '@opensequence/engine';
 import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
 import { ok } from '../envelope.js';
@@ -34,6 +34,12 @@ export async function taskRoutes(fastify: FastifyInstance, ctx: AppContext) {
     preHandler: enroll,
     schema: { tags: ['Tasks'], summary: 'Complete with an outcome; wakes the waiting step', params: idParam, body: z.object({ outcome: z.string().min(1).max(32), note: z.string().max(4000).optional() }), response: okResponse(task) },
     handler: async (req, reply) => ok(reply, await completeTask(ctx.deps, projectOf(req), req.params.id, req.body, 'client')),
+  });
+
+  app.post('/v1/tasks/:id/open', {
+    preHandler: enroll,
+    schema: { tags: ['Tasks'], summary: 'The sender opened the task; a LinkedIn task completes as sent', params: idParam, response: okResponse(task) },
+    handler: async (req, reply) => ok(reply, await openTask(ctx.deps, projectOf(req), req.params.id)),
   });
 
   app.post('/v1/tasks/:id/cancel', {

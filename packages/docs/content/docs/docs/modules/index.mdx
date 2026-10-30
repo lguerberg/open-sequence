@@ -1,7 +1,7 @@
 ---
 title: "Modules: the channels and data a sequence can use"
 nav: "Overview"
-description: "Every OpenSequence module in one table: email over SMTP and IMAP with Gmail, Outlook or any provider, SMS with Allo and CRM conditions with Attio."
+description: "Every OpenSequence module in one table: email over SMTP and IMAP with Gmail, Outlook or any provider, SMS with Allo, LinkedIn connection requests and CRM conditions with Attio."
 ---
 
 A module is something a sequence step can use: a channel to send on, or data to branch on. This page lists them and says which ones you need.
@@ -15,6 +15,7 @@ Every install needs the server and one Postgres first: see the [Quickstart](/doc
 | <ModuleLogo name="outlook" size={32} /> | Email: [Outlook and Microsoft 365](/docs/modules/email/outlook) | The Email module with Microsoft's servers. | One email provider |
 | <ModuleLogo name="email" size={32} /> | Email: [Other SMTP providers](/docs/modules/email/other-smtp) | The Email module with Fastmail, Zoho, iCloud or your own server. | One email provider |
 | <ModuleLogo name="allo" size={32} /> | SMS: [Allo](/docs/modules/sms/allo) | Texts, inbound replies and STOP, and call tasks that complete themselves. | For SMS and call steps |
+| <ModuleLogo name="linkedin" size={32} /> | [LinkedIn](/docs/modules/linkedin) | Connection requests with a note, as tasks the sender sends by hand in one click. | For LinkedIn steps |
 | <ModuleLogo name="attio" size={32} /> | CRM: [Attio](/docs/modules/crm/attio) | Lets conditions read live person, company and deal data. | For `crm.*` conditions |
 
 Signed events back to your app are in [Webhooks](/docs/webhooks).
