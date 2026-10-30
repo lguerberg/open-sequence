@@ -36,6 +36,13 @@
       "when": 1792557632127,
       "tag": "0004_step_deferral",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793306431398,
+      "tag": "0005_linkedin_tasks",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 ---
 title: "Contact: the person who receives a sequence"
 nav: "Contact"
-description: "What a contact is: name, email, E.164 phone, ISO country, time zone and attributes, keyed by your own id, plus SMS consent and suppressions."
+description: "What a contact is: name, email, E.164 phone, LinkedIn URL, ISO country, time zone and attributes, keyed by your own id, plus SMS consent and suppressions."
 ---
 
 A contact is the person a sequence reaches. This page shows the fields, consent and suppressions.
@@ -13,7 +13,8 @@ You create a contact with your own person id. Upserting needs an `enroll` key.
 ```bash title="curl"
 curl -X PUT $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{
   "first_name": "Dana", "last_name": "Whitfield", "email": "dana@example.com",
-  "phone": "+14155550123", "country": "US", "timezone": "America/Los_Angeles",
+  "phone": "+14155550123", "linkedin_url": "linkedin.com/in/dana-whitfield",
+  "country": "US", "timezone": "America/Los_Angeles",
   "attrs": { "plan": "trial", "company": { "name": "Example Inc" } }
 }'
 ```
@@ -21,7 +22,8 @@ curl -X PUT $SEQ/v1/contacts/p_7 -H "Authorization: Bearer $KEY" -H "Content-Typ
 ```ts title="TypeScript"
 await oseq.contacts.upsert('p_7', {
   first_name: 'Dana', last_name: 'Whitfield', email: 'dana@example.com',
-  phone: '+14155550123', country: 'US', timezone: 'America/Los_Angeles',
+  phone: '+14155550123', linkedin_url: 'linkedin.com/in/dana-whitfield',
+  country: 'US', timezone: 'America/Los_Angeles',
   attrs: { plan: 'trial', company: { name: 'Example Inc' } },
 });
 ```
@@ -32,6 +34,7 @@ await oseq.contacts.upsert('p_7', {
 |---|---|
 | `email` | Needed for email steps and for Attio lookups. |
 | `phone` | E.164, like `+14155550123`. Other formats are normalized; an invalid number is a `422 INVALID_CONTACT`. |
+| `linkedin_url` | The profile, for [LinkedIn](/docs/modules/linkedin) steps. Stored as `https://www.linkedin.com/in/…`; an address off linkedin.com is a `422 INVALID_CONTACT`. |
 | `country` | ISO 3166-1 alpha-2, like `US`. Texts go only to countries in the project's `sms_countries`. |
 | `timezone` | An IANA zone. Used for send windows, business days and SMS quiet hours. |
 | `attrs` | Free JSON, merged by top-level key on every upsert. See [Attributes](/docs/concepts/attributes). |

@@ -160,6 +160,47 @@ describe('quickstart through the HTTP app with mock providers', () => {
     expect(analytics.json.data).toMatchObject({ enrolled: 1, active: 0, exited: 1, touches_delivered: 1, replies: 1, reply_rate_per_100_enrolled: 100, replies_by_channel: { email: 1 } });
   });
 
+  it('hands the sender a LinkedIn task that completes when it is opened', async () => {
+    const slug = `li${Date.now()}`;
+    const key = (await call('POST', '/v1/admin/projects', { key: ADMIN, body: { slug, name: 'Acme' } })).json.data.api_key as string;
+    await call('PUT', '/v1/senders/u_9', { key, body: { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' } });
+    const contact = await call('PUT', '/v1/contacts/p_9', { key, body: { first_name: 'Dana', linkedin_url: 'linkedin.com/in/dana-whitfield/' } });
+    expect(contact.json.data.linkedinUrl).toBe('https://www.linkedin.com/in/dana-whitfield');
+    expect((await call('PUT', '/v1/contacts/p_10', { key, body: { linkedin_url: 'https://example.com/dana' } })).status).toBe(422);
+
+    const seq = await call('POST', '/v1/sequences', { key, body: { name: 'LinkedIn first' } });
+    const seqId = seq.json.data.sequence.id as string;
+    const verId = seq.json.data.version.id as string;
+    const linkedin = {
+      schema_version: 1,
+      entry: 'start',
+      settings: { reenroll: 'never' },
+      nodes: {
+        start: { type: 'start', next: { then: 'li' } },
+        li: { type: 'linkedin_connect', params: { note: 'Hi {{ contact.first_name | "there" }}, happy to connect.' }, next: { completed: 'end', no_answer: 'end' } },
+        end: { type: 'end' },
+      },
+    };
+    const draft = await call('PUT', `/v1/sequences/${seqId}/versions/${verId}/draft`, { key, body: { definition: linkedin, lock_version: 0 } });
+    expect(draft.json.data.problems).toEqual([]);
+    await call('POST', `/v1/sequences/${seqId}/versions/${verId}/publish`, { key, json: true });
+    const enrolled = await call('POST', `/v1/sequences/${seqId}/enrollments`, { key, body: { contacts: ['p_9'], sender: 'u_9' } });
+    const enrId = enrolled.json.data.enrollments[0].id as string;
+
+    const openTasks = async () => (await call('GET', '/v1/tasks?kind=linkedin_connect&status=open', { key })).json.data as Json[];
+    await until(async () => (await openTasks()).length === 1, 'the LinkedIn task');
+    const [task] = await openTasks();
+    expect(task).toMatchObject({ kind: 'linkedin_connect', title: 'Connect with Dana on LinkedIn', link: 'https://www.linkedin.com/in/dana-whitfield', body: 'Hi Dana, happy to connect.', completeOnOpen: 'sent', openedAt: null });
+
+    const opened = await call('POST', `/v1/tasks/${task!.id}/open`, { key, json: true });
+    expect(opened.status).toBe(200);
+    expect(opened.json.data).toMatchObject({ status: 'done', outcome: 'sent' });
+    expect(opened.json.data.openedAt).not.toBeNull();
+    const journey = (await call('GET', `/v1/enrollments/${enrId}`, { key })).json.data as Json;
+    expect(journey.enrollment.status).toBe('completed');
+    expect(journey.runs.map((r: Json) => [r.nodeId, r.status, r.branch])).toContainEqual(['li', 'done', 'sent']);
+  });
+
   it('rejects a malformed JSON body with a 400, and a read key cannot create', async () => {
     const bad = await app.inject({ method: 'POST', url: '/v1/admin/projects', headers: { authorization: `Bearer ${ADMIN}`, 'content-type': 'application/json' }, payload: '{not json' });
     expect(bad.statusCode).toBe(400);

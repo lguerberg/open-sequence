@@ -84,6 +84,9 @@ export const DEFINITION_LIMITS = {
   /** The definition as JSON. Large enough for a few HTML emails with embedded images. */
   maxBytes: 10 * 1024 * 1024,
   maxSmsChars: 1000,
+  /** LinkedIn's cap on a connection note with Premium or Sales Navigator; free accounts get 200. */
+  maxLinkedInNote: 300,
+  maxLinkedInNoteFree: 200,
   /** An email body with `format: "text"`. */
   maxTextEmailChars: 100_000,
   /** An email body with `format: "html"`: room for a branded layout and a few embedded images. */

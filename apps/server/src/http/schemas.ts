@@ -17,6 +17,7 @@ export const contactBody = z
     last_name: z.string().max(120).nullable().optional(),
     email: z.string().email().max(320).nullable().optional(),
     phone: z.string().max(24).nullable().optional(),
+    linkedin_url: z.string().max(2000).nullable().optional().describe('LinkedIn profile URL; `linkedin.com/in/dana` is accepted. Needed for LinkedIn steps.'),
     country: z.string().length(2).nullable().optional(),
     timezone: z.string().max(48).nullable().optional(),
     attrs: z.record(z.string(), z.unknown()).optional(),

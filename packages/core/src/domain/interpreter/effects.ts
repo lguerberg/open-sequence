@@ -31,6 +31,8 @@ export interface TaskDraft {
   /** For kind "call": push the number into the sender's dialer. */
   dialer: boolean;
   autoComplete: boolean;
+  /** The outcome opening the task completes it with (a LinkedIn task is done once its profile is opened). Absent: opening only records the time. */
+  completeOnOpen?: string;
   /** Where the flow goes: by outcome first, then `completed`, and `no_answer` on expiry. */
   branchesByOutcome: Record<string, string>;
   onCompleted?: string;

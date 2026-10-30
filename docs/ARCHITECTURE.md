@@ -185,7 +185,7 @@ packages/
                          Depends on core and on the provider ports (interfaces). No provider code.
   sequences-queue/       Queue interface and backends: postgres (default), redis, memory.
   sequences-providers/   Adapters behind the ports: smtp (email over SMTP and IMAP), allo (sms + calls), attio (crm), mock (dev and CI).
-                         Later, behind the same ports: smtp-imap, twilio, hubspot, unipile.
+                         Later, behind the same ports: twilio, hubspot. LinkedIn stays a task (`linkedin_connect`): no automation adapter.
   sequences-sdk/         Typed client generated from the OpenAPI file.
   docs/                  The documentation site (docs.opensequence.dev): MDX guides, generated API reference, SDK and CLI pages (section 19).
 apps/

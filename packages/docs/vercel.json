@@ -77,7 +77,7 @@
     },
     {
       "source": "/docs/senders/connect-linkedin",
-      "destination": "/docs/modules",
+      "destination": "/docs/modules/linkedin",
       "permanent": true
     },
     {
@@ -117,7 +117,7 @@
     },
     {
       "source": "/docs/security/linkedin-automation",
-      "destination": "/docs/modules",
+      "destination": "/docs/modules/linkedin",
       "permanent": true
     },
     {

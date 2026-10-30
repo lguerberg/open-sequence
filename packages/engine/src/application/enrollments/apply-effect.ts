@@ -110,6 +110,8 @@ export async function applyEffect(deps: Deps, scope: TransactionScope, state: En
         dialer: t.dialer,
         autoComplete: t.autoComplete,
         dialerPushedAt: null,
+        completeOnOpen: t.completeOnOpen ?? null,
+        openedAt: null,
         completedAt: null,
       });
       patch.waiting = { runId: run.id, events: {}, onTimeout: t.onExpired };

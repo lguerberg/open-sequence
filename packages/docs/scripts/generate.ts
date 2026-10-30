@@ -80,7 +80,7 @@ const TAG_TITLES: Record<string, { title: string; description: string }> = {
   Sequences: { title: 'Sequences', description: 'Sequence endpoints: sequences, versions, drafts and publishing.' },
   Schema: { title: 'Schema', description: 'Schema endpoints: what a canvas or an agent reads first to build sequences.' },
   Enrollments: { title: 'Enrollments', description: 'Enrollment endpoints: preview, enroll, pause, resume, exit and the journey.' },
-  Tasks: { title: 'Tasks', description: 'Task endpoints: the manual steps senders complete, such as calls.' },
+  Tasks: { title: 'Tasks', description: 'Task endpoints: the manual steps senders complete, such as calls and LinkedIn connection requests.' },
   Analytics: { title: 'Analytics', description: 'Analytics endpoints: replies and meetings per sequence, step and channel.' },
   Webhooks: { title: 'Webhooks', description: 'Webhook endpoints: registered endpoints, deliveries, recovery and replay.' },
 };
@@ -587,7 +587,7 @@ async function generateDefinition(): Promise<void> {
 
 The same document is served by \`GET /v1/schema\` (with the node and channel catalogue) so a canvas, a script or an agent validates against what the service enforces. Node \`params\` are open here and validated per node type and channel action: see [Nodes and channels](/reference/nodes).
 
-Limits: ${DEFINITION_LIMITS.maxNodes} nodes, ${DEFINITION_LIMITS.maxBytes / (1024 * 1024)} MB per definition, ${DEFINITION_LIMITS.maxSmsChars} characters per SMS body, ${DEFINITION_LIMITS.maxTextEmailChars.toLocaleString('en-US')} characters per text email body and ${DEFINITION_LIMITS.maxHtmlEmailChars.toLocaleString('en-US')} per html email body.
+Limits: ${DEFINITION_LIMITS.maxNodes} nodes, ${DEFINITION_LIMITS.maxBytes / (1024 * 1024)} MB per definition, ${DEFINITION_LIMITS.maxSmsChars} characters per SMS body, ${DEFINITION_LIMITS.maxTextEmailChars.toLocaleString('en-US')} characters per text email body and ${DEFINITION_LIMITS.maxHtmlEmailChars.toLocaleString('en-US')} per html email body, ${DEFINITION_LIMITS.maxLinkedInNote} characters per LinkedIn note (longer rendered notes are cut).
 
 ## Top level
 
@@ -694,7 +694,7 @@ const EVENT_DOCS: Record<string, EventDoc> = {
   'run.skipped': { when: 'a gate refused a step for good (no consent, no phone, suppressed, no channel, country not allowed, no time zone)', payload: '`run`, `reason`' },
   'run.failed': { when: 'a step ran out of retries or was stuck', payload: '`run`, `error`' },
   'run.needs_review': { when: 'the outcome of a send is unknown (an SMS that may or may not have left)', payload: '`run`, `error`' },
-  'task.created': { when: 'a `task` node created a task for the sender', payload: '`task` (id, kind, title, body, link, due_at, expires_at, status, outcome, dialer, enrollment, contact, sender)' },
+  'task.created': { when: 'a `task` or `linkedin_connect` node created a task for the sender', payload: '`task` (id, kind, title, body, link, opened_at, due_at, expires_at, status, outcome, dialer, enrollment, contact, sender)' },
   'task.expired': { when: 'a task reached `expires_at` (the step takes `no_answer`) or was cancelled by an exit', payload: '`task` (the id only when expired by the timer; the full task when cancelled by an exit)' },
   'signal.received': { when: 'any signal was processed: reply, bounce, complaint, opt-out, meeting, call, task completion, client event', payload: '`signal` (id, kind, channel, source, occurred_at, attribution, attributed_run), `contact` (id, external_id, email, phone, first_name, last_name). `kind` is one of `reply`, `bounce`, `complaint`, `opt_out`, `ooo`, `task_completed`, `call_connected`, `meeting_booked`, `contact_suppressed`; the schema also declares `sender_channel_status` and `crm_changed`, which nothing records today. The only event that carries `contact`' },
   'sender.channel_status': { when: 'a channel changed status (`credentials_needed`, `restricted`, back to `active`)', payload: '`sender`, `channel`, `status`' },
@@ -722,7 +722,7 @@ async function generateEvents(): Promise<void> {
 }
 \`\`\`
 
-Payload fields are snake_case. \`enrollment\` in a payload is a summary built for the event (\`id\`, \`sequence\`, \`version\`, \`contact\`, \`sender\`, \`status\`, \`mode\`, \`current_node_id\`, \`exit_reason\`, \`pause_reason\`, \`touch_count\`, \`replied_at\`, \`meeting_booked_at\`, \`enrolled_at\`, \`finished_at\`, \`seq\`), with \`contact\` and \`sender\` as ids; \`task\` is \`id\`, \`kind\`, \`title\`, \`body\`, \`link\`, \`due_at\`, \`expires_at\`, \`status\`, \`outcome\`, \`dialer\`, \`enrollment\`, \`contact\`, \`sender\`. Only \`signal.received\` carries a \`contact\` object; every other event names the contact by id through \`enrollment.contact\` or \`task.contact\`.
+Payload fields are snake_case. \`enrollment\` in a payload is a summary built for the event (\`id\`, \`sequence\`, \`version\`, \`contact\`, \`sender\`, \`status\`, \`mode\`, \`current_node_id\`, \`exit_reason\`, \`pause_reason\`, \`touch_count\`, \`replied_at\`, \`meeting_booked_at\`, \`enrolled_at\`, \`finished_at\`, \`seq\`), with \`contact\` and \`sender\` as ids; \`task\` is \`id\`, \`kind\`, \`title\`, \`body\`, \`link\`, \`opened_at\`, \`due_at\`, \`expires_at\`, \`status\`, \`outcome\`, \`dialer\`, \`enrollment\`, \`contact\`, \`sender\`. Only \`signal.received\` carries a \`contact\` object; every other event names the contact by id through \`enrollment.contact\` or \`task.contact\`.
 
 ${table(['Event', 'When', 'Payload (`data`)'], EVENT_TYPES.map((t) => [code(t), cell(EVENT_DOCS[t]!.when).replace(/\\`/g, '`'), EVENT_DOCS[t]!.payload.replace(/\|/g, '\\|').replace(/[{}]/g, (c) => `\\${c}`)]))}
 `,

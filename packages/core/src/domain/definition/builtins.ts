@@ -31,6 +31,14 @@ function zoneFor(ctx: InterpretContext): string {
   return (tzChoice === 'contact' && ctx.timing.contactTz) || ctx.timing.senderTz;
 }
 
+/** Cuts at a word boundary and marks the cut; LinkedIn refuses a note over its limit. */
+function clip(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max - 1);
+  const space = cut.lastIndexOf(' ');
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).trimEnd()}…`;
+}
+
 function gotoOrComplete(node: RegisteredNode, key: string, at?: Date): Effect {
   const target = node.next[key];
   if (!target) return { kind: 'complete' };
@@ -185,6 +193,67 @@ export function registerBuiltins(): void {
     },
   });
 
+  /*
+   * LinkedIn: a task, never an automated send. LinkedIn forbids automating invitations, so the
+   * step hands the sender the profile and the note; opening the task is taken as sending it.
+   */
+  const linkedinConnectParams = z
+    .object({
+      title: z.string().min(1).max(200).default('Connect with {{ contact.first_name | "them" }} on LinkedIn'),
+      note: z.string().max(4000).optional(),
+      /** Absent: due as soon as the step runs. */
+      due: durationSchema.optional(),
+      expire: durationSchema.optional(),
+    })
+    .strict();
+
+  registry.registerNode({
+    type: 'linkedin_connect',
+    label: 'LinkedIn connection request',
+    params: linkedinConnectParams,
+    transitions: { keys: ['completed', 'no_answer', 'skipped'], required: [] },
+    validate: (node) => {
+      const note = typeof node.params['note'] === 'string' ? node.params['note'] : '';
+      // Measured before rendering: variables usually make the sent note longer, never shorter.
+      if (note.length > DEFINITION_LIMITS.maxLinkedInNote) {
+        return [{ path: `nodes.${node.id}.params.note`, code: 'TOO_LONG', message: `LinkedIn takes notes of up to ${DEFINITION_LIMITS.maxLinkedInNote} characters; this one is ${note.length}. It will be cut.`, severity: 'warning' }];
+      }
+      if (note.length > DEFINITION_LIMITS.maxLinkedInNoteFree) {
+        return [{ path: `nodes.${node.id}.params.note`, code: 'TOO_LONG', message: `The note is ${note.length} characters. Senders without LinkedIn Premium or Sales Navigator can send ${DEFINITION_LIMITS.maxLinkedInNoteFree}.`, severity: 'warning' }];
+      }
+      return [];
+    },
+    interpret: async (node, ctx) => {
+      const p = linkedinConnectParams.parse(node.params);
+      const profile = ctx.template.contact['linkedin_url'];
+      if (typeof profile !== 'string' || !profile) {
+        return [{ kind: 'record', run: draft(node, false, { reason: 'no_linkedin_url' }), status: 'skipped', branch: 'skipped' }, gotoOrComplete(node, 'skipped')];
+      }
+      const zone = ctx.timing.senderTz; // tasks follow the sender's calendar
+      const dueAt = p.due ? addDuration(ctx.now, p.due, zone) : ctx.now;
+      const expiresAt = p.expire ? addDuration(ctx.now, p.expire, zone) : addDuration(dueAt, '7d', zone);
+      const title = render(p.title, ctx.template);
+      const note = p.note ? render(p.note, ctx.template) : undefined;
+      const task: Extract<Effect, { kind: 'create_task' }>['task'] = {
+        kind: 'linkedin_connect',
+        title: title.text,
+        link: profile,
+        dueAt,
+        expiresAt,
+        connectedOutcomes: [],
+        dialer: false,
+        autoComplete: false,
+        completeOnOpen: 'sent',
+        branchesByOutcome: node.branches_by_outcome ?? {},
+      };
+      if (note) task.body = clip(note.text.trim(), DEFINITION_LIMITS.maxLinkedInNote);
+      if (node.next['completed']) task.onCompleted = node.next['completed'];
+      if (node.next['no_answer']) task.onExpired = node.next['no_answer'];
+      const rendered = { ...title.used, ...(note?.used ?? {}) };
+      return [{ kind: 'create_task', task, run: draft(node, false, { rendered, due_at: dueAt.toISOString(), expires_at: expiresAt.toISOString() }) }];
+    },
+  });
+
   registry.registerNode({
     type: 'outreach',
     label: 'Outreach',
@@ -306,6 +375,7 @@ export function registerBuiltins(): void {
       { field: 'contact.timezone', label: 'Contact time zone', type: 'text' },
       { field: 'contact.has_email', label: 'Contact has an email', type: 'bool' },
       { field: 'contact.has_phone', label: 'Contact has a phone', type: 'bool' },
+      { field: 'contact.has_linkedin', label: 'Contact has a LinkedIn URL', type: 'bool' },
       { field: 'contact.sms_consent', label: 'Contact consented to SMS', type: 'bool' },
     ],
   });

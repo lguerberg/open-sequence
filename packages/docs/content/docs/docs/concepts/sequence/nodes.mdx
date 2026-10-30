@@ -110,7 +110,7 @@ Creates a task for the sender and waits. Completing it with an outcome takes `br
 
 | Param | Meaning |
 |---|---|
-| `kind` | Required. `call` gets the Allo behaviour; any other kind, such as `linkedin` or `manual`, is yours to render. |
+| `kind` | Required. The task's type. `call` gets the Allo behaviour; any other kind, such as `manual`, is yours to render. LinkedIn has its own step, [`linkedin_connect`](#linkedin_connect). |
 | `title`, `body`, `link` | Templates, rendered once when the task is created. |
 | `due` | Required. A duration on the sender's calendar, like `2h` or `1bd`. |
 | `expire` | When the task expires if nobody completes it. Default: seven days after `due`. |
@@ -119,6 +119,18 @@ Creates a task for the sender and waits. Completing it with an outcome takes `br
 | `auto_complete` | Let Allo's finished call complete a `call` task. Default `true`. |
 
 Your app completes a task with `POST /v1/tasks/{id}/complete` and an `outcome`. A `call` task also completes by itself when the rep calls from Allo: see [Allo](/docs/modules/sms/allo#call-tasks). A task is not a touch.
+
+## `linkedin_connect`
+
+```json
+"li_connect": {
+  "type": "linkedin_connect",
+  "params": { "note": "Hi {{ contact.first_name | \"there\" }}, happy to connect.", "expire": "5bd" },
+  "next": { "completed": "wait_3d", "no_answer": "email_2", "skipped": "email_2" }
+}
+```
+
+Creates a `linkedin_connect` task with the contact's profile as `link` and the rendered note as `body`, then waits. The task completes as `sent` when the sender opens it (`POST /v1/tasks/{id}/open`); expiry or cancellation takes `no_answer`; a contact without `linkedin_url` takes `skipped`. Notes are cut at 300 characters. Params and the one-click flow: [LinkedIn](/docs/modules/linkedin).
 
 ## `end`
 
@@ -130,4 +142,4 @@ Ends the enrollment as `completed`. The label shows in the journey and in your c
 
 ## Which node types count as touches
 
-Only outreach sends (`email send`, `sms send`) are touches: they increment the enrollment's `touch_count`, set `last_touch_at` and are the denominators of the delivered rates. A task is not a touch; a connected call is credited to the task's run as a reply.
+Only outreach sends (`email send`, `sms send`) are touches: they increment the enrollment's `touch_count`, set `last_touch_at` and are the denominators of the delivered rates. A task, LinkedIn requests included, is not a touch; a connected call is credited to the task's run as a reply.

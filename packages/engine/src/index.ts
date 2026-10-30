@@ -68,6 +68,7 @@ export { reportClientEvent, clientEventSchema, type ClientEventInput } from './a
 export { ingestInboundEvents, type IngestCounts, type IngestOptions } from './application/signals/ingest-inbound-events.js';
 export { completeTask } from './application/tasks/complete-task.js';
 export { cancelTask } from './application/tasks/cancel-task.js';
+export { openTask } from './application/tasks/open-task.js';
 export { listTasks } from './application/tasks/list-tasks.js';
 export { getTask } from './application/tasks/get-task.js';
 export { pushDialerTasks } from './application/tasks/push-dialer-tasks.js';
