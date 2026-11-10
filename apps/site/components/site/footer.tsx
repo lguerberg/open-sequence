@@ -40,7 +40,7 @@ export function SiteFooter() {
         <div>
           <Logo tone="light" />
           <p className="mt-5 max-w-xs font-mono text-[14px] leading-[1.4] text-faint">
-            The open source sequencing service for any CRM.
+            The open source engine for multi-step outreach sequences, inside your own product.
           </p>
         </div>
         {cols.map((c) => (

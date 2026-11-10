@@ -1,9 +1,9 @@
 <p align="center">
-  <a href="https://opensequence.dev"><img src=".github/assets/banner.png" alt="OpenSequence: sales sequences, as code" width="840"></a>
+  <a href="https://opensequence.dev"><img src=".github/assets/banner.png" alt="OpenSequence: open source sequences, as code" width="840"></a>
 </p>
 
 <p align="center">
-  <b>The open-source, self-hosted engine for sales sequences.</b><br>
+  <b>The open-source, self-hosted engine for multi-step outreach sequences.</b><br>
   Your app makes a few API calls. OpenSequence does the rest.
 </p>
 
@@ -26,13 +26,14 @@
 
 ## What is OpenSequence?
 
-OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS and call
-tasks for any CRM. It has the shape of a self-hosted [Svix](https://github.com/svix/svix-webhooks):
+OpenSequence is an open source, self-hosted API that runs multi-step sequences of email, SMS, call
+tasks and LinkedIn steps from inside your own product: sales prospecting, recruiting, customer
+onboarding, renewals, partner outreach, or the sending backend for an AI agent. It has the shape of a self-hosted [Svix](https://github.com/svix/svix-webhooks):
 one Docker image, a Postgres you own, per-project API keys, and signed webhooks back to your app.
 
 You register **senders**, **contacts** and **sequences** (versioned JSON definitions), **enroll**
 people, and read what happened. OpenSequence handles everything in between: scheduling in each
-lead's time zone, sending from each rep's own inbox, throttling, replies, bounces, opt-outs,
+contact's time zone, sending from each sender's own inbox, throttling, replies, bounces, opt-outs,
 meetings booked, exits, analytics, and a webhook when something changes.
 
 It is headless. Bring your own UI, your own CRM and your own infrastructure.

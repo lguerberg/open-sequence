@@ -6,13 +6,13 @@ export const revalidate = false;
 
 const intro = `# OpenSequence
 
-> OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS and call tasks for any CRM. Your app upserts contacts and senders by its own ids, publishes versioned JSON sequences and enrolls people. The service schedules each step in the contact's time zone and sends from the rep's own mailbox or number. It stops on replies, bounces and opt-outs, and reports back through signed webhooks. Install the client with \`npm install @opensequence/sdk\`. Each page below is also Markdown at ${siteUrl}/llms.mdx/<page path>/content.md. The whole site is ${siteUrl}/llms-full.txt and every endpoint is in ${siteUrl}/openapi.json.
+> OpenSequence is an open source, self-hosted engine that runs multi-step sequences of email, SMS, call tasks and LinkedIn steps from your own product, for sales, recruiting, customer onboarding, renewals or AI agents. Your app upserts contacts and senders by its own ids, publishes versioned JSON sequences and enrolls people. The service schedules each step in the contact's time zone and sends from the sender's own mailbox or number. It stops on replies, bounces and opt-outs, and reports back through signed webhooks. Install the client with \`npm install @opensequence/sdk\`. Each page below is also Markdown at ${siteUrl}/llms.mdx/<page path>/content.md. The whole site is ${siteUrl}/llms-full.txt and every endpoint is in ${siteUrl}/openapi.json.
 `;
 
 /** The canonical guide lives on the product site. */
 const guide = `## Guide
 
-- [How to build a sales sequencing tool](${projectUrl}/blog/build-your-own-sales-sequencer): the seven parts, what breaks in each, and when to use an open source engine instead
+- [How to build an outreach sequencing tool](${projectUrl}/blog/build-your-own-sales-sequencer): the seven parts, what breaks in each, and when to use an open source engine instead
 `;
 
 function urls(nodes: Node[]): string[] {

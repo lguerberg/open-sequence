@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { Audiences } from '@/components/site/audiences';
+import { Compare } from '@/components/site/compare';
 import { Cta } from '@/components/site/cta';
 import { Faq } from '@/components/site/faq';
 import { SiteFooter } from '@/components/site/footer';
@@ -19,9 +21,11 @@ export default function Page() {
       <SiteHeader />
       <main>
         <Hero />
+        <Audiences />
         <UseCases />
         <ValueProps />
         <HardParts />
+        <Compare />
         <Faq />
         <Cta />
       </main>

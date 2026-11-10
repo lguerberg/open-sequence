@@ -360,4 +360,4 @@ export function documentTitle(post: Post): string {
 
 export const BLOG_TITLE = 'Blog';
 export const BLOG_DESCRIPTION =
-  'Notes on owning your sales sequencing: cost breakdowns, tool comparisons, deliverability and how to run outreach sequences on infrastructure you control.';
+  'Notes on owning your outreach sequences: cost breakdowns, tool comparisons, deliverability, and how to run sequences for any team on infrastructure you control.';

@@ -111,7 +111,8 @@ await oseq.sequences.versions.publish(ukIntro.id, draft.id);`,
     meta: '@opensequence/sdk',
     lang: 'typescript',
     href: '/docs/modules/sms/allo',
-    claim: 'A call step is a task for the rep. Allo dials it, and the outcome moves the sequence on.',
+    claim:
+      'A call step is a task for the sender. Allo dials it, and the outcome moves the sequence on.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
 const { SEQ_URL, SEQ_KEY } = process.env;
@@ -135,7 +136,7 @@ const callStep = {
     meta: '@opensequence/sdk',
     lang: 'typescript',
     href: '/docs/modules/email',
-    claim: 'Each rep connects their mailbox once. Every email leaves from their inbox.',
+    claim: 'Each sender connects their mailbox once. Every email leaves from their own inbox.',
     code: `import { OpenSequence } from '@opensequence/sdk';
 
 const { SEQ_URL, SEQ_KEY } = process.env;
@@ -204,22 +205,157 @@ const { nodes } = await oseq.analytics.nodes(ukIntro.id);`,
   },
 ];
 
-/** Why own your sequencing, beyond the price. */
+/** Who runs sequences on the engine. Each card is one team's job, with the steps it usually chains. */
+export type Audience = {
+  icon: string;
+  label: string;
+  text: string;
+  steps: string[];
+  /** A guide on the blog that covers this team's sequences end to end. */
+  guide?: string;
+};
+
+export const audiences: Audience[] = [
+  {
+    icon: 'target',
+    label: 'Sales prospecting',
+    text: "Outbound from each rep's own mailbox, with call tasks and LinkedIn steps, inside the CRM your reps already use.",
+    steps: ['email', 'wait 2bd', 'call task', 'linkedin', 'exit on reply'],
+    guide: '/blog/add-sales-sequences-to-your-crm',
+  },
+  {
+    icon: 'briefcase',
+    label: 'Recruiting',
+    text: "Candidate outreach from the recruiter's inbox that stops the moment someone answers, with every event sent back to your ATS.",
+    steps: ['email', 'wait 3bd', 'follow-up in thread', 'linkedin', 'exit on reply'],
+    guide: '/blog/recruiting-outreach-sequences',
+  },
+  {
+    icon: 'life-buoy',
+    label: 'Customer onboarding',
+    text: 'Personal check-ins from the account owner after a signup or a kickoff, branching on what the customer did in your product.',
+    steps: ['email', 'wait 2d', 'if attrs.activated', 'call task'],
+    guide: '/blog/customer-success-sequences',
+  },
+  {
+    icon: 'repeat',
+    label: 'Renewals and expansion',
+    text: 'Account manager sequences ahead of a renewal date, with a call task when the email goes unanswered.',
+    steps: ['email', 'wait for reply 5d', 'call task', 'sms'],
+    guide: '/blog/customer-success-sequences#a-renewal-sequence-that-starts-on-time',
+  },
+  {
+    icon: 'handshake',
+    label: 'Partnerships, investors, press',
+    text: 'Founder-led outreach to partners, investors or journalists, sent one at a time from a real inbox under a daily cap.',
+    steps: ['email', 'wait 4bd', 'follow-up in thread', 'exit on reply'],
+  },
+  {
+    icon: 'calendar',
+    label: 'Event and demo follow-up',
+    text: "Follow up with every booth scan, webinar attendee or demo no-show, at 09:00 in each person's own time zone.",
+    steps: ['email', 'wait 1bd', 'sms', 'exit on meeting'],
+  },
+  {
+    icon: 'building',
+    label: 'SaaS platforms',
+    text: 'Ship sequences as a feature of your own product. One deployment holds a project per customer, each with its own keys and data.',
+    steps: ['project per tenant', 'your UI', 'webhooks'],
+    guide: '/blog/email-sequence-api',
+  },
+  {
+    icon: 'bot',
+    label: 'AI agents',
+    text: 'Let an agent pick who to contact and what to say. The engine owns timing, sending, replies and stops, through MCP with a scoped key.',
+    steps: ['mcp', 'enroll scope', 'journey', 'analytics'],
+    guide: '/blog/ai-sdr-sequencing-backend',
+  },
+];
+
+/** Where OpenSequence sits next to the tools people compare it with. Kept to what each category does by design. */
+export const comparisonColumns = [
+  'OpenSequence',
+  'Seat-based sequencers',
+  'Lifecycle email platforms',
+  'Workflow automation',
+  'Build it yourself',
+] as const;
+
+export const comparisonExamples = [
+  '',
+  'Outreach, Salesloft, Apollo, lemlist',
+  'Customer.io, Braze, Iterable',
+  'n8n, Zapier, Make',
+  'A cron job and a queue',
+] as const;
+
+export const comparison: Array<{ label: string; cells: [string, string, string, string, string] }> =
+  [
+    {
+      label: 'Price model',
+      cells: [
+        'Free, Apache-2.0',
+        'Per seat, per month',
+        'Per profile or volume',
+        'Per run or self-hosted',
+        'Engineer time',
+      ],
+    },
+    {
+      label: 'Runs on your infrastructure',
+      cells: ['Yes', 'No', 'No', 'Some', 'Yes'],
+    },
+    {
+      label: "Sends from each person's own mailbox",
+      cells: ['Yes', 'Yes', 'No, a shared sending domain', 'You wire it', 'You build it'],
+    },
+    {
+      label: 'Stops on reply, bounce and opt-out',
+      cells: ['Built in', 'Built in', 'Not for 1:1 replies', 'You build it', 'You build it'],
+    },
+    {
+      label: 'Tasks for humans: calls, LinkedIn',
+      cells: ['Built in', 'Built in', 'No', 'No', 'You build it'],
+    },
+    {
+      label: 'Lives inside your product',
+      cells: ['API and webhooks, no UI', 'Its own UI', 'Its own UI', 'Its own canvas', 'Yes'],
+    },
+    {
+      label: 'One deployment, many customers',
+      cells: ['A project per tenant', 'No', 'No', 'No', 'You build it'],
+    },
+  ];
+
+/** The blog guides that go deeper on each comparison, linked from the comparison section. */
+export const compareGuides = [
+  { label: 'Outreach vs Salesloft pricing', href: '/blog/outreach-vs-salesloft-cost' },
+  { label: 'Apollo.io alternatives', href: '/blog/apollo-alternatives' },
+  { label: 'A self-hosted lemlist alternative', href: '/blog/lemlist-alternative-self-hosted' },
+  { label: 'Customer.io for 1:1 outreach', href: '/blog/customer-io-for-sales-sequences' },
+  { label: 'Build a sequencer yourself', href: '/blog/build-your-own-sales-sequencer' },
+  { label: 'Email sequence API, explained', href: '/blog/email-sequence-api' },
+  { label: 'What is an outreach sequence?', href: '/blog/what-is-an-outreach-sequence' },
+  { label: 'Sequencing for AI SDR agents', href: '/blog/ai-sdr-sequencing-backend' },
+  { label: 'Recruiting outreach sequences', href: '/blog/recruiting-outreach-sequences' },
+];
+
+/** Why own the engine, beyond the price. */
 export const valueProps = [
   {
     icon: 'layout',
     label: 'Headless by design',
-    text: 'OpenSequence has no UI of its own. Reps run sequences from the CRM they already use.',
+    text: 'OpenSequence has no UI of its own. People run sequences from the CRM, ATS or app they already use.',
   },
   {
     icon: 'database',
     label: 'Data in your Postgres',
-    text: 'Contacts, messages and replies live in your own Postgres, in the region you choose. No vendor stores your prospect data.',
+    text: 'Contacts, messages and replies live in your own Postgres, in the region you choose. No vendor stores your contacts.',
   },
   {
     icon: 'mail',
     label: 'Your deliverability',
-    text: "Mail leaves each rep's own mailbox, not a shared sending pool. Another company's bad list cannot hurt your domain's reputation.",
+    text: "Mail leaves each sender's own mailbox, not a shared sending pool. Another company's bad list cannot hurt your domain's reputation.",
   },
   {
     icon: 'git-branch',
@@ -239,7 +375,7 @@ export const valueProps = [
   {
     icon: 'building',
     label: 'Multi-tenant',
-    text: 'One deployment holds a project per customer, each with its own keys. Add sequencing to your own SaaS without building the engine.',
+    text: 'One deployment holds a project per customer, each with its own keys. Add sequences to your own SaaS without building the engine.',
   },
   {
     icon: 'puzzle',
@@ -269,21 +405,21 @@ export const buildTimeline = [
 export const hardParts = [
   {
     icon: 'wallet',
-    label: 'Expensive tools',
+    label: 'Per-seat pricing',
     problem:
-      'Sequencing tools charge per seat, every month, and the bill grows with every rep you hire.',
+      'Sequencing tools charge per seat, every month, and the bill grows with every person who sends.',
     handled:
-      'OpenSequence is free and open source. You pay for a Postgres and a container, whether you have 5 reps or 500.',
+      'OpenSequence is free and open source. You pay for a Postgres and a container, whether 5 people send or 500.',
     evidence: 'Apache-2.0 · unlimited seats',
   },
   {
     icon: 'layers',
     label: 'Omnichannel complexity',
     problem:
-      'Email, SMS and calls each have their own APIs, limits and failure modes, and one sequence has to coordinate all of them.',
+      'Email, SMS, calls and LinkedIn each have their own APIs, limits and failure modes, and one sequence has to coordinate all of them.',
     handled:
-      'One engine and one ledger run every channel. Email, SMS and call tasks are modules, each with its own executor and queue.',
-    evidence: 'channels: email · sms · call',
+      'One engine and one ledger run every channel. Email, SMS, call and LinkedIn tasks are modules, each with its own executor and queue.',
+    evidence: 'channels: email · sms · call · linkedin',
   },
   {
     icon: 'gauge',
@@ -315,7 +451,7 @@ export const hardParts = [
     icon: 'shield',
     label: 'Authentication',
     problem:
-      "Every rep's mailbox password and every provider key is a secret that must never leak.",
+      "Every sender's mailbox password and every provider key is a secret that must never leak.",
     handled:
       'A built-in auth module checks each login before saving it and stores every secret encrypted and write-only.',
     evidence: 'AES-256-GCM · key rotation',
@@ -324,9 +460,9 @@ export const hardParts = [
     icon: 'mail',
     label: 'Deliverability',
     problem:
-      "Mail has to leave the rep's own mailbox, in their thread, under their limits, or it lands in spam.",
+      "Mail has to leave the sender's own mailbox, in their thread, under their limits, or it lands in spam.",
     handled:
-      "OpenSequence sends through the rep's own SMTP server, threads follow-ups, and enforces a daily cap and a minimum gap between sends.",
+      "OpenSequence sends through the sender's own SMTP server, threads follow-ups, and enforces a daily cap and a minimum gap between sends.",
     evidence: 'daily_limit: 60 · min_gap_seconds: 90',
   },
   {
@@ -351,28 +487,36 @@ export const hardParts = [
 
 export const faq: Array<{ q: string; a: string }> = [
   {
-    q: 'Is this a free alternative to Apollo, Lemlist or Outreach?',
-    a: 'It is the sequencing part of those tools, as an open source engine you run. It covers multi-step email, SMS and call-task sequences, replies and exits, webhooks and analytics. All of it sits behind an API, so your own product is the UI. There is no per-seat price. You pay for the Postgres and the container it runs on. It is not a prospect database or a warm-up service.',
+    q: 'What is a sequence?',
+    a: 'A sequence is a series of personal messages and tasks sent to one person over days or weeks, such as an email, a wait, a threaded follow-up, then a call task, that stops on its own when the person replies, books a meeting or opts out. Sales teams call it a cadence. Recruiters, customer success and founders run the same pattern.',
   },
   {
-    q: 'What does headless mean here?',
-    a: 'OpenSequence has no user interface. Your CRM, an internal tool or an agent shows sequences, enrollments, tasks and analytics, and talks to the engine through the API. You keep your design, your permissions and your workflow.',
+    q: 'Is OpenSequence only for sales?',
+    a: 'No. The engine runs any one-to-one, multi-step outreach: sales prospecting, candidate outreach, onboarding check-ins, renewal reminders, partner and investor outreach, and event follow-up. A step can send an email or a text, or create a task for a person, such as a call or a LinkedIn connection request. Conditions branch on any attribute your product stores on the contact.',
+  },
+  {
+    q: 'Is it a newsletter or marketing email tool?',
+    a: "No. OpenSequence sends one-to-one messages from a real person's mailbox, under a daily cap, and stops when someone answers. It is built for conversations, not broadcasts. For newsletters and product email to people who signed up, use a lifecycle email platform next to it.",
+  },
+  {
+    q: 'Is this a free alternative to Outreach, Apollo or lemlist?',
+    a: 'It is the sequencing part of those tools, as an open source engine you run. It covers multi-step email, SMS, call and LinkedIn sequences, replies and exits, webhooks and analytics. All of it sits behind an API, so your own product is the UI. There is no per-seat price: you pay for the Postgres and the container it runs on. It is not a contact database or an inbox warm-up service.',
+  },
+  {
+    q: 'How do I add sequences to my app?',
+    a: 'Run the Docker image next to a Postgres, then npm install @opensequence/sdk in your backend. Upsert contacts and senders by your own ids, publish a sequence, enroll people and handle the signed webhooks. The integration checklist in the docs lists every call in order. From Python, Go or any other language, call the REST API or generate a client from the OpenAPI file.',
   },
   {
     q: 'Can I configure everything through the API?',
     a: 'Yes. Projects, keys, senders, channels, contacts, sequences and versions, enrollments, tasks, webhooks, settings and analytics are all endpoints, 79 operations in the OpenAPI file. The TypeScript SDK and the MCP server call the same API, and the oseq CLI runs the same use cases.',
   },
   {
-    q: 'How do agents use it?',
+    q: 'How do AI agents use it?',
     a: 'Connect the MCP server with an API key. Claude Code, Cursor and any MCP client get tools to list sequences, upsert contacts, preview and enroll, read a journey and pull analytics. Give agents a key with the enroll scope, and they cannot edit sequences, senders or settings.',
   },
   {
     q: 'Does it send email itself?',
-    a: "Yes, through each sender's own mailbox over SMTP, and it reads replies over IMAP. Gmail and Google Workspace work with an app password. It sets its own Message-ID, adds List-Unsubscribe, replies in thread when asked, and never exceeds the channel's daily limit. There is no shared sending pool.",
-  },
-  {
-    q: 'How do I add sales sequences to my app?',
-    a: 'Run the Docker image next to a Postgres, then npm install @opensequence/sdk in your backend. Upsert contacts and senders by your own ids, publish a sequence, enroll people and handle the signed webhooks. The integration checklist in the docs lists every call in order.',
+    a: "Yes, through each sender's own mailbox over SMTP, and it reads replies over IMAP. Gmail, Google Workspace, Outlook and Microsoft 365 work, and so does any other SMTP provider. It sets its own Message-ID, adds List-Unsubscribe, replies in thread when asked, and never exceeds the channel's daily limit. There is no shared sending pool.",
   },
   {
     q: 'What do I need to run it?',

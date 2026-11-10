@@ -5,6 +5,8 @@ import { links } from '@/lib/links';
 
 const nav = [
   { href: '/#use-cases', label: 'Use cases' },
+  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/#compare', label: 'Compare' },
   { href: links.docs, label: 'Docs' },
   { href: '/blog', label: 'Blog' },
 ];

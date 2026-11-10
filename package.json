@@ -2,7 +2,7 @@
   "name": "opensequence",
   "private": true,
   "version": "0.0.0",
-  "description": "OpenSequence: a self-hosted service that runs multi-step outreach sequences for any CRM.",
+  "description": "OpenSequence: the open source, self-hosted engine for multi-step outreach sequences (email, SMS, call and LinkedIn tasks) inside any product.",
   "license": "Apache-2.0",
   "homepage": "https://opensequence.dev",
   "repository": {

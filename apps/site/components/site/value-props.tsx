@@ -9,9 +9,9 @@ export function ValueProps() {
     <Section id="value" labelledBy="value-title" inner="py-20 sm:py-28">
       <SectionHeading
         id="value-title"
-        n="02"
+        n="03"
         label="Why own it"
-        title="Why teams own their sequencing"
+        title="Why own the engine"
         lede="Price is the obvious reason. Here are the others."
       />
       <ul className="m-0 mt-12 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">

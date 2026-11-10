@@ -1,9 +1,9 @@
 ---
-title: "How to add sales sequences to your own CRM"
-h1: "How to add sales sequences to your own CRM or internal tool"
+title: "How to add sequences to your own CRM or ATS"
+h1: "How to add email, call and SMS sequences to your own CRM, ATS or internal tool"
 description: "Add Outreach-style email, call and SMS sequences to a custom CRM: sync contacts, build an Enroll button, write replies back, and run a task inbox. With code."
 date: 2026-10-15
-updated: 2026-10-20
+updated: 2026-11-10
 author: Leo Guerberg
 tags: [crm, tutorial, api, self-hosting]
 keyword: "add sales sequences to your CRM"
@@ -18,6 +18,8 @@ We build OpenSequence, an open source (Apache-2.0) engine that runs as one conta
 You have a CRM or an internal tool that reps work in every day. It might be a Next.js app on your own database, or Attio or HubSpot with your own app around them. Your reps want sequences like the ones in Outreach or Apollo. You do not want a second tool where reps re-type contacts, and you do not want to pay for a sales engagement seat per rep to get one feature.
 
 If you have no engineer, stop here. Buy a hosted tool. Our [Apollo alternatives comparison](/blog/apollo-alternatives) lists the hosted options with prices.
+
+The tutorial uses sales words (reps, deals), but nothing in the engine is sales-specific. The same eight steps add candidate sequences to an applicant tracking system or check-in sequences to a customer platform. See [recruiting outreach sequences](/blog/recruiting-outreach-sequences) and [customer success sequences](/blog/customer-success-sequences) for those versions.
 
 ## What lives where
 

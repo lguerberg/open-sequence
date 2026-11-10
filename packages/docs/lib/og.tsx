@@ -73,7 +73,7 @@ export function ogImage(input: { title: string; description?: string; section?: 
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 24, color: brand.muted }}>
             <div style={{ display: 'flex' }}>docs.opensequence.dev</div>
-            <div style={{ display: 'flex' }}>Open source, self-hosted sales sequences</div>
+            <div style={{ display: 'flex' }}>Open source sequences, self-hosted</div>
           </div>
         </div>
       </div>

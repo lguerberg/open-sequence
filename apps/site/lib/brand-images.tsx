@@ -95,7 +95,7 @@ export function ogPng() {
       <Lockup size={34} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
         <div style={{ fontSize: 96, fontWeight: 500, letterSpacing: -4.5, lineHeight: 0.95 }}>
-          Sales sequences, as code.
+          Open source sequences, as code.
         </div>
         <div
           style={{
@@ -106,7 +106,7 @@ export function ogPng() {
             maxWidth: 900,
           }}
         >
-          Own your sales sequencing infrastructure without building it from scratch.
+          The self-hosted engine behind every sequence your product sends.
         </div>
       </div>
       <div
@@ -122,7 +122,7 @@ export function ogPng() {
           letterSpacing: -0.8,
         }}
       >
-        <span>Save $2,000+ a month on your sequencing tool.</span>
+        <span>Sales, recruiting, onboarding, renewals. No per-seat bill.</span>
         <span style={{ fontFamily: 'monospace', fontSize: 22, letterSpacing: 0 }}>
           opensequence.dev · Apache-2.0
         </span>
@@ -197,7 +197,7 @@ export function postOgPng({ title, eyebrow }: { title: string; eyebrow: string }
           letterSpacing: -0.8,
         }}
       >
-        <span>Open source sales sequencing, self-hosted.</span>
+        <span>Open source sequences, self-hosted.</span>
         <span style={{ fontFamily: 'monospace', fontSize: 22, letterSpacing: 0 }}>
           opensequence.dev/blog
         </span>

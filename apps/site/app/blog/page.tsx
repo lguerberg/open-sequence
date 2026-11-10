@@ -8,8 +8,8 @@ import { SiteHeader } from '@/components/site/header';
 import { BLOG_DESCRIPTION, getAllPosts } from '@/lib/blog';
 import { SITE_NAME } from '@/lib/site';
 
-const title = 'Blog: sales sequencing you own';
-const shareAlt = 'The OpenSequence blog: notes on owning your sales sequencing.';
+const title = 'Blog: outreach sequences you own';
+const shareAlt = 'The OpenSequence blog: notes on owning your outreach sequences.';
 
 export const metadata: Metadata = {
   title,
@@ -48,8 +48,9 @@ export default async function BlogIndex() {
             Notes on owning your sequencing.
           </h1>
           <p className="t-sub mt-6 max-w-[40rem]">
-            What sales engagement tools cost, how they compare, and what it takes to run email, SMS
-            and call sequences on infrastructure you control.
+            What sequencing tools cost, how they compare, and what it takes to run email, SMS, call
+            and LinkedIn sequences for sales, recruiting and customer teams on infrastructure you
+            control.
           </p>
           <p className="mt-6 font-mono text-[13px] text-muted-foreground">
             <a
