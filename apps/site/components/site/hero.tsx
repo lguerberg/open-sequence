@@ -9,11 +9,12 @@ export function Hero() {
     <section aria-labelledby="hero-title" className="wrap pb-16 sm:pb-24">
       <div className="pt-4 pb-12 sm:pt-10 sm:pb-16 lg:pt-14 lg:pb-20">
         <h1 id="hero-title" className="t-display">
-          Sales sequences, <span className="text-brand">as&nbsp;code.</span>
+          Open source sequences, <span className="text-brand">as&nbsp;code.</span>
         </h1>
-        <p className="t-sub mt-6 max-w-[34rem] sm:mt-8">
-          OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS
-          and call tasks for any CRM.
+        <p className="t-sub mt-6 max-w-[38rem] sm:mt-8">
+          OpenSequence is the self-hosted engine behind multi-step outreach. Your product enrolls a
+          contact; it sends the emails, texts, call tasks and LinkedIn steps from a real person, and
+          stops when they reply.
         </p>
         <div className="mt-12 sm:mt-16">
           <HeroCanvas />
@@ -24,12 +25,12 @@ export function Hero() {
         <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-[44rem]">
             <p className="text-[clamp(24px,2.5vw,34px)] leading-[1.1] font-semibold tracking-[-0.035em]">
-              Save $2,000+ a month on Outreach, Salesloft, Apollo, lemlist and Customer.io.
+              One engine for sales, recruiting, onboarding and renewals. No per-seat bill.
             </p>
             <p className="mt-4 max-w-[38rem] font-mono text-[12.5px] leading-[1.55] text-foreground/75">
-              List prices for a 15-rep team: Outreach and Salesloft run $100 to $175 a seat each
-              month, Apollo and lemlist $79 to $119 a seat plus credits, and Customer.io Premium
-              starts at $1,000 a month. OpenSequence runs on one container and a Postgres.
+              Seat-based sequencers list at $79 to $175 per user each month; for 15 people that is
+              $14,200 to $31,500 a year. OpenSequence is Apache-2.0 and runs on one container and a
+              Postgres, for 5 senders or 500.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -54,7 +55,7 @@ export function Hero() {
           </div>
           <CopyCommand
             tone="band"
-            command="Add sales sequences to my app: docs.opensequence.dev/llms.txt"
+            command="Add sequences to my app: docs.opensequence.dev/llms.txt"
           />
         </div>
       </div>

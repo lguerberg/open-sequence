@@ -7,7 +7,7 @@ import { links } from '@/lib/links';
  * The closing band: light celeste, the call to action, and the wordmark in serif, cropped at the
  * bottom. `n` is the step number on the landing; pages outside the numbered landing pass none.
  */
-export function Cta({ n = '05' }: { n?: string | null } = {}) {
+export function Cta({ n = '07' }: { n?: string | null } = {}) {
   return (
     <section aria-labelledby="cta-title" className="dots overflow-hidden bg-sky">
       <div className="wrap pt-16 sm:pt-20">
@@ -18,7 +18,7 @@ export function Cta({ n = '05' }: { n?: string | null } = {}) {
               id="cta-title"
               className="text-[clamp(36px,4.4vw,60px)] leading-[1.02] font-semibold tracking-[-0.045em]"
             >
-              Stop paying per seat to send sequences.
+              Own the engine behind every sequence you send.
             </h2>
             <p className="t-body mt-6 max-w-[34rem]">
               Install the SDK, start the image and follow the quickstart. Mock providers are on in

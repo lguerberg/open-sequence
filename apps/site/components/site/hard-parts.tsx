@@ -21,7 +21,7 @@ export function HardParts() {
           title={
             <>
               You can vibe-code a sequence.{' '}
-              <span className="text-muted-foreground">Not a sequencing service.</span>
+              <span className="text-muted-foreground">Not a sequence engine.</span>
             </>
           }
           lede="The first version takes a weekend. The next two years go to edge cases, and you find each one in production."
@@ -60,7 +60,7 @@ export function HardParts() {
       <Section labelledBy="problems-title" inner="py-20 sm:py-28">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <Label n="03">Nine problems</Label>
+            <Label n="04">Nine problems</Label>
             <h2 id="problems-title" className="t-h2 mt-7">
               What you would have to solve
             </h2>

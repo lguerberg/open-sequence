@@ -1,20 +1,20 @@
 ---
-title: "How to build a sales sequencing tool"
-h1: "How to build a sales sequencing tool, and what breaks after the cron job"
-description: "How to build a sales sequencing tool: the seven parts, what breaks in each, 16 to 24 engineer-weeks of work, and when to use an open source engine instead."
+title: "How to build a sequencing tool for outreach"
+h1: "How to build an outreach sequencing tool, and what breaks after the cron job"
+description: "How to build a sequencing tool for sales, recruiting or customer outreach: the seven parts, what breaks in each, 16 to 24 engineer-weeks, and an open source option."
 date: 2026-10-14
-updated: 2026-10-20
+updated: 2026-11-10
 author: Leo Guerberg
 tags: [engineering, build-vs-buy, email, architecture]
-keyword: "how to build a sales sequencing tool"
+keyword: "how to build a sequencing tool"
 kind: guide
 ---
 
-To build a sales sequencing tool, you need seven parts: contacts, senders, versioned sequence definitions, enrollments, a scheduler, channel executors for email, SMS and call tasks, and webhooks back to your app. The cron job and the templates are the small part. A first production version that sends from reps' own inboxes, stops on replies and never double-sends takes one senior engineer about 16 to 24 weeks, plus upkeep. If you would rather not build it, [OpenSequence](https://github.com/lguerberg/open-sequence) is an open source (Apache-2.0), self-hosted engine with these seven parts behind an API.
+To build a sequencing tool, for sales, recruiting or customer outreach, you need seven parts: contacts, senders, versioned sequence definitions, enrollments, a scheduler, channel executors for email, SMS and call tasks, and webhooks back to your app. The cron job and the templates are the small part. A first production version that sends from each sender's own inbox, stops on replies and never double-sends takes one senior engineer about 16 to 24 weeks, plus upkeep. If you would rather not build it, [OpenSequence](https://github.com/lguerberg/open-sequence) is an open source (Apache-2.0), self-hosted engine with these seven parts behind an API.
 
 We know the parts list because we built OpenSequence. Its service code is about 13,900 lines of TypeScript plus 3,600 lines of tests. Each section below names a failure mode, then shows how OpenSequence handles it, with code from the repo.
 
-## The architecture of a sales sequencing tool
+## The architecture of a sequencing tool
 
 | Part | What it does | The hard part |
 |---|---|---|

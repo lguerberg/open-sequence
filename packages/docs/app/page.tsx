@@ -104,8 +104,9 @@ export default function HomePage() {
           <p className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-fd-primary">Documentation</p>
           <h1 className="text-5xl leading-none font-semibold tracking-[-0.045em] sm:text-6xl">OpenSequence docs</h1>
           <p className="max-w-2xl text-base leading-relaxed text-fd-muted-foreground sm:text-lg">
-            OpenSequence is an open source, self-hosted API that runs sales sequences of email, SMS and call tasks for any
-            CRM. You publish a sequence and enroll contacts. It sends from each rep&rsquo;s own mailbox and number.
+            OpenSequence is an open source, self-hosted engine that runs multi-step sequences of email, SMS, call tasks and
+            LinkedIn steps from your own product, for sales, recruiting, onboarding or renewals. You publish a sequence and
+            enroll contacts. It sends from each sender&rsquo;s own mailbox and number, and stops when they reply.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/docs/get-started/quickstart" className="inline-flex items-center gap-2 rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground transition-opacity hover:opacity-90">

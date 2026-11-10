@@ -31,8 +31,8 @@ const palette: Array<[token: string, hex: string, use: string]> = [
 ];
 
 const typeScale: Array<[cls: string, spec: string, sample: string]> = [
-  ['t-display', 'Geist 600 · 48 to 96 · -0.05em', 'Sales sequences, as code.'],
-  ['t-sub', 'Geist 400 · 19 to 24 · -0.02em', 'Own your sales sequencing infrastructure.'],
+  ['t-display', 'Geist 600 · 48 to 96 · -0.05em', 'Open source sequences, as code.'],
+  ['t-sub', 'Geist 400 · 19 to 24 · -0.02em', 'Own the engine behind every sequence.'],
   ['t-h2', 'Geist 600 · 32 to 46 · -0.04em', 'Why teams own their sequencing'],
   ['t-h3', 'Geist 500 · 21 · -0.025em', 'Headless by design'],
   ['t-lead', 'Geist 400 · 17 to 19', 'Price is the obvious reason. Here are the others.'],
@@ -124,7 +124,7 @@ export default function DesignPage() {
           <div className="mt-6 max-w-xl">
             <CopyCommand
               tone="band"
-              command="Add sales sequences to my app: docs.opensequence.dev/llms.txt"
+              command="Add sequences to my app: docs.opensequence.dev/llms.txt"
             />
           </div>
         </div>
@@ -176,7 +176,7 @@ export default function DesignPage() {
                 {
                   id: 'c',
                   label: 'Task',
-                  panel: <p className="t-body mt-4">A task for the rep.</p>,
+                  panel: <p className="t-body mt-4">A task for the sender.</p>,
                 },
               ]}
             />

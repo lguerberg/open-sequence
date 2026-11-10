@@ -6,34 +6,35 @@ import {
   SHARE_TITLE,
   SITE_DESCRIPTION,
   SITE_NAME,
+  SITE_TITLE,
   SITE_URL,
 } from '@/lib/site';
 import { mono, sans } from './fonts';
 import './globals.css';
 
-const title = 'OpenSequence: open source sales sequencing, self-hosted';
-
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: title, template: '%s · OpenSequence' },
+  title: { default: SITE_TITLE, template: '%s · OpenSequence' },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [{ name: 'OpenSequence', url: SITE_URL }],
   creator: 'OpenSequence',
   publisher: 'OpenSequence',
   keywords: [
-    'open source sales sequences',
-    'self-hosted sales engagement',
+    'open source sequences',
+    'sequence engine',
+    'sequence API',
+    'email sequence API',
+    'outreach automation API',
+    'self-hosted outreach sequences',
+    'multichannel sequences',
+    'open source sales engagement',
+    'recruiting outreach sequences',
+    'customer onboarding sequences',
     'Outreach alternative',
-    'Salesloft alternative',
     'Apollo alternative',
     'lemlist alternative',
-    'Customer.io alternative',
-    'sales sequencing API',
-    'email sequences API',
-    'cold email sequences open source',
-    'sales cadence software',
-    'MCP server for sales outreach',
+    'MCP server for outreach',
   ],
   robots: {
     index: true,

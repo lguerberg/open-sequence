@@ -4,7 +4,7 @@ export const siteName = 'OpenSequence';
 export const siteUrl = 'https://docs.opensequence.dev';
 export const siteTitle = 'OpenSequence docs';
 export const siteDescription =
-  'Docs for OpenSequence, the open source, self-hosted API that runs sales sequences of email, SMS and call tasks for any CRM: quickstart, guides and SDKs.';
+  'Docs for OpenSequence, the open source, self-hosted engine for email, SMS, call and LinkedIn sequences in your product: quickstart, guides, API and SDK.';
 export const projectUrl = 'https://www.opensequence.dev';
 export const repoUrl = 'https://github.com/lguerberg/open-sequence';
 export const repoBranch = 'main';

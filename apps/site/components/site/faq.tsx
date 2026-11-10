@@ -8,9 +8,9 @@ export function Faq() {
     <Section id="faq" labelledBy="faq-title" inner="py-20 sm:py-28">
       <div className="grid gap-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16">
         <div>
-          <Label n="04">FAQ</Label>
+          <Label n="06">FAQ</Label>
           <h2 id="faq-title" className="t-h2 mt-7">
-            Questions
+            Questions about OpenSequence
           </h2>
           <p className="t-lead mt-4">What people ask before the quickstart.</p>
         </div>

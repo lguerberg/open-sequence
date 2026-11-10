@@ -113,7 +113,9 @@ export function HeroCanvas() {
       >
         {/* Top bar */}
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-          <span className="truncate text-[14px] font-medium tracking-[-0.01em]">UK facilities</span>
+          <span className="truncate text-[14px] font-medium tracking-[-0.01em]">
+            Candidate intro
+          </span>
           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 font-mono text-[10.5px] text-muted-foreground">
             <Dot tone="ok" /> v1 · live
           </span>
@@ -238,8 +240,8 @@ export function HeroCanvas() {
             </Field>
             <Field label="Body">
               <span className="block rounded-xl border border-border px-2.5 py-2 text-[12px] leading-[1.55] text-ink-2">
-                Hi <Var>{'{{first_name}}'}</Var>, saw <Var>{'{{company}}'}</Var> is hiring
-                facilities leads in London. Worth a quick call?
+                Hi <Var>{'{{first_name}}'}</Var>, loved your talk at <Var>{'{{event}}'}</Var>. We
+                are hiring a platform lead in London. Open to a quick call?
               </span>
             </Field>
             <span className="flex items-center justify-between text-[12px]">

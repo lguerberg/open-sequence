@@ -12,12 +12,13 @@ import { DOCS, links } from '@/lib/links';
  */
 export function UseCases() {
   return (
-    <Section id="use-cases" labelledBy="use-cases-title" inner="py-20 sm:py-28">
+    <Section id="how-it-works" labelledBy="how-it-works-title" inner="py-20 sm:py-28">
       <SectionHeading
-        id="use-cases-title"
-        n="01"
-        label="Use cases"
-        title="Every use case, in one TypeScript file"
+        id="how-it-works-title"
+        n="02"
+        label="How it works"
+        title="A sequence engine you call from your code"
+        lede="Create a sequence, enroll a contact, add steps, get webhooks. Each one is a single call to the REST API or the TypeScript SDK."
       />
       <Tabs
         name="uc"
