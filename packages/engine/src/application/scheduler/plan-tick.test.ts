@@ -4,6 +4,7 @@ import { makeTestDeps } from '../../test/engine-stubs.js';
 import { enrollmentRow, seedSequence } from '../../test/seed.js';
 import { planTick } from './plan-tick.js';
 import { reapTick } from './reap-tick.js';
+import { JOBS } from './jobs.js';
 import { runJob } from './run-job.js';
 
 describe('planTick', () => {
@@ -101,5 +102,20 @@ describe('planTick', () => {
       })
     ).toBe('failed');
     expect(await runJob(deps, 'retention', 60_000, async () => void ran.push('c'))).toBe('ran');
+  });
+
+  it('runs every job in the table, including one added after the seed migration', async () => {
+    const deps = makeTestDeps();
+    const scheduler = deps.uow.repos.scheduler;
+    for (const name of Object.keys(JOBS)) {
+      expect(await runJob(deps, name, 60_000, async () => undefined)).toBe('ran');
+    }
+    // A job no migration knows: the first acquire creates its lease row, a second holder is refused.
+    const job = `new_job_${Date.now()}`;
+    expect(await scheduler.acquire(job, 'a', 60_000, new Date())).toBe(true);
+    expect(await scheduler.acquire(job, 'b', 60_000, new Date())).toBe(false);
+    await scheduler.markRan(job, new Date());
+    expect(await scheduler.acquire(job, 'b', 60_000, new Date())).toBe(true);
+    expect(Object.keys(await scheduler.lastRuns())).toEqual(expect.arrayContaining([...Object.keys(JOBS), job]));
   });
 });

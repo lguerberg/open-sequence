@@ -131,10 +131,12 @@ export class DrizzleSchedulerRepository implements SchedulerRepository {
 
   async acquire(job: string, holder: string, ttlMs: number, now: Date): Promise<boolean> {
     const until = new Date(now.getTime() + ttlMs);
+    // A job added after the seed migration has no lease row yet: the first acquire creates it, so a new job
+    // never needs a migration to start running.
     const rows = await this.db
-      .update(jobLocks)
-      .set({ lockedUntil: until, holder })
-      .where(and(eq(jobLocks.job, job), lt(jobLocks.lockedUntil, now)))
+      .insert(jobLocks)
+      .values({ job, holder, lockedUntil: until })
+      .onConflictDoUpdate({ target: jobLocks.job, set: { lockedUntil: until, holder }, setWhere: lt(jobLocks.lockedUntil, now) })
       .returning({ job: jobLocks.job });
     return rows.length > 0;
   }

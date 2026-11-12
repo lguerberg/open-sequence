@@ -12,7 +12,7 @@ describe('migrations', () => {
     const names = tables.map((r) => r.table_name);
     expect(names).toEqual(expect.arrayContaining(['projects', 'enrollments', 'runs', 'signals', 'tasks', 'queue_messages', 'job_locks', 'migrations']));
     const jobs = await db.execute<{ job: string }>(sql`select job from seq.job_locks order by 1`);
-    expect(jobs.map((r) => r.job)).toEqual(['plan', 'poll', 'reap', 'retention', 'signals', 'webhooks']);
+    expect(jobs.map((r) => r.job)).toEqual(expect.arrayContaining(['plan', 'poll', 'reap', 'retention', 'signals', 'webhooks']));
     // second run must not throw or duplicate anything
     const { runMigrations } = await import('./migrator.js');
     await runMigrations(db);
