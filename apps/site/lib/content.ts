@@ -144,7 +144,6 @@ const callStep = {
   "action": "agent_call",
   "params": {
     "agent_id": "agt-…",
-    "allo_number": "+14155550100",
     "title": "Confirm Friday delivery",
     "description": "Ask if Friday delivery still works. If not, offer Monday."
   }
@@ -542,7 +541,7 @@ export const faq: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Can an AI agent make the phone calls?',
-    a: "Yes. A call step asks an Allo Outbound agent to phone the contact, on the same number SMS steps use, from the line you choose. The step carries an objective and a brief, templated with contact variables like any other step, and the agent can text the contact, book a meeting or transfer to a person during the call. Allo places the call between 08:00 and 21:00 in the contact's time zone and tries up to 3 times when nobody answers. The sequence waits for the result and branches on it: reached, transferred, not interested, wrong number, or not reached after voicemail, no answer or busy. A do-not-call answer suppresses the contact. The step needs the contact's outreach consent and a phone number. Call tasks for a human rep work as before.",
+    a: "Yes. A call step asks an Allo Outbound agent to phone the contact, on the same number SMS steps use, from the rep's own Allo line. The step carries an objective and a brief, templated with contact variables like any other step, and the agent can text the contact, book a meeting or transfer to a person during the call. Allo places the call between 08:00 and 21:00 in the contact's time zone and tries up to 3 times when nobody answers. The sequence waits for the result and branches on it: reached, transferred, not interested, wrong number, or not reached after voicemail, no answer or busy. A do-not-call answer suppresses the contact. The step needs the contact's outreach consent and a phone number. Call tasks for a human rep work as before.",
   },
   {
     q: 'What do I need to run it?',

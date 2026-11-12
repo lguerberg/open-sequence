@@ -3,8 +3,9 @@
  * and parks the step. The provider places the call inside its calling hours and retries it; the
  * `calls` job reads the result and closes the step on the outcome (see sync-agent-calls.ts).
  *
- * Consent and a phone number are gates here. The agent and the line come from the step, not from
- * the sender, so there is no sender channel to check. The provider has no idempotency key, so a
+ * Consent and a phone number are gates here. The agent comes from the step; the line is the
+ * sender's Allo number (their sms channel) unless the step fixes one, so each contact is called
+ * from their own rep's line. The provider has no idempotency key, so a
  * retry first looks for the call it may already have created.
  */
 import { addDuration, AGENT_CALL_LIMITS, agentCallParamsSchema, render, type AgentCallSkills } from '@opensequence/core';
@@ -36,13 +37,15 @@ export async function executeCallStep(deps: Deps, runId: string, attempt: number
   const parsed = agentCallParamsSchema.safeParse(def.nodes[run.nodeId]?.params ?? {});
   if (!parsed.success) return failRun(deps, run, `the call step has invalid params: ${parsed.error.issues[0]?.message ?? 'unknown'}`, now).then(() => 'failed');
   const p = parsed.data;
+  const from = p.allo_number ?? ctx.channels.find((c) => c.channel === 'sms')?.address;
+  if (!from) return skipRun(deps, run, 'no_allo_number', now).then(() => 'skipped');
   const title = render(p.title, env.template);
   const description = p.description ? render(p.description, env.template) : null;
   const smsText = p.skills?.sms?.text ? render(p.skills.sms.text, env.template) : null;
   const request = {
     projectId: run.projectId,
     agentId: p.agent_id,
-    from: p.allo_number,
+    from,
     to: contact.phone,
     // Variables can push a rendered text over the provider's limit; it refuses the call then.
     title: title.text.slice(0, AGENT_CALL_LIMITS.title),
@@ -67,7 +70,7 @@ export async function executeCallStep(deps: Deps, runId: string, attempt: number
         provider: PROVIDER,
         providerRef: call.id,
         touchNumber,
-        result: { ...run.result, rendered, agent_id: p.agent_id, from: p.allo_number, give_up_at: giveUpAt.toISOString(), call: { attempts: call.attempts, last_outcome: call.outcome, last_call_id: call.lastCallId } },
+        result: { ...run.result, rendered, agent_id: p.agent_id, from, give_up_at: giveUpAt.toISOString(), call: { attempts: call.attempts, last_outcome: call.outcome, last_call_id: call.lastCallId } },
       });
       // The give-up time is the wait's timeout: advance closes the run on `timeout` and follows not_reached.
       const onTimeout = run.next['not_reached'] ?? run.next['completed'];

@@ -39,7 +39,7 @@ class FakeAgent implements AgentCallProvider {
 
 const NEXT = { reached: 'end_reached', not_reached: 'end_not_reached', completed: 'end_other', skipped: 'end_skipped' };
 
-function definition() {
+function definition(params: Record<string, unknown> = {}) {
   return {
     schema_version: 1,
     entry: 'ai_call',
@@ -50,7 +50,7 @@ function definition() {
         type: 'outreach',
         channel: 'call',
         action: 'agent_call',
-        params: { agent_id: 'agt-1', allo_number: '+14155550100', title: 'Confirm the demo with {{ contact.first_name | "them" }}', description: 'Ask {{ contact.first_name | "them" }} if Friday works.', skills: { sms: { text: 'Hi {{ contact.first_name | "them" }}' }, transfer: { type: 'member', user_id: 'usr-9' } }, give_up_after: '2d' },
+        params: { agent_id: 'agt-1', title: 'Confirm the demo with {{ contact.first_name | "them" }}', description: 'Ask {{ contact.first_name | "them" }} if Friday works.', skills: { sms: { text: 'Hi {{ contact.first_name | "them" }}' }, transfer: { type: 'member', user_id: 'usr-9' } }, give_up_after: '2d', ...params },
         next: NEXT,
       },
       end_reached: { type: 'end', params: { label: 'Reached' } },
@@ -69,10 +69,10 @@ describe('agent call step', () => {
   afterAll(closeTestDb);
 
   /** A world whose published version is the call sequence, with one enrollment the executor owns. */
-  async function start(contactPatch: Record<string, unknown> = {}): Promise<{ w: World; e: Enrollment; run: Run }> {
+  async function start(contactPatch: Record<string, unknown> = {}, params: Record<string, unknown> = {}): Promise<{ w: World; e: Enrollment; run: Run }> {
     const w = await seedWorld(deps, []);
     const versionId = deps.ids.next('version');
-    await repos.sequences.createVersion({ id: versionId, projectId: w.projectId, sequenceId: w.sequenceId, tag: 'v2', status: 'published', definition: definition(), schemaVersion: 1, lockVersion: 0, basedOnVersionId: null, createdBy: null, publishedBy: null, publishedAt: new Date(), archivedAt: null });
+    await repos.sequences.createVersion({ id: versionId, projectId: w.projectId, sequenceId: w.sequenceId, tag: 'v2', status: 'published', definition: definition(params), schemaVersion: 1, lockVersion: 0, basedOnVersionId: null, createdBy: null, publishedBy: null, publishedAt: new Date(), archivedAt: null });
     if (Object.keys(contactPatch).length) await repos.contacts.patch(w.projectId, w.contact.id, contactPatch, false);
     const e = await seedEnrollment(deps, { ...w, versionId }, { currentNodeId: 'ai_call' });
     const now = deps.clock.now();
@@ -89,12 +89,13 @@ describe('agent call step', () => {
     expect(JOBS['calls']).toBeDefined();
   });
 
-  it('asks the agent to call the contact, then parks the step until the give-up time', async () => {
+  it('asks the agent to call the contact from the sender\'s Allo number, then parks the step until the give-up time', async () => {
     const { w, e, run } = await start();
     expect(await executeCallStep(deps, run.id, 1)).toBe('done');
 
+    const senderLine = (await repos.senders.channel(w.sender.id, 'sms'))!.address;
     const sent = agent.created.at(-1)!;
-    expect(sent).toMatchObject({ projectId: w.projectId, agentId: 'agt-1', from: '+14155550100', to: w.contact.phone, title: 'Confirm the demo with Sam', description: 'Ask Sam if Friday works.', skills: { sms: { text: 'Hi Sam' }, transfer: { type: 'member', userId: 'usr-9' } } });
+    expect(sent).toMatchObject({ projectId: w.projectId, agentId: 'agt-1', from: senderLine, to: w.contact.phone, title: 'Confirm the demo with Sam', description: 'Ask Sam if Friday works.', skills: { sms: { text: 'Hi Sam' }, transfer: { type: 'member', userId: 'usr-9' } } });
 
     const parked = (await repos.runs.byId(run.id))!;
     expect(parked.status).toBe('waiting');
@@ -192,10 +193,23 @@ describe('agent call step', () => {
     expect(agent.created.length).toBe(before);
   });
 
+  it('a line fixed on the step wins over the sender\'s; a sender with no Allo number is skipped', async () => {
+    const fixed = await start({}, { allo_number: '+14155550199' });
+    expect(await executeCallStep(deps, fixed.run.id, 1)).toBe('done');
+    expect(agent.created.at(-1)!.from).toBe('+14155550199');
+
+    const noLine = await start();
+    await repos.senders.deleteChannel(noLine.w.sender.id, 'sms');
+    const before = agent.created.length;
+    expect(await executeCallStep(deps, noLine.run.id, 1)).toBe('skipped');
+    expect((await repos.runs.byId(noLine.run.id))!.result['skip_reason']).toBe('no_allo_number');
+    expect(agent.created.length).toBe(before);
+  });
+
   it('a retry finds the call it already created instead of calling twice', async () => {
     const { run } = await start();
     // first attempt: the call is created but the worker dies before parking the step
-    const req = { projectId: run.projectId, agentId: 'agt-1', from: '+14155550100', to: (await repos.contacts.byId(run.projectId, (await repos.enrollments.byId(run.enrollmentId))!.contactId))!.phone!, title: 'Confirm the demo with Sam', idempotencyKey: run.idempotencyKey };
+    const req = { projectId: run.projectId, agentId: 'agt-1', from: 'any', to: (await repos.contacts.byId(run.projectId, (await repos.enrollments.byId(run.enrollmentId))!.contactId))!.phone!, title: 'Confirm the demo with Sam', idempotencyKey: run.idempotencyKey };
     const first = await agent.create(req);
     const before = agent.created.length;
     expect(await executeCallStep(deps, run.id, 2)).toBe('done');

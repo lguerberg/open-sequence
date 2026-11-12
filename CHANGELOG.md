@@ -4,6 +4,12 @@ What changed in each release, one section per version.
 
 The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this file says when it does.
 
+## 0.3.1
+
+- An agent call now goes out from the enrolling sender's Allo number, the one on their SMS channel, so each contact is called from their own rep's line. `allo_number` on the step is optional and fixes one line for every contact. A sender with no Allo number skips the step with `no_allo_number`. Each sender's number must be one of the agent's lines.
+- The mock agent's line is the mock Allo number `+15550000001`.
+- No migration. SDK unchanged (0.3.0).
+
 ## 0.3.0
 
 - AI agent calls through Allo. The new `call` channel has one action, `agent_call`: an Allo Outbound agent phones the contact's `phone` with the step's `title` (the objective) and `description` (the brief), both templates. The step names the agent and the line it calls from (`agent_id`, `allo_number`) and may turn on skills: `sms`, `book`, `transfer`. Allo places the call inside the agent's calling hours and tries up to 3 times. The step waits for the result (up to `give_up_after`, default `3d`) and follows the outcome: `reached`, `transferred`, `not_interested`, `wrong_number`, `do_not_call` or `not_reached`; an outcome with no transition follows `completed`. `reached` and `transferred` count as a connected call; `do_not_call` suppresses calls to the contact (the new suppression channel `call`). See [Allo agent calls](https://docs.opensequence.dev/docs/modules/calls/allo).

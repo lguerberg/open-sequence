@@ -206,12 +206,13 @@ describe('quickstart through the HTTP app with mock providers', () => {
     const slug = `call${Date.now()}`;
     const key = (await call('POST', '/v1/admin/projects', { key: ADMIN, body: { slug, name: 'Acme' } })).json.data.api_key as string;
     await call('PUT', '/v1/senders/u_5', { key, body: { name: 'Max Rivera', email: 'max@acme.com', timezone: 'America/New_York' } });
+    await call('PUT', '/v1/senders/u_5/channels/sms', { key, body: { allo_user_id: 'usr-mock-1', number: '+15550000001' } });
     await call('PUT', '/v1/contacts/p_5', { key, body: { first_name: 'Dana', phone: '+14155551234', country: 'US' } });
 
-    // The pickers: agents and the lines each calls from.
+    // The agent picker; the call goes out from the sender's own Allo number.
     const agents = await call('GET', '/v1/project/providers/allo/agents', { key });
     expect(agents.status).toBe(200);
-    expect(agents.json.data).toEqual([{ id: 'agt-mock', name: 'Mock outbound agent', numbers: ['+14155550100'] }]);
+    expect(agents.json.data).toEqual([{ id: 'agt-mock', name: 'Mock outbound agent', numbers: ['+15550000001'] }]);
 
     // Consent under its new name; the old route still answers, and responses carry both names.
     const consent = await call('PUT', '/v1/contacts/p_5/outreach-consent', { key, body: { consent: true, source: 'signup form' } });
@@ -231,7 +232,7 @@ describe('quickstart through the HTTP app with mock providers', () => {
           type: 'outreach',
           channel: 'call',
           action: 'agent_call',
-          params: { agent_id: 'agt-mock', allo_number: '+14155550100', title: 'Confirm the demo with {{ contact.first_name | "them" }}', description: 'Ask if Friday 10am still works.' },
+          params: { agent_id: 'agt-mock', title: 'Confirm the demo with {{ contact.first_name | "them" }}', description: 'Ask if Friday 10am still works.' },
           next: { reached: 'end_reached', not_reached: 'end_missed' },
         },
         end_reached: { type: 'end', params: { label: 'Reached' } },
@@ -249,7 +250,7 @@ describe('quickstart through the HTTP app with mock providers', () => {
     const callRun = async () => ((await journey()).runs as Json[]).find((r) => r.nodeId === 'ai_call');
     await until(async () => (await callRun())?.status === 'waiting', 'the call to be handed to the agent');
     expect(rt.mock!.agentCalls).toHaveLength(1);
-    expect(rt.mock!.agentCalls[0]).toMatchObject({ agentId: 'agt-mock', from: '+14155550100', to: '+14155551234', title: 'Confirm the demo with Dana', description: 'Ask if Friday 10am still works.' });
+    expect(rt.mock!.agentCalls[0]).toMatchObject({ agentId: 'agt-mock', from: '+15550000001', to: '+14155551234', title: 'Confirm the demo with Dana', description: 'Ask if Friday 10am still works.' });
     expect(await callRun()).toMatchObject({ channel: 'call', action: 'agent_call', provider: 'allo', touchNumber: 1 });
 
     // The contact picks up: the mock hook ends the call, the `calls` job closes the step on `reached`.

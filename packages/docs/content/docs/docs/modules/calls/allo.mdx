@@ -24,12 +24,12 @@ Call tasks for a human rep are a different step and work as before: see [Allo fo
 - The Allo API key saved in OpenSequence ([Save the Allo key](/docs/modules/sms/allo#steps)), with these permissions on top of the ones texts need: `OUTBOUND_CALLS_WRITE`, `AGENTS_READ` and `TASKS_READ`.
 - Contacts with a `phone` in E.164 and recorded [outreach consent](#consent).
 
-The agent and the line belong to the step, not to the sender. A sender needs no Allo number for agent calls.
+The step names the agent. The call goes out from the enrolling sender's Allo number, the one set on their SMS channel, so each contact is called from their own rep's line. Every sender's number must be one of the agent's lines.
 
 ## Steps
 
 <Steps>
-<Step title="Pick the agent and the line it calls from">
+<Step title="Pick the agent">
 
 <CodeGroup>
 
@@ -41,12 +41,11 @@ curl $SEQ/v1/project/providers/allo/agents -H "Authorization: Bearer $KEY"
 ```ts title="TypeScript"
 const agents = await oseq.project.alloAgents();
 const agent = agents[0]!;
-const line = agent.numbers[0]!;
 ```
 
 </CodeGroup>
 
-`numbers` are the only lines that agent can call from. A step with a line from another agent fails with `LINE_NOT_AGENT_CALLING_LINE`.
+`numbers` are the only lines that agent can call from. Check that each sender's Allo number is in the list: a call from a sender whose number is not fails with `LINE_NOT_AGENT_CALLING_LINE`. Senders get their number with `PUT /v1/senders/{id}/channels/sms` ([Give each sender a number](/docs/modules/sms/allo#steps)).
 
 </Step>
 <Step title="Add the step to a sequence">
@@ -56,7 +55,6 @@ const line = agent.numbers[0]!;
   "type": "outreach", "channel": "call", "action": "agent_call",
   "params": {
     "agent_id": "agt-…",
-    "allo_number": "+14155550100",
     "title": "Confirm Friday delivery with {{ contact.first_name | \"the customer\" }}",
     "description": "{{ contact.first_name | \"The customer\" }} ordered 3 pallets. Confirm the Friday 10am delivery slot. If they want to change it, transfer the call.",
     "skills": { "transfer": { "type": "member", "user_id": "usr-…" } },
@@ -69,7 +67,7 @@ const line = agent.numbers[0]!;
 | Param | Required | Notes |
 |---|---|---|
 | `agent_id` | yes | The Allo Outbound agent, from `GET /v1/project/providers/allo/agents`. |
-| `allo_number` | yes | The line to call from, E.164. One of that agent's `numbers`. |
+| `allo_number` | no | A fixed line to call from, E.164, for every contact. Leave it out to call from the enrolling sender's Allo number. |
 | `title` | yes | The objective of the call. A template, up to 200 characters. |
 | `description` | no | The brief the agent reads as written: context, what to say, when to use each skill. A template, up to 4,000 characters. |
 | `skills` | no | What the agent may do during the call. See [Skills](#skills). |
@@ -144,13 +142,14 @@ The old names still work and are deprecated.
 |---|---|
 | The contact has outreach consent | `no_consent` |
 | The contact has a phone number | `no_phone` |
+| The sender has an Allo number, or the step fixes `allo_number` | `no_allo_number` |
 | No call suppression | `suppressed` |
 
 The sequence's send window applies to when the step runs. Calling hours are Allo's: a call created outside them waits at Allo.
 
 ## Try it without calling anyone
 
-With `SEQ_DEV_MOCK_PROVIDERS=1` no call is placed. `GET /v1/project/providers/allo/agents` returns one mock agent (`agt-mock`, line `+14155550100`). End a mock call with:
+With `SEQ_DEV_MOCK_PROVIDERS=1` no call is placed. `GET /v1/project/providers/allo/agents` returns one mock agent (`agt-mock`), whose line is the mock Allo number `+15550000001`. Give the sender that number. End a mock call with:
 
 ```bash
 curl -X POST $SEQ/hooks/mock/{project slug}/agent-calls -H "Content-Type: application/json" \
@@ -170,7 +169,8 @@ The step closes within a minute.
 
 | Error | Fix |
 |---|---|
-| The run fails with `LINE_NOT_AGENT_CALLING_LINE` | `allo_number` is not one of the agent's lines. Pick one from `GET /v1/project/providers/allo/agents`. |
+| The run fails with `LINE_NOT_AGENT_CALLING_LINE` | The sender's Allo number is not one of the agent's lines. Add the number to the agent in Allo, or give the sender a number the agent has. |
+| The run is skipped with `no_allo_number` | The sender has no Allo number. Set one with `PUT /v1/senders/{id}/channels/sms`. |
 | The run fails with `OUTBOUND_AGENT_NOT_FOUND` | No Outbound agent has that `agent_id` in the workspace. |
 | The run fails with `OUTBOUND_CALLS_NOT_AVAILABLE` | The Outbound agent is not turned on for the workspace, or it is a HIPAA workspace. |
 | The run fails with a `403` | The Allo key lacks `OUTBOUND_CALLS_WRITE`, `AGENTS_READ` or `TASKS_READ`. |
