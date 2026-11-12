@@ -149,6 +149,8 @@ export interface RunRepository {
   stuck(status: RunStatus, olderThan: Date, limit: number): Promise<Run[]>;
   /** Running runs that were never confirmed enqueued (non-transactional queue crash window). */
   runningWithoutMessage(olderThan: Date, limit: number): Promise<Run[]>;
+  /** Runs parked on a channel until the provider reports a result (agent calls), least recently looked at first. */
+  waitingOnChannel(channel: string, limit: number): Promise<Run[]>;
   countByEnrollmentAndType(enrollmentId: string, nodeType: string, channel?: string): Promise<number>;
 }
 

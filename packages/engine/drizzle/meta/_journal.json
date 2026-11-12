@@ -43,6 +43,13 @@
       "when": 1793306431398,
       "tag": "0005_linkedin_tasks",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794488194897,
+      "tag": "0006_outreach_consent",
+      "breakpoints": true
     }
   ]
 }

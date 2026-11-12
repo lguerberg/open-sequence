@@ -1,4 +1,4 @@
-import type { ChannelRef, CrmSchema, InboundEvent, InlineImage } from '@opensequence/core';
+import type { AgentCallSkills, AgentCallState, ChannelRef, CrmSchema, InboundEvent, InlineImage } from '@opensequence/core';
 
 export interface OutboxEntry {
   projectId: string;
@@ -23,6 +23,20 @@ export interface DialerPush {
   channel: ChannelRef;
   numbers: Array<{ number: string; name?: string; lastName?: string; company?: string; emails?: string[]; jobTitle?: string }>;
   idempotencyKey: string;
+}
+
+export interface MockAgentCall {
+  projectId: string;
+  agentId: string;
+  from: string;
+  to: string;
+  title: string;
+  description?: string;
+  dueAt?: Date;
+  skills?: AgentCallSkills;
+  idempotencyKey: string;
+  state: AgentCallState;
+  createdAt: Date;
 }
 
 export interface MockCrmRecord {
@@ -53,6 +67,7 @@ export interface MockProviderOptions {
 export class MockProviders {
   readonly outbox: OutboxEntry[] = [];
   readonly dialerPushes: DialerPush[] = [];
+  readonly agentCalls: MockAgentCall[] = [];
   private readonly inbound = new Map<string, InboundEvent[]>();
   private readonly health = new Map<string, 'active' | 'credentials_needed' | 'restricted'>();
   private readonly callStatus = new Map<string, { callId: string | null; status: string; reason?: string }>();
@@ -94,6 +109,14 @@ export class MockProviders {
     this.callStatus.set(number, state);
   }
 
+  /** Ends (or advances) an agent call: `id` is the call id or the number it went to. Returns false when there is no such call. */
+  setAgentCall(idOrNumber: string, patch: Partial<Pick<AgentCallState, 'status' | 'outcome' | 'attempts' | 'lastCallId'>>): boolean {
+    const call = [...this.agentCalls].reverse().find((c) => c.state.id === idOrNumber || c.to === idOrNumber);
+    if (!call) return false;
+    Object.assign(call.state, patch);
+    return true;
+  }
+
   callStatusOf(number: string): { callId: string | null; status: string; reason?: string } {
     return this.callStatus.get(number) ?? { callId: null, status: 'QUEUED' };
   }
@@ -101,6 +124,7 @@ export class MockProviders {
   reset(): void {
     this.outbox.length = 0;
     this.dialerPushes.length = 0;
+    this.agentCalls.length = 0;
     this.inbound.clear();
     this.health.clear();
     this.callStatus.clear();

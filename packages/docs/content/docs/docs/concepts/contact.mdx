@@ -1,7 +1,7 @@
 ---
 title: "Contact: the person who receives a sequence"
 nav: "Contact"
-description: "What a contact is: name, email, E.164 phone, LinkedIn URL, ISO country, time zone and attributes, keyed by your own id, plus SMS consent and suppressions."
+description: "What a contact is: name, email, E.164 phone, LinkedIn URL, ISO country, time zone and attributes, keyed by your own id, plus outreach consent and suppressions."
 ---
 
 A contact is the person a sequence reaches. This page shows the fields, consent and suppressions.
@@ -50,10 +50,10 @@ const country = parsePhoneNumber(phone)?.country; // '+447700900123' -> 'GB'
 
 ## Consent and suppressions
 
-SMS consent is off by default. Only an `admin` key can record it, and no text goes out without it.
+Outreach consent is off by default. Only an `admin` key can record it, and no text or agent call goes out without it. It was called SMS consent before 0.3.0; the old names still work.
 
 ```ts
-await oseq.contacts.setSmsConsent('p_7', { consent: true, source: 'signup form' }); // PUT /v1/contacts/{id}/sms-consent
+await oseq.contacts.setOutreachConsent('p_7', { consent: true, source: 'signup form' }); // PUT /v1/contacts/{id}/outreach-consent
 ```
 
 A suppression means "do not contact on this channel". The service adds one on an unsubscribe click, a STOP text, a hard bounce or a complaint, and the contact's enrollments exit. You add one by reporting `{ "type": "suppressed" }` or `{ "type": "opt_out" }` with `POST /v1/contacts/{id}/events`. Suppressions are checked when you enroll and again before every send. The API cannot remove a suppression yet.

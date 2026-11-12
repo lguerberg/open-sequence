@@ -15,7 +15,7 @@ export const SITE_DESCRIPTION =
 
 /** One sentence that says what the product is, reused by the footer, llms.txt and structured data. */
 export const SITE_SUMMARY =
-  'OpenSequence is an open source, self-hosted engine that runs multi-step outreach sequences (email, SMS, call tasks and LinkedIn steps) from inside your own product, through an API, a TypeScript SDK or MCP.';
+  'OpenSequence is an open source, self-hosted engine that runs multi-step outreach sequences (email, SMS, AI agent calls, call tasks and LinkedIn steps) from inside your own product, through an API, a TypeScript SDK or MCP.';
 
 /** The share text: the headline promise and who it is for. */
 export const SHARE_TITLE = 'Open source sequences, as code.';

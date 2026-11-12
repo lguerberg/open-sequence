@@ -4,6 +4,16 @@ What changed in each release, one section per version.
 
 The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this file says when it does.
 
+## 0.3.0 (unreleased)
+
+- AI agent calls through Allo. The new `call` channel has one action, `agent_call`: an Allo Outbound agent phones the contact's `phone` with the step's `title` (the objective) and `description` (the brief), both templates. The step names the agent and the line it calls from (`agent_id`, `allo_number`) and may turn on skills: `sms`, `book`, `transfer`. Allo places the call inside the agent's calling hours and tries up to 3 times. The step waits for the result (up to `give_up_after`, default `3d`) and follows the outcome: `reached`, `transferred`, `not_interested`, `wrong_number`, `do_not_call` or `not_reached`; an outcome with no transition follows `completed`. `reached` and `transferred` count as a connected call; `do_not_call` suppresses calls to the contact (the new suppression channel `call`). See [Allo agent calls](https://docs.opensequence.dev/docs/modules/calls/allo).
+- `GET /v1/project/providers/allo/agents` (SDK `project.alloAgents()`): the Allo Outbound agents and the lines each one calls from, for pickers.
+- The Allo key needs three more permissions for agent calls: `OUTBOUND_CALLS_WRITE`, `AGENTS_READ` and `TASKS_READ`. Texts and call tasks need nothing new, and saving a key without them still works.
+- SMS consent is now outreach consent, because it gates agent calls too. `PUT /v1/contacts/{id}/outreach-consent`, SDK `contacts.setOutreachConsent()`, the contact fields `outreachConsent`, `outreachConsentAt` and `outreachConsentSource`, and the condition field `contact.outreach_consent`. Deprecated and still working: `PUT /v1/contacts/{id}/sms-consent`, `contacts.setSmsConsent()`, the `smsConsent*` fields (returned next to the new ones) and `contact.sms_consent`.
+- The validator now takes an outreach step's transitions from its channel action. Email and SMS steps are unchanged (`sent`, `skipped`, `failed`); a call step refuses `sent`.
+- A new scheduler job, `calls`, reads agent call results once a minute. With mock providers, `POST /hooks/mock/{project slug}/agent-calls` ends a mock call.
+- Migration `0006_outreach_consent` renames `seq.contacts.sms_consent`, `sms_consent_at` and `sms_consent_source` to `outreach_consent*` and runs at boot. A rename is not additive: a replica still on 0.2 fails on contacts once the migration has run, so stop the old replicas, migrate, then start the new image.
+
 ## 0.2.0
 
 - LinkedIn connection requests, as a step the sender completes in one click. LinkedIn forbids automating invitations, so nothing is sent for the sender: the new `linkedin_connect` node renders the note (a template; cut at 300 characters, with a warning above 200, LinkedIn's limit without Premium) and creates a task of kind `linkedin_connect` with the contact's profile as `link` and the note as `body`. Transitions: `completed`, `no_answer` (expired or cancelled) and `skipped` (the contact has no LinkedIn URL). See [LinkedIn](https://docs.opensequence.dev/docs/modules/linkedin).

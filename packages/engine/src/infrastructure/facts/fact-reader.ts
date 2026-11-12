@@ -66,8 +66,9 @@ export function makeFactReader(input: FactReaderInput): FactReader {
         return !!contact.phone;
       case 'has_linkedin':
         return !!contact.linkedinUrl;
-      case 'sms_consent':
-        return contact.smsConsent;
+      case 'outreach_consent':
+      case 'sms_consent': // the name before 0.3
+        return contact.outreachConsent;
       case 'first_name':
         return contact.firstName;
       case 'last_name':

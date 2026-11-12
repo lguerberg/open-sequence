@@ -19,6 +19,44 @@ const WAIT_FOR_EVENTS = [
   'meeting_booked',
 ] as const;
 
+/** How an agent call can end, as the flow sees it. Each is a transition key of the `call` channel's `agent_call` action. */
+export const AGENT_CALL_OUTCOMES = ['reached', 'transferred', 'not_interested', 'wrong_number', 'do_not_call', 'not_reached'] as const;
+export type AgentCallOutcome = (typeof AGENT_CALL_OUTCOMES)[number];
+export const AGENT_CALL_LIMITS = { title: 200, description: 4000, smsText: 1000 } as const;
+
+const e164 = z.string().regex(/^\+[1-9]\d{6,14}$/, 'Use an E.164 phone number, like +14155551234.');
+
+export const agentCallParamsSchema = z
+  .object({
+    name: z.string().max(120).optional(),
+    /** The Allo Outbound agent that places the call (`agt-…`). */
+    agent_id: z.string().min(1).max(64),
+    /** The line the agent calls from; one of the agent's own numbers. */
+    allo_number: e164,
+    /** The objective of the call. */
+    title: z.string().min(1).max(AGENT_CALL_LIMITS.title),
+    /** The brief the agent reads as written: context, what to say, when to use each skill. */
+    description: z.string().max(AGENT_CALL_LIMITS.description).optional(),
+    /** What the agent may do during the call. A skill that is present is on. */
+    skills: z
+      .object({
+        sms: z.object({ text: z.string().min(1).max(AGENT_CALL_LIMITS.smsText).optional() }).strict().optional(),
+        book: z.object({ calendar_id: z.string().min(1), event_type_id: z.string().min(1) }).strict().optional(),
+        transfer: z
+          .discriminatedUnion('type', [
+            z.object({ type: z.literal('member'), user_id: z.string().min(1) }).strict(),
+            z.object({ type: z.literal('line'), number: e164 }).strict(),
+            z.object({ type: z.literal('external'), number: e164 }).strict(),
+          ])
+          .optional(),
+      })
+      .strict()
+      .optional(),
+    /** How long the step waits for a result before it takes `not_reached`. */
+    give_up_after: durationSchema.default('3d'),
+  })
+  .strict();
+
 function draft(node: RegisteredNode, touch: boolean, result: Record<string, unknown> = {}): RunDraft {
   const d: RunDraft = { nodeId: node.id, nodeType: node.type, touch, next: node.next, result };
   if (node.channel !== undefined) d.channel = node.channel;
@@ -366,6 +404,32 @@ export function registerBuiltins(): void {
     },
   });
 
+  registry.registerChannel({
+    name: 'call',
+    label: 'Call',
+    queue: 'seq_call',
+    actions: {
+      agent_call: {
+        action: 'agent_call',
+        label: 'Call with an AI agent',
+        touch: true,
+        // An outcome without a wire takes `completed`; `completed` without a wire ends the sequence.
+        transitions: { keys: ['completed', ...AGENT_CALL_OUTCOMES, 'skipped', 'failed'], required: [] },
+        params: agentCallParamsSchema,
+        validate: (node) => {
+          const problems: ValidationProblem[] = [];
+          const skills = (node.params['skills'] ?? {}) as Record<string, unknown>;
+          const brief = String(node.params['description'] ?? '');
+          // Allo does not parse the brief: the agent uses a skill only when the brief says when.
+          if (Object.keys(skills).length > 0 && !brief.trim()) {
+            problems.push({ path: `nodes.${node.id}.params.description`, code: 'NO_BRIEF', message: `This call turns on ${Object.keys(skills).join(', ')} but has no description. The agent only uses a skill when the description says when to.`, severity: 'warning' });
+          }
+          return problems;
+        },
+      },
+    },
+  });
+
   // ---------------------------------------------------------------- facts
   registry.registerFacts({
     prefix: 'contact',
@@ -376,7 +440,9 @@ export function registerBuiltins(): void {
       { field: 'contact.has_email', label: 'Contact has an email', type: 'bool' },
       { field: 'contact.has_phone', label: 'Contact has a phone', type: 'bool' },
       { field: 'contact.has_linkedin', label: 'Contact has a LinkedIn URL', type: 'bool' },
-      { field: 'contact.sms_consent', label: 'Contact consented to SMS', type: 'bool' },
+      { field: 'contact.outreach_consent', label: 'Contact consented to texts and calls', type: 'bool' },
+      /** The name before 0.3; definitions that use it keep working. */
+      { field: 'contact.sms_consent', label: 'Contact consented to texts and calls (old name of contact.outreach_consent)', type: 'bool' },
     ],
   });
   registry.registerFacts({ prefix: 'attrs', label: 'Contact attributes', fields: [], open: true });

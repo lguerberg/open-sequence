@@ -58,11 +58,9 @@ export function validateDefinition(input: unknown): ValidationResult {
       }
     }
     // transitions: targets exist, required ones are wired, keys are known
-    const allowedKeys = new Set<string>(spec.transitions.keys);
-    if (node.type === 'outreach' && node.channel && node.action) {
-      const a = registry.channelAction(node.channel, node.action);
-      if (a) for (const k of a.transitions.keys) allowedKeys.add(k);
-    }
+    // An outreach step's transitions are its action's: a call has outcomes, not `sent`.
+    const action = node.type === 'outreach' && node.channel && node.action ? registry.channelAction(node.channel, node.action) : undefined;
+    const allowedKeys = new Set<string>((action ?? spec).transitions.keys);
     for (const [key, target] of Object.entries(node.next)) {
       if (!allowedKeys.has(key) && node.type !== 'wait_for') {
         problems.push({ path: `${base}.next.${key}`, code: 'INVALID_DEFINITION', message: `"${key}" is not a transition of a ${spec.label} step. Use: ${[...allowedKeys].join(', ')}.`, severity: 'error' });

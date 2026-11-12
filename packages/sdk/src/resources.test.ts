@@ -57,7 +57,8 @@ describe('contacts', () => {
     hits((o) => o.contacts.reportEvent('p_7', { id: 'evt_1', type: 'meeting_booked', occurred_at: new Date('2026-10-13T09:00:00Z') }), { method: 'POST', url: '/v1/contacts/p_7/events', body: { id: 'evt_1', type: 'meeting_booked', occurred_at: '2026-10-13T09:00:00.000Z' } }));
   test('reportEvents uses the colon route and wraps in { events }', () =>
     hits((o) => o.contacts.reportEvents([{ contact: 'p_7', id: 'evt_2', type: 'opt_out', channel: 'all' }]), { method: 'POST', url: '/v1/contacts:events', body: { events: [{ contact: 'p_7', id: 'evt_2', type: 'opt_out', channel: 'all' }] } }, []));
-  test('setSmsConsent', () => hits((o) => o.contacts.setSmsConsent('p_7', { consent: true, source: 'web form' }), { method: 'PUT', url: '/v1/contacts/p_7/sms-consent', body: { consent: true, source: 'web form' } }));
+  test('setOutreachConsent', () => hits((o) => o.contacts.setOutreachConsent('p_7', { consent: true, source: 'web form' }), { method: 'PUT', url: '/v1/contacts/p_7/outreach-consent', body: { consent: true, source: 'web form' } }));
+  test('setSmsConsent is the old name of setOutreachConsent', () => hits((o) => o.contacts.setSmsConsent('p_7', { consent: true }), { method: 'PUT', url: '/v1/contacts/p_7/outreach-consent', body: { consent: true } }));
   test('delete', () => hits((o) => o.contacts.delete('p_7'), { method: 'DELETE', url: '/v1/contacts/p_7' }));
 });
 
@@ -120,6 +121,7 @@ describe('project and schema', () => {
   test('updateSettings', () => hits((o) => o.project.updateSettings({ attribution_days: 21 }), { method: 'PUT', url: '/v1/project/settings', body: { attribution_days: 21 } }));
   test('setProvider', () => hits((o) => o.project.setProvider('attio', { api_key: 'att_1' }), { method: 'PUT', url: '/v1/project/providers/attio', body: { api_key: 'att_1' } }));
   test('alloNumbers', () => hits((o) => o.project.alloNumbers(), { method: 'GET', url: '/v1/project/providers/allo/numbers' }, []));
+  test('alloAgents', () => hits((o) => o.project.alloAgents(), { method: 'GET', url: '/v1/project/providers/allo/agents' }, []));
   test('alloUsers', () => hits((o) => o.project.alloUsers(), { method: 'GET', url: '/v1/project/providers/allo/users' }, []));
   test('attioSchema', () => hits((o) => o.project.attioSchema(), { method: 'GET', url: '/v1/project/providers/attio/schema' }));
   test('apiKeys.list', () => hits((o) => o.project.apiKeys.list(), { method: 'GET', url: '/v1/api-keys' }, []));

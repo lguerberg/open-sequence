@@ -17,7 +17,7 @@ export async function executeSmsStep(deps: Deps, runId: string, attempt: number)
   const { run, ctx, settings } = env;
   const contact = ctx.contact;
 
-  if (!contact.smsConsent) return skipRun(deps, run, 'no_consent', now).then(() => 'skipped');
+  if (!contact.outreachConsent) return skipRun(deps, run, 'no_consent', now).then(() => 'skipped');
   if (!contact.phone) return skipRun(deps, run, 'no_phone', now).then(() => 'skipped');
   if (!contact.country || !settings.sms_countries.includes(contact.country)) return skipRun(deps, run, 'country_not_allowed', now).then(() => 'skipped');
   const sup = await deps.uow.repos.contacts.suppressions(contact.id);

@@ -28,7 +28,7 @@ export { upsertContact } from './application/contacts/upsert-contact.js';
 export { upsertContacts } from './application/contacts/upsert-contacts.js';
 export { resolveContact } from './application/contacts/resolve-contact.js';
 export { patchContact } from './application/contacts/patch-contact.js';
-export { setSmsConsent } from './application/contacts/set-sms-consent.js';
+export { setOutreachConsent } from './application/contacts/set-outreach-consent.js';
 export { deleteContact } from './application/contacts/delete-contact.js';
 export { contactStatuses, type ContactStatus } from './application/contacts/contact-statuses.js';
 // Sequences
@@ -54,6 +54,8 @@ export { getJourney, type Journey } from './application/enrollments/get-journey.
 export * from './application/execution/shared.js';
 export { executeEmailStep, type StepOutcome } from './application/execution/execute-email-step.js';
 export { executeSmsStep } from './application/execution/execute-sms-step.js';
+export { executeCallStep } from './application/execution/execute-call-step.js';
+export { syncAgentCalls, finishAgentCall, agentCallOutcome, type SyncAgentCallsResult } from './application/execution/sync-agent-calls.js';
 export { consumeStepMessage, executors, type StepExecutor } from './application/execution/consume-step-message.js';
 // Unsubscribes
 export { maskEmail, type UnsubscribeStatus } from './application/unsubscribes/shared.js';

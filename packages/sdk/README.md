@@ -80,13 +80,13 @@ method for.
 | Property | Methods |
 |---|---|
 | `oseq.senders` | `upsert`, `get`, `list`, `listAll`, `readiness`, `connections`, `setSmtp`, `setSms`, `patchChannel`, `deleteChannel`, `disable`, `tasks` |
-| `oseq.contacts` | `upsert`, `batch`, `list`, `listAll`, `get`, `timeline`, `patch`, `statuses`, `reportEvent`, `reportEvents`, `setSmsConsent`, `delete` |
+| `oseq.contacts` | `upsert`, `batch`, `list`, `listAll`, `get`, `timeline`, `patch`, `statuses`, `reportEvent`, `reportEvents`, `setOutreachConsent`, `delete` |
 | `oseq.sequences` | `list`, `listAll`, `create`, `get`, `update`, `validate`, `enroll`, `previewEnrollment`; `versions.list`, `.create`, `.get`, `.saveDraft`, `.publish`, `.archive`, `.delete` |
 | `oseq.enrollments` | `list`, `listAll`, `get` (the journey), `pause`, `resume`, `exit`, `exitMany` |
 | `oseq.tasks` | `list`, `listAll`, `get`, `complete`, `cancel` |
 | `oseq.webhooks` | `list`, `create`, `get`, `update`, `delete`, `rotateSecret`, `enable`, `recover`, `deliveries`, `replay` |
 | `oseq.analytics` | `summary`, `exits`, `nodes`, `channels`, `sequences` |
-| `oseq.project` | `get`, `updateSettings`, `setProvider`, `alloNumbers`, `alloUsers`, `attioSchema`, `health`; `apiKeys.list`, `.create`, `.revoke`; `flags.set` |
+| `oseq.project` | `get`, `updateSettings`, `setProvider`, `alloNumbers`, `alloUsers`, `alloAgents`, `attioSchema`, `health`; `apiKeys.list`, `.create`, `.revoke`; `flags.set` |
 | `oseq.schema` | `definition`, `fields`, `events` |
 | `new OpenSequenceAdmin({ baseUrl, adminToken })` | `projects.create`, `projects.list`, `projects.createApiKey`, `engineHealth` |
 

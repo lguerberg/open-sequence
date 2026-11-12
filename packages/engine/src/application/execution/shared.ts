@@ -101,12 +101,12 @@ export async function completeRun(deps: Deps, run: Run, result: { provider: stri
   if (advance) await advanceEnrollment(deps, run.enrollmentId);
 }
 
-/** A gate failed for good: not a touch; follow `skipped`, else continue like `sent`. */
+/** A gate failed for good: not a touch; follow `skipped`, else continue like `sent` (or `completed`, for steps that end on an outcome). */
 export async function skipRun(deps: Deps, run: Run, reason: string, now: Date): Promise<void> {
   let advance = false;
   await deps.uow.transaction(async (scope) => {
     await scope.repos.runs.update(run.id, { status: 'skipped', branch: 'skipped', finishedAt: now, result: { ...run.result, skip_reason: reason } });
-    const target = run.next['skipped'] ?? run.next['sent'];
+    const target = run.next['skipped'] ?? run.next['sent'] ?? run.next['completed'];
     const e = await handBack(deps, scope, run, { currentNodeId: target ?? run.nodeId, nextRunAt: target ? now : null });
     if (!e) return;
     if (!target) {

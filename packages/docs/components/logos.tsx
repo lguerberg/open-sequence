@@ -11,7 +11,7 @@
  * Every mark sits on a white tile with a hairline border, so single-colour marks stay legible in
  * the dark theme.
  */
-import { Building2, Mail, MessageSquareText, Webhook } from 'lucide-react';
+import { Building2, Mail, MessageSquareText, PhoneCall, Webhook } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 const files: Record<string, { src: string; alt: string }> = {
@@ -29,6 +29,7 @@ const lucide: Record<string, { Icon: typeof Mail; alt: string }> = {
   email: { Icon: Mail, alt: 'Email' },
   webhook: { Icon: Webhook, alt: 'Webhooks' },
   sms: { Icon: MessageSquareText, alt: 'SMS' },
+  call: { Icon: PhoneCall, alt: 'Calls' },
   crm: { Icon: Building2, alt: 'CRM' },
 };
 
