@@ -40,6 +40,7 @@ export function JsonLd() {
         description: `${SITE_SUMMARY} Used for sales prospecting, recruiting, customer onboarding, renewals, partnerships and AI agents. An open source alternative to the sequencing in Outreach, Salesloft, Apollo and lemlist.`,
         featureList: [
           'Multi-step email, SMS, call-task and LinkedIn sequences',
+          'AI agent phone calls through Allo, with branches on the call outcome',
           "Sends from each sender's own mailbox over SMTP, reads replies over IMAP",
           'Stops on reply, bounce, opt-out and booked meeting',
           "Send windows and quiet hours in each contact's time zone",

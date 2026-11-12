@@ -17,7 +17,7 @@ Teams use it for any one-to-one, multi-step outreach: sales prospecting, recruit
 - [Docs, full text](${DOCS}/llms-full.txt): every docs page in one file
 - [Quickstart](${DOCS}/docs/get-started/quickstart): run the server, create a project, connect a mailbox and enroll a first contact
 - [Integrate OpenSequence into your product](${DOCS}/docs/get-started/integrate): the checklist, one call per step
-- [Modules](${DOCS}/docs/modules): what a sequence can use: email (Gmail, Outlook, any SMTP), SMS and call tasks with Allo, LinkedIn connection requests, CRM conditions with Attio
+- [Modules](${DOCS}/docs/modules): what a sequence can use: email (Gmail, Outlook, any SMTP), SMS, AI agent calls and call tasks with Allo, LinkedIn connection requests, CRM conditions with Attio
 - [Webhooks](${DOCS}/docs/webhooks): signed events back to your app
 - [TypeScript SDK reference](${DOCS}/sdks/typescript): every method of @opensequence/sdk
 

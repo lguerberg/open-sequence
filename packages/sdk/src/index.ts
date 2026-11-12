@@ -86,7 +86,7 @@ export type { components, paths } from './generated/openapi.js';
 export { Senders } from './resources/senders.js';
 export type { SenderInput, SmsChannelInput, ChannelPatch, SenderTasksQuery } from './resources/senders.js';
 export { Contacts } from './resources/contacts.js';
-export type { ContactInput, ContactWithExternalId, ContactListQuery, ClientEvent, ClientEventForContact, SmsConsentInput } from './resources/contacts.js';
+export type { ContactInput, ContactWithExternalId, ContactListQuery, ClientEvent, ClientEventForContact, OutreachConsentInput, SmsConsentInput } from './resources/contacts.js';
 export { Sequences, Versions } from './resources/sequences.js';
 export type { CreateSequenceInput, SequencePatch, NewVersionInput, SaveDraftInput, PublishInput, EnrollInput } from './resources/sequences.js';
 export { Enrollments } from './resources/enrollments.js';

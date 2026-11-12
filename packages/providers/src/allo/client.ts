@@ -33,6 +33,8 @@ export class AlloClient {
     private readonly apiKey: string,
     private readonly baseUrl: string = ALLO_BASE_URL,
     private readonly fetchImpl: typeof fetch = fetch,
+    /** Prefix of the `Authorization` value. The v1 and older v2 endpoints take the raw key; the outbound agent guide asks for `Api-Key <key>`. */
+    private readonly authScheme: '' | 'Api-Key' = '',
   ) {}
 
   async get(path: string, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> {
@@ -46,7 +48,7 @@ export class AlloClient {
   private async request(method: 'GET' | 'POST', url: string, body?: unknown): Promise<unknown> {
     const res = await this.fetchImpl(url, {
       method,
-      headers: { Authorization: this.apiKey, Accept: 'application/json', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+      headers: { Authorization: this.authScheme ? `${this.authScheme} ${this.apiKey}` : this.apiKey, Accept: 'application/json', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
     const parsed = await parseBody(res);

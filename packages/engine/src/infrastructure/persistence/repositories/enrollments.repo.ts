@@ -232,6 +232,10 @@ export class DrizzleRunRepository implements RunRepository {
     return this.db.query.runs.findMany({ where: and(eq(runs.status, 'running'), sql`${runs.enqueuedAt} is null`, lte(runs.createdAt, olderThan)), limit });
   }
 
+  async waitingOnChannel(channel: string, limit: number): Promise<Run[]> {
+    return this.db.query.runs.findMany({ where: and(eq(runs.status, 'waiting'), eq(runs.channel, channel)), orderBy: asc(runs.updatedAt), limit });
+  }
+
   async countByEnrollmentAndType(enrollmentId: string, nodeType: string, channel?: string): Promise<number> {
     const [row] = await this.db
       .select({ n: count() })

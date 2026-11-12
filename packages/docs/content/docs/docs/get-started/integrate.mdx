@@ -45,7 +45,7 @@ await oseq.senders.setSms(user.id, { allo_user_id, number }); // PUT /v1/senders
 await oseq.contacts.upsert(person.id, { first_name, email, phone, country, timezone, attrs: { plan } }); // PUT /v1/contacts/{id}
 ```
 
-`country` is ISO-2. When you have none, take it from the phone number with `libphonenumber-js`. Texts need recorded consent: `oseq.contacts.setSmsConsent()` with an `admin` key.
+`country` is ISO-2. When you have none, take it from the phone number with `libphonenumber-js`. Texts and agent calls need recorded consent: `oseq.contacts.setOutreachConsent()` with an `admin` key.
 
 ## 4. Build and publish a sequence
 

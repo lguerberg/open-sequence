@@ -75,9 +75,9 @@ export interface Contact {
   linkedinUrl: string | null;
   country: string | null;
   timezone: string | null;
-  smsConsent: boolean;
-  smsConsentAt: Date | null;
-  smsConsentSource: string | null;
+  outreachConsent: boolean;
+  outreachConsentAt: Date | null;
+  outreachConsentSource: string | null;
   attrs: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
@@ -85,7 +85,7 @@ export interface Contact {
 
 export interface Suppression {
   contactId: string;
-  channel: 'email' | 'sms' | 'all';
+  channel: 'email' | 'sms' | 'call' | 'all';
   reason: string;
   createdAt: Date;
 }

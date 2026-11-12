@@ -23,9 +23,9 @@ export async function upsertContact(deps: Deps, projectId: string, externalId: s
         linkedinUrl: d.linkedin_url ?? existing?.linkedinUrl ?? null,
         country: d.country ?? existing?.country ?? null,
         timezone: d.timezone ?? existing?.timezone ?? null,
-        smsConsent: existing?.smsConsent ?? false,
-        smsConsentAt: existing?.smsConsentAt ?? null,
-        smsConsentSource: existing?.smsConsentSource ?? null,
+        outreachConsent: existing?.outreachConsent ?? false,
+        outreachConsentAt: existing?.outreachConsentAt ?? null,
+        outreachConsentSource: existing?.outreachConsentSource ?? null,
         attrs: d.attrs ?? {},
       },
       true

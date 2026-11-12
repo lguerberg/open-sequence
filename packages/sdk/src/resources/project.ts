@@ -1,6 +1,6 @@
 /** Project settings, provider credentials (write-only), API keys, kill switches and engine health (docs section 10.2). */
 import type { HttpClient } from '../client.js';
-import type { AlloNumber, AlloUser, ApiKeySummary, Body, CreatedApiKey, CredentialView, CrmSchema, EngineHealth, Project, ProjectSettings, ProjectView } from '../types.js';
+import type { AlloAgent, AlloNumber, AlloUser, ApiKeySummary, Body, CreatedApiKey, CredentialView, CrmSchema, EngineHealth, Project, ProjectSettings, ProjectView } from '../types.js';
 
 export type Provider = 'allo' | 'attio' | 'mock';
 /** Allo: `{ api_key, webhook_secret? }`. Attio: `{ api_key }`. Probed before it is accepted (`INVALID_CREDENTIAL`). */
@@ -62,6 +62,11 @@ export class ProjectResource {
 
   alloNumbers(): Promise<AlloNumber[]> {
     return this.http.request({ method: 'GET', path: '/v1/project/providers/allo/numbers' });
+  }
+
+  /** Allo Outbound agents and the lines each one calls from, for the `agent_call` step's `agent_id` and `allo_number`. */
+  alloAgents(): Promise<AlloAgent[]> {
+    return this.http.request({ method: 'GET', path: '/v1/project/providers/allo/agents' });
   }
 
   alloUsers(): Promise<AlloUser[]> {

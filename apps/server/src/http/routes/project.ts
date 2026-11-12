@@ -7,7 +7,7 @@ import { alloProbe, alloRegisterWebhook, attioProbe } from '@opensequence/provid
 import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
 import { ok } from '../envelope.js';
-import { alloNumber, alloUser, apiKeySummary, createdApiKey, createdResponse, credential, crmSchema, engineHealth, flagValue, okResponse, project, projectView, revoked } from '../responses.js';
+import { alloAgent, alloNumber, alloUser, apiKeySummary, createdApiKey, createdResponse, credential, crmSchema, engineHealth, flagValue, okResponse, project, projectView, revoked } from '../responses.js';
 import { idParam } from '../schemas.js';
 
 const providerParam = z.object({ provider: z.enum(['allo', 'attio', 'mock']) });
@@ -74,6 +74,12 @@ export async function projectRoutes(fastify: FastifyInstance, ctx: AppContext) {
     preHandler: read,
     schema: { tags: ['Project'], summary: 'Allo team members (for mapping senders)', response: okResponse(z.array(alloUser)) },
     handler: async (req, reply) => ok(reply, await ctx.deps.providers.sms.listUsers(projectOf(req))),
+  });
+
+  app.get('/v1/project/providers/allo/agents', {
+    preHandler: read,
+    schema: { tags: ['Project'], summary: 'Allo Outbound agents and the lines each one calls from (for the agent call step)', response: okResponse(z.array(alloAgent)) },
+    handler: async (req, reply) => ok(reply, await ctx.deps.providers.calls.listAgents(projectOf(req))),
   });
 
   app.get('/v1/project/providers/attio/schema', {

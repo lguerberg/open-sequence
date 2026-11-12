@@ -1,4 +1,4 @@
 {
   "title": "Modules",
-  "pages": ["index", "email", "sms", "linkedin", "crm"]
+  "pages": ["index", "email", "sms", "calls", "linkedin", "crm"]
 }

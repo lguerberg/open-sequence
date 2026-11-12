@@ -129,6 +129,28 @@ const callStep = {
 };`,
   },
   {
+    id: 'ai-call',
+    label: 'Add an AI call',
+    icon: 'bot',
+    file: 'ai-call-step.json',
+    meta: 'sequence definition',
+    lang: 'json',
+    href: '/docs/modules/calls/allo',
+    claim:
+      'An Allo agent phones the contact with your brief, inside calling hours. The outcome of the call picks the next step.',
+    code: `{
+  "type": "outreach",
+  "channel": "call",
+  "action": "agent_call",
+  "params": {
+    "agent_id": "agt-…",
+    "allo_number": "+14155550100",
+    "title": "Confirm Friday delivery",
+    "description": "Ask if Friday delivery still works. If not, offer Monday."
+  }
+}`,
+  },
+  {
     id: 'mailbox',
     label: 'Connect a mailbox',
     icon: 'inbox',
@@ -254,7 +276,7 @@ export const audiences: Audience[] = [
     icon: 'calendar',
     label: 'Event and demo follow-up',
     text: "Follow up with every booth scan, webinar attendee or demo no-show, at 09:00 in each person's own time zone.",
-    steps: ['email', 'wait 1bd', 'sms', 'exit on meeting'],
+    steps: ['email', 'wait 1bd', 'sms', 'ai call', 'exit on meeting'],
   },
   {
     icon: 'building',
@@ -418,7 +440,7 @@ export const hardParts = [
     problem:
       'Email, SMS, calls and LinkedIn each have their own APIs, limits and failure modes, and one sequence has to coordinate all of them.',
     handled:
-      'One engine and one ledger run every channel. Email, SMS, call and LinkedIn tasks are modules, each with its own executor and queue.',
+      'One engine and one ledger run every channel. Email, SMS, AI agent calls, call tasks and LinkedIn tasks are modules, each with its own executor and queue.',
     evidence: 'channels: email · sms · call · linkedin',
   },
   {
@@ -469,10 +491,10 @@ export const hardParts = [
     icon: 'clock',
     label: 'Time zones',
     problem:
-      "Send windows and quiet hours follow the contact's clock. A text at 23:00 their time brings complaints and opt-outs.",
+      "Send windows and quiet hours follow the contact's clock. A text or a call at 23:00 their time brings complaints and opt-outs.",
     handled:
       "The engine reads each contact's time zone from the contact record, the phone number or the country, then waits for the window.",
-    evidence: 'sms: 08:00 to 21:00 recipient-local',
+    evidence: 'sms · call: 08:00 to 21:00 recipient-local',
   },
   {
     icon: 'reply',
@@ -492,7 +514,7 @@ export const faq: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Is OpenSequence only for sales?',
-    a: 'No. The engine runs any one-to-one, multi-step outreach: sales prospecting, candidate outreach, onboarding check-ins, renewal reminders, partner and investor outreach, and event follow-up. A step can send an email or a text, or create a task for a person, such as a call or a LinkedIn connection request. Conditions branch on any attribute your product stores on the contact.',
+    a: 'No. The engine runs any one-to-one, multi-step outreach: sales prospecting, candidate outreach, onboarding check-ins, renewal reminders, partner and investor outreach, and event follow-up. A step can send an email or a text, place a phone call through an AI agent, or create a task for a person, such as a call or a LinkedIn connection request. Conditions branch on any attribute your product stores on the contact.',
   },
   {
     q: 'Is it a newsletter or marketing email tool?',
@@ -517,6 +539,10 @@ export const faq: Array<{ q: string; a: string }> = [
   {
     q: 'Does it send email itself?',
     a: "Yes, through each sender's own mailbox over SMTP, and it reads replies over IMAP. Gmail, Google Workspace, Outlook and Microsoft 365 work, and so does any other SMTP provider. It sets its own Message-ID, adds List-Unsubscribe, replies in thread when asked, and never exceeds the channel's daily limit. There is no shared sending pool.",
+  },
+  {
+    q: 'Can an AI agent make the phone calls?',
+    a: "Yes. A call step asks an Allo Outbound agent to phone the contact, on the same number SMS steps use, from the line you choose. The step carries an objective and a brief, templated with contact variables like any other step, and the agent can text the contact, book a meeting or transfer to a person during the call. Allo places the call between 08:00 and 21:00 in the contact's time zone and tries up to 3 times when nobody answers. The sequence waits for the result and branches on it: reached, transferred, not interested, wrong number, or not reached after voicemail, no answer or busy. A do-not-call answer suppresses the contact. The step needs the contact's outreach consent and a phone number. Call tasks for a human rep work as before.",
   },
   {
     q: 'What do I need to run it?',

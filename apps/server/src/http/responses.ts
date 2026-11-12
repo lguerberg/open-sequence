@@ -107,6 +107,7 @@ export const platformHealth = z
 export const flagValue = z.object({ key: z.string(), value: z.boolean() });
 
 export const alloUser = z.object({ id: z.string().describe('Allo user id (`usr-…`).'), email: z.string(), name: z.string() }).meta({ id: 'AlloUser' });
+export const alloAgent = z.object({ id: z.string().describe('Allo agent id (`agt-…`).'), name: z.string(), numbers: z.array(z.string()).describe('The lines this agent can call from, E.164.') }).meta({ id: 'AlloAgent' });
 export const alloNumber = z
   .object({ address: z.string().describe('E.164.'), ref: z.string(), country: z.string(), capabilities: z.array(z.string()).describe('`SMS`, `VOICE`, …'), users: z.array(alloUser).describe('The users who can use this number.') })
   .meta({ id: 'AlloNumber' });
@@ -190,9 +191,12 @@ export const contact = z
     linkedinUrl: z.string().nullable().describe('https://www.linkedin.com/in/…'),
     country: z.string().nullable().describe('ISO 3166-1 alpha-2, upper case.'),
     timezone: z.string().nullable().describe('IANA zone.'),
-    smsConsent: z.boolean(),
-    smsConsentAt: at.nullable(),
-    smsConsentSource: z.string().nullable(),
+    outreachConsent: z.boolean().describe('Whether the contact agreed to texts and agent calls. Only an `admin` key can set it.'),
+    outreachConsentAt: at.nullable(),
+    outreachConsentSource: z.string().nullable(),
+    smsConsent: z.boolean().optional().describe('Deprecated: the old name of `outreachConsent`, with the same value.'),
+    smsConsentAt: at.nullable().optional().describe('Deprecated: the old name of `outreachConsentAt`.'),
+    smsConsentSource: z.string().nullable().optional().describe('Deprecated: the old name of `outreachConsentSource`.'),
     attrs: json,
     createdAt: at,
     updatedAt: at,
@@ -200,7 +204,7 @@ export const contact = z
   .meta({ id: 'Contact' });
 
 export const suppression = z
-  .object({ contactId: z.string(), channel: z.enum(['email', 'sms', 'all']), reason: z.string().describe('`opt_out`, `hard_bounce`, `complaint`, or the reason you reported.'), createdAt: at })
+  .object({ contactId: z.string(), channel: z.enum(['email', 'sms', 'call', 'all']), reason: z.string().describe('`opt_out`, `hard_bounce`, `complaint`, or the reason you reported.'), createdAt: at })
   .meta({ id: 'Suppression' });
 
 export const enrollmentStatus = z.enum(['active', 'paused', 'waiting_limit', 'completed', 'exited', 'failed']);

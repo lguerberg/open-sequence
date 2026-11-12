@@ -38,6 +38,17 @@ export async function hookRoutes(fastify: FastifyInstance, ctx: AppContext) {
 
   if (ctx.mock) {
     const mock = ctx.mock;
+    // Ends a mock agent call: {"to": "+1…" | "id": "mock-call:…", "outcome": "reached", "attempts"?: 1}. The `calls` job picks it up within a minute.
+    fastify.post<{ Params: { slug: string } }>('/hooks/mock/:slug/agent-calls', { schema: { hide: true } }, async (req, reply) => {
+      const project = await projectBySlug(req.params.slug);
+      if (!project) return reply.status(404).send({ ok: false });
+      const body = JSON.parse((req.body as Buffer).toString('utf8')) as { id?: string; to?: string; outcome?: string; attempts?: number; status?: 'open' | 'closed' };
+      const key = body.id ?? body.to;
+      if (!key || !body.outcome) return reply.status(400).send({ ok: false, reason: 'send "to" (or "id") and "outcome"' });
+      const found = mock.setAgentCall(key, { outcome: body.outcome, attempts: body.attempts ?? 1, lastCallId: `mock-call-leg:${Date.now()}`, ...(body.status ? { status: body.status } : {}) });
+      return reply.status(found ? 200 : 404).send({ ok: found });
+    });
+
     fastify.post<{ Params: { slug: string } }>('/hooks/mock/:slug', { schema: { hide: true } }, async (req, reply) => {
       const project = await projectBySlug(req.params.slug);
       if (!project) return reply.status(404).send({ ok: false });

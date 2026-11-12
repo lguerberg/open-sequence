@@ -93,7 +93,7 @@ await oseq.contacts.patch('p_7', { attrs: { deal: { stage: 'won' } } });
 await oseq.contacts.statuses(['p_7', 'p_8']);
 await oseq.contacts.reportEvent('p_7', { id: 'cal_1', type: 'meeting_booked', occurred_at: new Date() });
 await oseq.contacts.reportEvents([{ contact: 'p_7', id: 'dnc-1', type: 'suppressed', reason: 'do_not_contact' }]);
-await oseq.contacts.setSmsConsent('p_7', { consent: true, source: 'web form' });   // admin
+await oseq.contacts.setOutreachConsent('p_7', { consent: true, source: 'web form' });   // admin
 await oseq.contacts.delete('p_7');                                                  // admin
 ```
 

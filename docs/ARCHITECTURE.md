@@ -9,7 +9,7 @@ Status: draft v7, 2026-10-20. Version 7 removes Google: email goes through each 
 | You do | With |
 |---|---|
 | Register the people who send (a **sender**: a user with a mailbox reached over SMTP and IMAP and an Allo number) | `senders` |
-| Register the people who receive (a **contact**: email, phone, free attributes, SMS consent) | `contacts` |
+| Register the people who receive (a **contact**: email, phone, free attributes, outreach consent) | `contacts` |
 | Design flows as JSON (a **sequence**, versioned, immutable once published) | `sequences` and `versions` |
 | Start a contact on a sequence as a sender, or stop them | `enrollments` |
 | Let senders do the manual steps (a call, anything the client defines) | `tasks` |
@@ -80,7 +80,7 @@ curl $SEQ/v1/sequences/seq_x/analytics/summary -H "Authorization: Bearer $KEY"
 | Project | A tenant. Owns its senders, contacts, sequences, provider credentials, webhook endpoints and API keys. |
 | Sender | The acting user an enrollment runs as. Has channels (email from a mailbox over SMTP and IMAP, sms from an Allo number); plus a time zone and limits. |
 | Connection | A sender's mailbox: its SMTP and IMAP settings, with the passwords encrypted, owned by the auth module. API-key providers (Allo, Attio) have no connections: one workspace key per project. |
-| Contact | The person who receives a sequence. Has email, phone, country, time zone, `sms_consent`, and free `attrs` JSON. |
+| Contact | The person who receives a sequence. Has email, phone, country, time zone, `outreach_consent` (texts and agent calls), and free `attrs` JSON. |
 | Sequence | A named container of versions. |
 | Version | One immutable JSON definition once published. Has a tag (`v1`, `v2`, free text). |
 | Node (step) | One box in the definition. Types: `start`, `outreach`, `wait`, `wait_for`, `condition`, `task`, `end` (+ `split` later). |
@@ -537,9 +537,9 @@ create table if not exists seq.contacts (
   phone         varchar(24),                          -- E.164 only; the client normalizes
   country       varchar(2),                           -- ISO 3166-1 alpha-2
   timezone      varchar(48),                          -- IANA zone; required for SMS (section 6.3)
-  sms_consent   boolean not null default false,       -- set only with the admin scope
-  sms_consent_at timestamptz,
-  sms_consent_source text,                            -- free text: form, call, import
+  outreach_consent boolean not null default false,       -- set only with the admin scope
+  outreach_consent_at timestamptz,
+  outreach_consent_source text,                            -- free text: form, call, import
   attrs         jsonb not null default '{}',          -- free JSON the client supplies: anything conditions or templates read
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
@@ -994,7 +994,7 @@ A condition is a list of `{ field, op, value }` combined with `all` or `any`. Th
 
 | Field key | Type | Source | Cost |
 |---|---|---|---|
-| `contact.country`, `contact.timezone`, `contact.has_email`, `contact.has_phone`, `contact.sms_consent` | enum / text / bool | `seq.contacts` | one row, memoized per step |
+| `contact.country`, `contact.timezone`, `contact.has_email`, `contact.has_phone`, `contact.outreach_consent` | enum / text / bool | `seq.contacts` | one row, memoized per step |
 | `attrs.<path>` (any path under the contact's `attrs`; the project declares types and labels in `settings.attrs_schema` so pickers can show them) | text / number / bool / enum | `seq.contacts.attrs` | same row |
 | `sender.timezone`, `sender.has_sms` | text / bool | `seq.senders`, `seq.sender_channels` | one row |
 | `history.last_task_outcome`, `history.last_task_kind`, `history.days_since_last_task`, `history.tasks_last_14d` | enum / number | `seq.tasks` | one indexed query |
@@ -1187,7 +1187,8 @@ If the executor crashes after the provider accepted the email but before it reco
 | Executor | Gates, in order | Throttle | Side effect | Unknown outcome |
 |---|---|---|---|---|
 | **Email** (SMTP) | kill switch, contact has email, no email suppression, email channel `active` | sender channel `daily_limit` (rolling 24h), min gap, send window; the mail provider's own limit sits above it | SMTP send through the sender's server, settings from the auth module, a copy filed in Sent | safe to retry (`findSent` by `Message-ID`) |
-| **SMS** (Allo) | kill switch, `contact.sms_consent`, contact country in `settings.sms_countries` (default `["US"]`), known recipient time zone, E.164 phone, no SMS suppression, sender has an Allo number | 8:00 to 21:00 recipient-local, per-number rate | Allo send from the sender's number | **`needs_review`, never auto-retry** |
+| **SMS** (Allo) | kill switch, `contact.outreach_consent`, contact country in `settings.sms_countries` (default `["US"]`), known recipient time zone, E.164 phone, no SMS suppression, sender has an Allo number | 8:00 to 21:00 recipient-local, per-number rate | Allo send from the sender's number | **`needs_review`, never auto-retry** |
+| **Agent call** (Allo Outbound agent) | kill switch, `contact.outreach_consent`, E.164 phone, no call suppression. The agent and its line come from the step's params, so no sender channel is involved | none here: Allo applies the agent's calling hours (8:00 to 21:00 recipient-local) and retries up to 3 times | `POST /v2/api/agents/{agent}/outbound_calls`; the run is parked `waiting` with Allo's task id as `provider_ref` and the step's `give_up_after` as the wait's timeout. The `calls` job reads `GET /v2/api/tasks/{id}` once a minute and closes the run on the outcome (`reached`, `transferred`, `not_interested`, `wrong_number`, `do_not_call`, `not_reached`), falling back to `completed` | the retry first looks for the call among Allo's outbound call tasks (same number, same title, created since the run started); after three unknown results `needs_review` |
 | **Task** (inline in `advance`) | none | none | create a task; for `kind: call` with `dialer: true`, push the number into the sender's Allo dialing queue (deduped by E.164); the client shows the task | the dialer push is idempotent by task id |
 
 **Skips are first-class.** A step whose gate fails is `skipped` with the first failing reason (`no_email`, `no_consent`, `no_timezone`, `country_not_allowed`, `no_phone`, `no_sms_number`, `sender_channel_down`). The engine then follows the `skipped` transition if wired, otherwise continues like `sent`, so a missing channel never stalls a contact. Skips are not touches and are excluded from reply rates, but are counted and shown.
@@ -1474,7 +1475,7 @@ The operator is whoever runs the deployment. Bootstrapping an empty database nee
 | `PUT /v1/contacts/{external_id}` | create or update (upsert) `{first_name, last_name, email, phone, country, timezone, attrs}`; `attrs` is deep-merged | enroll |
 | `POST /v1/contacts:batch` | upsert up to 500 | enroll |
 | `PATCH /v1/contacts/{id}` | change fields; changing `attrs` is how a client keeps conditions fresh | enroll |
-| `PUT /v1/contacts/{id}/sms-consent` | `{consent: true\|false, source, at}`; consent is the only contact field that needs `admin` | admin |
+| `PUT /v1/contacts/{id}/outreach-consent` (old name: `/sms-consent`) | `{consent: true\|false, source, at}`; consent is the only contact field that needs `admin` | admin |
 | `GET /v1/contacts`, `GET /v1/contacts/{id}` | list (filter by `external_id`, `email`, `updated_since`) and read, with suppressions and the active enrollment | read |
 | `POST /v1/contacts:status` | `{ids or external_ids[]}` returns each contact's active enrollment (sequence, version, sender, status, current step) or null; for "in a sequence" badges in lists | read |
 | `GET /v1/contacts/{id}/timeline` | messages in and out, runs, signals and tasks, merged and ordered | read |
@@ -1689,7 +1690,7 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 |---|---|
 | A rep is created, changes time zone, connects their mailbox, gets an Allo number | `PUT /v1/senders/{user_id}`, `PUT .../channels/email` (the rep's Workspace app password, entered once in Harpoon), `PUT .../channels/sms {allo_user_id, number}` (from `user_settings.allo_user_id`) |
 | A person is enrolled, or any enrolled person's data relevant to conditions or templates changes (title, company country, opportunity stage) | `PUT /v1/contacts/{person_id}` / `PATCH` with `attrs` |
-| SMS consent recorded (v1: never, consent is unwritable in Harpoon) | `PUT /v1/contacts/{id}/sms-consent` with an admin key |
+| SMS consent recorded (v1: never, consent is unwritable in Harpoon) | `PUT /v1/contacts/{id}/outreach-consent` with an admin key |
 | A company or person is marked do-not-contact, a number is marked bad, a person left the company | `POST /v1/contacts/{id}/events {type: suppressed, reason}` |
 | A person unsubscribes by replying to a rep or asking on a call | `POST /v1/contacts/{id}/events {type: opt_out, channel}` |
 | A Cal.com booking arrives at Harpoon | `POST /v1/contacts/{person_id}/events {type: meeting_booked}` |
@@ -1720,7 +1721,7 @@ Harpoon keeps its own **permissions**: it decides which reps may enroll whose pe
 | Mailbox privacy | Only the inbox is read, and only messages that answer an email the service sent are stored, without their bodies (section 9.1). |
 | Mailbox passwords | Checked by signing in before they are stored; encrypted per connection; deleted with the email channel; `@opensequence/auth` and the mail adapter are the only code that reads them, and the auth module has its own test suite and security review. |
 | Do not contact | Suppressions from the client (events endpoint), from opt-out clicks and STOP texts, and from bounces. Checked at **enrollment and again at execution**. |
-| SMS | `contacts.sms_consent` default false, settable only with `admin`, with `source` and `at`; an automated test proves no SMS can leave for a contact without it, without a known recipient time zone, or outside 8:00 to 21:00 recipient-local. Country allow-list (`sms_countries`, default `["US"]`). |
+| SMS and agent calls | `contacts.outreach_consent` default false, settable only with `admin`, with `source` and `at`; an automated test proves no SMS can leave for a contact without it, without a known recipient time zone, or outside 8:00 to 21:00 recipient-local. Country allow-list (`sms_countries`, default `["US"]`). |
 | Opt-out | Always exits the sequence (not configurable) and suppresses the channel. Emails carry `List-Unsubscribe` headers. |
 | Data in runs | `result.facts` and rendered template values are stored at decision time; per-project retention (`retention_days`, default 365); erase-on-request (`DELETE /v1/contacts/{id}`). |
 | Audit | Every enrollment records `enrolled_by` and its kind; every exit its reason and signal; flag changes, consent changes, key and endpoint changes are audited with the key that made them. |

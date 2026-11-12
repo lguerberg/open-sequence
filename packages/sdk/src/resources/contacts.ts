@@ -9,7 +9,9 @@ export type ContactListQuery = ListQuery & { email?: string; external_id?: strin
 /** What the service cannot see: a meeting booked, an opt-out, a suppression or a reply seen in another tool. Idempotent by `id`. */
 export type ClientEvent = Omit<Body<'/v1/contacts/{id}/events', 'post'>, 'occurred_at'> & { occurred_at?: DateInput };
 export type ClientEventForContact = ClientEvent & { contact: string };
-export type SmsConsentInput = { consent: boolean; source?: string; at?: DateInput };
+export type OutreachConsentInput = { consent: boolean; source?: string; at?: DateInput };
+/** @deprecated Use `OutreachConsentInput`. */
+export type SmsConsentInput = OutreachConsentInput;
 
 const enc = encodeURIComponent;
 
@@ -64,9 +66,14 @@ export class Contacts {
     return this.http.request({ method: 'POST', path: '/v1/contacts:events', body: { events } });
   }
 
-  /** Records SMS consent. Scope admin. */
-  setSmsConsent(id: string, body: SmsConsentInput): Promise<Contact> {
-    return this.http.request({ method: 'PUT', path: `/v1/contacts/${enc(id)}/sms-consent`, body });
+  /** Records the contact's consent to texts and agent calls. Scope admin. */
+  setOutreachConsent(id: string, body: OutreachConsentInput): Promise<Contact> {
+    return this.http.request({ method: 'PUT', path: `/v1/contacts/${enc(id)}/outreach-consent`, body });
+  }
+
+  /** @deprecated Renamed to `setOutreachConsent`: the same consent now also gates agent calls. */
+  setSmsConsent(id: string, body: OutreachConsentInput): Promise<Contact> {
+    return this.setOutreachConsent(id, body);
   }
 
   /** Erases the contact and everything attached (privacy requests). Scope admin. */

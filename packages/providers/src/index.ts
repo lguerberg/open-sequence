@@ -1,6 +1,6 @@
 import { registerProvider } from './registry.js';
 import { createMockProviders } from './mock/index.js';
-import { AlloSmsProvider, AlloDialerProvider, type AlloOptions } from './allo/index.js';
+import { AlloSmsProvider, AlloDialerProvider, AlloAgentCallProvider, type AlloOptions } from './allo/index.js';
 import { AttioCrmProvider, type AttioOptions } from './attio/index.js';
 import { createSmtpProviders, type SmtpProviderOptions } from './smtp/index.js';
 
@@ -23,5 +23,6 @@ registerProvider('smtp', ({ connectionSecrets, options }) => {
 registerProvider('allo', ({ credentials, options }) => ({
   sms: new AlloSmsProvider(credentials, (options ?? {}) as AlloOptions),
   dialer: new AlloDialerProvider(credentials, (options ?? {}) as AlloOptions),
+  calls: new AlloAgentCallProvider(credentials, (options ?? {}) as AlloOptions),
 }));
 registerProvider('attio', ({ credentials, options }) => ({ crm: new AttioCrmProvider(credentials, (options ?? {}) as AttioOptions) }));

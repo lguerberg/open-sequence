@@ -1088,6 +1088,121 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/project/providers/allo/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Allo Outbound agents and the lines each one calls from (for the agent call step) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: components["schemas"]["AlloAgent"][];
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/project/providers/attio/schema": {
         parameters: {
             query?: never;
@@ -4206,6 +4321,131 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/contacts/{id}/outreach-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Record consent to texts and agent calls (admin only) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        consent: boolean;
+                        source?: string;
+                        at?: unknown;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: components["schemas"]["Contact"];
+                            meta: {
+                                request_id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/contacts/{id}/sms-consent": {
         parameters: {
             query?: never;
@@ -4214,7 +4454,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Record SMS consent (admin only) */
+        /**
+         * Old name of PUT /v1/contacts/{id}/outreach-consent
+         * @deprecated
+         */
         put: {
             parameters: {
                 query?: never;
@@ -10026,6 +10269,13 @@ export interface components {
             email: string;
             name: string;
         };
+        AlloAgent: {
+            /** @description Allo agent id (`agt-…`). */
+            id: string;
+            name: string;
+            /** @description The lines this agent can call from, E.164. */
+            numbers: string[];
+        };
         AlloNumber: {
             /** @description E.164. */
             address: string;
@@ -10182,9 +10432,16 @@ export interface components {
             country: string | null;
             /** @description IANA zone. */
             timezone: string | null;
-            smsConsent: boolean;
-            smsConsentAt: string | null;
-            smsConsentSource: string | null;
+            /** @description Whether the contact agreed to texts and agent calls. Only an `admin` key can set it. */
+            outreachConsent: boolean;
+            outreachConsentAt: string | null;
+            outreachConsentSource: string | null;
+            /** @description Deprecated: the old name of `outreachConsent`, with the same value. */
+            smsConsent?: boolean;
+            /** @description Deprecated: the old name of `outreachConsentAt`. */
+            smsConsentAt?: string | null;
+            /** @description Deprecated: the old name of `outreachConsentSource`. */
+            smsConsentSource?: string | null;
             attrs: {
                 [key: string]: unknown;
             };
@@ -10196,7 +10453,7 @@ export interface components {
         Suppression: {
             contactId: string;
             /** @enum {string} */
-            channel: "email" | "sms" | "all";
+            channel: "email" | "sms" | "call" | "all";
             /** @description `opt_out`, `hard_bounce`, `complaint`, or the reason you reported. */
             reason: string;
             /** Format: date-time */
@@ -10235,9 +10492,16 @@ export interface components {
             country: string | null;
             /** @description IANA zone. */
             timezone: string | null;
-            smsConsent: boolean;
-            smsConsentAt: string | null;
-            smsConsentSource: string | null;
+            /** @description Whether the contact agreed to texts and agent calls. Only an `admin` key can set it. */
+            outreachConsent: boolean;
+            outreachConsentAt: string | null;
+            outreachConsentSource: string | null;
+            /** @description Deprecated: the old name of `outreachConsent`, with the same value. */
+            smsConsent?: boolean;
+            /** @description Deprecated: the old name of `outreachConsentAt`. */
+            smsConsentAt?: string | null;
+            /** @description Deprecated: the old name of `outreachConsentSource`. */
+            smsConsentSource?: string | null;
             attrs: {
                 [key: string]: unknown;
             };

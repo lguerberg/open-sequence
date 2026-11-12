@@ -654,6 +654,31 @@
         ],
         "additionalProperties": false
       },
+      "AlloAgent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Allo agent id (`agt-…`)."
+          },
+          "name": {
+            "type": "string"
+          },
+          "numbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The lines this agent can call from, E.164."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "numbers"
+        ],
+        "additionalProperties": false
+      },
       "AlloNumber": {
         "type": "object",
         "properties": {
@@ -1243,10 +1268,33 @@
               "null"
             ]
           },
+          "outreachConsent": {
+            "type": "boolean",
+            "description": "Whether the contact agreed to texts and agent calls. Only an `admin` key can set it."
+          },
+          "outreachConsentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outreachConsentSource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "smsConsent": {
+            "description": "Deprecated: the old name of `outreachConsent`, with the same value.",
             "type": "boolean"
           },
           "smsConsentAt": {
+            "description": "Deprecated: the old name of `outreachConsentAt`.",
             "anyOf": [
               {
                 "type": "string",
@@ -1258,6 +1306,7 @@
             ]
           },
           "smsConsentSource": {
+            "description": "Deprecated: the old name of `outreachConsentSource`.",
             "type": [
               "string",
               "null"
@@ -1290,9 +1339,9 @@
           "linkedinUrl",
           "country",
           "timezone",
-          "smsConsent",
-          "smsConsentAt",
-          "smsConsentSource",
+          "outreachConsent",
+          "outreachConsentAt",
+          "outreachConsentSource",
           "attrs",
           "createdAt",
           "updatedAt"
@@ -1310,6 +1359,7 @@
             "enum": [
               "email",
               "sms",
+              "call",
               "all"
             ]
           },
@@ -1466,10 +1516,33 @@
               "null"
             ]
           },
+          "outreachConsent": {
+            "type": "boolean",
+            "description": "Whether the contact agreed to texts and agent calls. Only an `admin` key can set it."
+          },
+          "outreachConsentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outreachConsentSource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "smsConsent": {
+            "description": "Deprecated: the old name of `outreachConsent`, with the same value.",
             "type": "boolean"
           },
           "smsConsentAt": {
+            "description": "Deprecated: the old name of `outreachConsentAt`.",
             "anyOf": [
               {
                 "type": "string",
@@ -1481,6 +1554,7 @@
             ]
           },
           "smsConsentSource": {
+            "description": "Deprecated: the old name of `outreachConsentSource`.",
             "type": [
               "string",
               "null"
@@ -1529,9 +1603,9 @@
           "linkedinUrl",
           "country",
           "timezone",
-          "smsConsent",
-          "smsConsentAt",
-          "smsConsentSource",
+          "outreachConsent",
+          "outreachConsentAt",
+          "outreachConsentSource",
           "attrs",
           "createdAt",
           "updatedAt",
@@ -5738,6 +5812,138 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/AlloUser"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "request_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "request_id"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/project/providers/allo/agents": {
+      "get": {
+        "summary": "Allo Outbound agents and the lines each one calls from (for the agent call step)",
+        "tags": [
+          "Project"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AlloAgent"
                       }
                     },
                     "meta": {
@@ -10376,9 +10582,9 @@
         }
       }
     },
-    "/v1/contacts/{id}/sms-consent": {
+    "/v1/contacts/{id}/outreach-consent": {
       "put": {
-        "summary": "Record SMS consent (admin only)",
+        "summary": "Record consent to texts and agent calls (admin only)",
         "tags": [
           "Contacts"
         ],
@@ -10417,6 +10623,171 @@
             "required": true
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Contact"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "request_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "request_id"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/contacts/{id}/sms-consent": {
+      "put": {
+        "summary": "Old name of PUT /v1/contacts/{id}/outreach-consent",
+        "tags": [
+          "Contacts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "consent": {
+                    "type": "boolean"
+                  },
+                  "source": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "at": {}
+                },
+                "required": [
+                  "consent"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "Default Response",

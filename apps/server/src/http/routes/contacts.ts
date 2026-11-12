@@ -2,7 +2,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { clientEventSchema, contactStatuses, deleteContact, patchContact, reportClientEvent, resolveContact, setSmsConsent, upsertContact, upsertContacts } from '@opensequence/engine';
+import { clientEventSchema, contactStatuses, deleteContact, patchContact, reportClientEvent, resolveContact, setOutreachConsent, upsertContact, upsertContacts } from '@opensequence/engine';
 import { projectOf, requireProject } from '../auth.js';
 import type { AppContext } from '../context.js';
 import { ok } from '../envelope.js';
@@ -91,10 +91,30 @@ export async function contactRoutes(fastify: FastifyInstance, ctx: AppContext) {
     handler: async (req, reply) => ok(reply, await patchContact(ctx.deps, projectOf(req), req.params.id, req.body)),
   });
 
+  // Contacts kept their consent under `smsConsent*` before 0.3: responses carry both names.
+  const legacyConsent = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(legacyConsent);
+    if (typeof v !== 'object' || v === null || !('outreachConsent' in v)) return v;
+    const c = v as { outreachConsent: unknown; outreachConsentAt?: unknown; outreachConsentSource?: unknown };
+    return { ...c, smsConsent: c.outreachConsent, smsConsentAt: c.outreachConsentAt ?? null, smsConsentSource: c.outreachConsentSource ?? null };
+  };
+  fastify.addHook('preSerialization', async (_req, _reply, payload) => {
+    if (typeof payload !== 'object' || payload === null || !('data' in payload)) return payload;
+    return { ...payload, data: legacyConsent((payload as { data: unknown }).data) };
+  });
+
+  const consentBody = z.object({ consent: z.boolean(), source: z.string().max(80).optional(), at: z.coerce.date().optional() });
+
+  app.put('/v1/contacts/:id/outreach-consent', {
+    preHandler: admin,
+    schema: { tags: ['Contacts'], summary: 'Record consent to texts and agent calls (admin only)', params: idParam, body: consentBody, response: okResponse(contact) },
+    handler: async (req, reply) => ok(reply, await setOutreachConsent(ctx.deps, projectOf(req), req.params.id, req.body)),
+  });
+
   app.put('/v1/contacts/:id/sms-consent', {
     preHandler: admin,
-    schema: { tags: ['Contacts'], summary: 'Record SMS consent (admin only)', params: idParam, body: z.object({ consent: z.boolean(), source: z.string().max(80).optional(), at: z.coerce.date().optional() }), response: okResponse(contact) },
-    handler: async (req, reply) => ok(reply, await setSmsConsent(ctx.deps, projectOf(req), req.params.id, req.body)),
+    schema: { tags: ['Contacts'], summary: 'Old name of PUT /v1/contacts/{id}/outreach-consent', deprecated: true, params: idParam, body: consentBody, response: okResponse(contact) },
+    handler: async (req, reply) => ok(reply, await setOutreachConsent(ctx.deps, projectOf(req), req.params.id, req.body)),
   });
 
   app.post('/v1/contacts/:id/events', {

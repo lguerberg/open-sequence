@@ -52,6 +52,7 @@ export type ApiKeySummary = Schemas['ApiKeySummary'];
 export type CreatedApiKey = Schemas['CreatedApiKey'];
 export type QueueStat = Schemas['QueueStat'];
 export type EngineHealth = Schemas['EngineHealth'];
+export type AlloAgent = Schemas['AlloAgent'];
 export type AlloNumber = Schemas['AlloNumber'];
 export type AlloUser = Schemas['AlloUser'];
 export type CrmSchema = Schemas['CrmSchema'];

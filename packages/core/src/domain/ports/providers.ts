@@ -75,6 +75,44 @@ export interface DialerProvider {
   queueState?(req: { channel: ChannelRef }): Promise<Array<{ number: string; callId: string | null; status: string; reason?: string }>>;
 }
 
+/** What an agent may do during a call. A skill that is present is on. */
+export interface AgentCallSkills {
+  /** `{}` lets the agent write the text; `text` is sent as written. */
+  sms?: { text?: string };
+  book?: { calendarId: string; eventTypeId: string };
+  transfer?: { type: 'member'; userId: string } | { type: 'line'; number: string } | { type: 'external'; number: string };
+}
+
+/** One agent call as the provider reports it. `outcome` is the result of the latest attempt, null before any. */
+export interface AgentCallState {
+  id: string;
+  /** `open` while the provider may still call; `closed` once it will not (done or cancelled). */
+  status: 'open' | 'closed';
+  outcome: string | null;
+  attempts: number;
+  lastCallId: string | null;
+}
+
+/** An AI agent that places phone calls (Allo's Outbound agent). The provider schedules the call, retries it and reports how it ended. */
+export interface AgentCallProvider {
+  create(req: {
+    projectId: string;
+    agentId: string;
+    /** The line the agent calls from, E.164. */
+    from: string;
+    to: string;
+    title: string;
+    description?: string;
+    dueAt?: Date;
+    skills?: AgentCallSkills;
+    idempotencyKey: string;
+  }): Promise<AgentCallState>;
+  get(req: { projectId: string; id: string }): Promise<AgentCallState | null>;
+  /** Crash recovery: was a call with this objective to this number already created? (Allo has no idempotency key.) */
+  find(req: { projectId: string; agentId: string; to: string; title: string; since: Date }): Promise<AgentCallState | null>;
+  listAgents(projectId: string): Promise<Array<{ id: string; name: string; numbers: string[] }>>;
+}
+
 export interface CrmSchema {
   objects: Array<{ name: 'person' | 'company' | 'deal'; attributes: Array<{ slug: string; label: string; type: string; values?: string[] }> }>;
 }
@@ -95,5 +133,6 @@ export interface ProviderSet {
   email: EmailProvider;
   sms: SmsProvider;
   dialer: DialerProvider;
+  calls: AgentCallProvider;
   crm: CrmProvider;
 }

@@ -2,7 +2,7 @@
 export * from './domain/definition/schema.js';
 export * from './domain/definition/duration.js';
 export * from './domain/definition/registry.js';
-export { registerBuiltins, ensureBuiltins } from './domain/definition/builtins.js';
+export { registerBuiltins, ensureBuiltins, agentCallParamsSchema, AGENT_CALL_OUTCOMES, AGENT_CALL_LIMITS, type AgentCallOutcome } from './domain/definition/builtins.js';
 export { validateDefinition, type ValidationResult } from './domain/definition/validate.js';
 // Conditions
 export * from './domain/conditions/facts.js';

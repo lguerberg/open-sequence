@@ -1,0 +1,184 @@
+---
+title: "AI agent calls with Allo"
+nav: "Allo agent calls"
+icon: allo
+description: "How to add an AI phone call to a sequence with an Allo Outbound agent: the permissions, picking the agent and its line, the brief, skills, consent, and branching on the outcome of the call."
+---
+
+An agent call step asks an Allo Outbound agent to phone the contact. The step waits for the result, then the sequence follows the outcome of the call.
+
+<Warning>This places real phone calls to real people. Allo has no dry-run mode. Test with your own number as the contact's phone, or with [mock providers](#try-it-without-calling-anyone).</Warning>
+
+## What it gives you
+
+- A phone call to the contact's `phone`, placed by an AI agent with the objective and brief you write.
+- The agent can text the contact, book a meeting or transfer the call to a person.
+- Allo places the call inside the agent's calling hours in the contact's time zone (08:00 to 21:00 unless the agent is set otherwise) and tries up to 3 times when nobody answers.
+- Branches on how the call ended: `reached`, `transferred`, `not_interested`, `wrong_number`, `do_not_call`, `not_reached`.
+
+Call tasks for a human rep are a different step and work as before: see [Allo for texts and call tasks](/docs/modules/sms/allo#call-tasks).
+
+## What you need
+
+- An [Allo](https://withallo.com) workspace with the Outbound agent turned on. Allo refuses HIPAA workspaces.
+- The Allo API key saved in OpenSequence ([Save the Allo key](/docs/modules/sms/allo#steps)), with these permissions on top of the ones texts need: `OUTBOUND_CALLS_WRITE`, `AGENTS_READ` and `TASKS_READ`.
+- Contacts with a `phone` in E.164 and recorded [outreach consent](#consent).
+
+The agent and the line belong to the step, not to the sender. A sender needs no Allo number for agent calls.
+
+## Steps
+
+<Steps>
+<Step title="Pick the agent and the line it calls from">
+
+<CodeGroup>
+
+```bash title="curl"
+curl $SEQ/v1/project/providers/allo/agents -H "Authorization: Bearer $KEY"
+# [{ "id": "agt-…", "name": "Outbound agent", "numbers": ["+14155550100", "+14155550101"] }]
+```
+
+```ts title="TypeScript"
+const agents = await oseq.project.alloAgents();
+const agent = agents[0]!;
+const line = agent.numbers[0]!;
+```
+
+</CodeGroup>
+
+`numbers` are the only lines that agent can call from. A step with a line from another agent fails with `LINE_NOT_AGENT_CALLING_LINE`.
+
+</Step>
+<Step title="Add the step to a sequence">
+
+```json
+"confirm_call": {
+  "type": "outreach", "channel": "call", "action": "agent_call",
+  "params": {
+    "agent_id": "agt-…",
+    "allo_number": "+14155550100",
+    "title": "Confirm Friday delivery with {{ contact.first_name | \"the customer\" }}",
+    "description": "{{ contact.first_name | \"The customer\" }} ordered 3 pallets. Confirm the Friday 10am delivery slot. If they want to change it, transfer the call.",
+    "skills": { "transfer": { "type": "member", "user_id": "usr-…" } },
+    "give_up_after": "3d"
+  },
+  "next": { "reached": "end_confirmed", "transferred": "end_confirmed", "not_reached": "sms_follow", "completed": "end_done" }
+}
+```
+
+| Param | Required | Notes |
+|---|---|---|
+| `agent_id` | yes | The Allo Outbound agent, from `GET /v1/project/providers/allo/agents`. |
+| `allo_number` | yes | The line to call from, E.164. One of that agent's `numbers`. |
+| `title` | yes | The objective of the call. A template, up to 200 characters. |
+| `description` | no | The brief the agent reads as written: context, what to say, when to use each skill. A template, up to 4,000 characters. |
+| `skills` | no | What the agent may do during the call. See [Skills](#skills). |
+| `give_up_after` | no | How long the step waits for a result. Default `3d`. |
+
+</Step>
+<Step title="Record consent per contact">
+
+<CodeGroup>
+
+```bash title="curl"
+curl -X PUT $SEQ/v1/contacts/p_7/outreach-consent -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"consent":true,"source":"signup form"}'
+```
+
+```ts title="TypeScript"
+await oseq.contacts.setOutreachConsent('p_7', { consent: true, source: 'signup form' });
+```
+
+</CodeGroup>
+
+</Step>
+</Steps>
+
+## Skills
+
+A skill that is present is on. Say in `description` when the agent should use each one: the agent follows the description, and Allo does not parse it. The validator warns (`NO_BRIEF`) when a step turns on a skill and has no description.
+
+| Skill | Shape | Notes |
+|---|---|---|
+| `sms` | `{}` or `{ "text": "…" }` | `{}` lets the agent write the text. `text` is a template, sent as written, up to 1,000 characters. |
+| `book` | `{ "calendar_id", "event_type_id" }` | The calendar and event type ids from Allo. |
+| `transfer` | one target | `{ "type": "member", "user_id": "usr-…" }` or `{ "type": "line", "number": "+1…" }` for a warm transfer; `{ "type": "external", "number": "+1…" }` for a cold transfer to an outside number, which needs a verified Allo account. |
+
+## How the call ends
+
+The step creates the call at Allo and waits. OpenSequence reads the result once a minute. The sequence then follows the transition of the outcome. An outcome with no transition follows `completed`. When `completed` has no transition either, the enrollment ends as `completed`.
+
+| Transition | When |
+|---|---|
+| `reached` | The agent spoke to the contact and handled the objective. |
+| `transferred` | The contact was handed to a person. |
+| `not_interested` | The contact declined. |
+| `wrong_number` | Not the right person. |
+| `do_not_call` | The contact asked not to be called. Calls to this contact are suppressed from now on. |
+| `not_reached` | Voicemail, no answer or busy on all 3 attempts, the call was cancelled in Allo, or `give_up_after` passed with no result. |
+| `skipped` | A check failed and no call was made. See [Rules every call follows](#rules-every-call-follows). |
+| `failed` | The step is set up wrong. See [Common errors](#common-errors). |
+
+`reached` and `transferred` count as a connected call. They wake a `wait_for` on `call_connected` or `reply`, and they exit the enrollment as `replied` when the sequence lists `reply` in `exit_on`.
+
+A contact who asks to be called back keeps the call open at Allo. The step keeps waiting until Allo closes the call or `give_up_after` passes.
+
+A call step is a touch. It counts when the call is handed to the agent.
+
+## Consent
+
+Agent calls use the same consent as texts. It was called SMS consent before 0.3.0 and is now outreach consent, because it gates both. Nothing changes for contacts that already had it.
+
+| Old name | New name |
+|---|---|
+| `PUT /v1/contacts/{id}/sms-consent` | `PUT /v1/contacts/{id}/outreach-consent` |
+| `oseq.contacts.setSmsConsent()` | `oseq.contacts.setOutreachConsent()` |
+| `smsConsent` on a contact | `outreachConsent` |
+| `contact.sms_consent` in conditions | `contact.outreach_consent` |
+
+The old names still work and are deprecated.
+
+## Rules every call follows
+
+| Check | Skip reason |
+|---|---|
+| The contact has outreach consent | `no_consent` |
+| The contact has a phone number | `no_phone` |
+| No call suppression | `suppressed` |
+
+The sequence's send window applies to when the step runs. Calling hours are Allo's: a call created outside them waits at Allo.
+
+## Try it without calling anyone
+
+With `SEQ_DEV_MOCK_PROVIDERS=1` no call is placed. `GET /v1/project/providers/allo/agents` returns one mock agent (`agt-mock`, line `+14155550100`). End a mock call with:
+
+```bash
+curl -X POST $SEQ/hooks/mock/{project slug}/agent-calls -H "Content-Type: application/json" \
+  -d '{"to":"+14155551234","outcome":"reached","status":"closed"}'
+```
+
+The step closes within a minute.
+
+## Check it works
+
+1. `GET /v1/project/providers/allo/agents` lists your agent and its lines.
+2. Enroll a consenting test contact with your own phone number in a one-step sequence.
+3. `GET /v1/enrollments/{id}` shows the call run as `waiting`, with Allo's task id in `providerRef`.
+4. Answer the call. Within a minute of hanging up the run is `done` and its `branch` is the outcome.
+
+## Common errors
+
+| Error | Fix |
+|---|---|
+| The run fails with `LINE_NOT_AGENT_CALLING_LINE` | `allo_number` is not one of the agent's lines. Pick one from `GET /v1/project/providers/allo/agents`. |
+| The run fails with `OUTBOUND_AGENT_NOT_FOUND` | No Outbound agent has that `agent_id` in the workspace. |
+| The run fails with `OUTBOUND_CALLS_NOT_AVAILABLE` | The Outbound agent is not turned on for the workspace, or it is a HIPAA workspace. |
+| The run fails with a `403` | The Allo key lacks `OUTBOUND_CALLS_WRITE`, `AGENTS_READ` or `TASKS_READ`. |
+| The run fails with `SKILL_INVALID` | A skill field is wrong, for example an event type that is not on the calendar. The error names the field. |
+| The run is skipped with `provider_rejected` | Allo refused the contact's number. It is not a valid E.164 number. |
+
+When a `failed` transition is not wired, a failed step pauses the enrollment with `step_failed`.
+
+Allo cannot cancel a call through its API. When an enrollment exits while a call is waiting, the step closes here, but Allo may still place the call. Cancel it in Allo.
+
+A call whose creation result is unknown is not created twice: the retry first looks for the call at Allo. After three unknown results the run becomes `needs_review`.

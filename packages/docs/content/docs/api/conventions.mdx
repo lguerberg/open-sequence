@@ -32,7 +32,7 @@ Scopes rank `read` < `enroll` < `admin`. A higher scope can do everything a lowe
 |---|---|
 | `read` | every `GET`, `contacts:status`, `sequences:validate`, `enrollments:preview`, `/v1/schema*`, `GET /v1/project` |
 | `enroll` | contacts (upsert, batch, patch, events), enroll, pause, resume, complete and cancel tasks |
-| `admin` | everything else: senders, sequences, publish, exit, SMS consent, settings, credentials, keys, flags, webhooks |
+| `admin` | everything else: senders, sequences, publish, exit, outreach consent, settings, credentials, keys, flags, webhooks |
 
 Give `enroll` to code that reacts to user actions. Keep `admin` for configuration.
 

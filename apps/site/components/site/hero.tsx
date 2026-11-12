@@ -13,8 +13,8 @@ export function Hero() {
         </h1>
         <p className="t-sub mt-6 max-w-[38rem] sm:mt-8">
           OpenSequence is the self-hosted engine behind multi-step outreach. Your product enrolls a
-          contact; it sends the emails, texts, call tasks and LinkedIn steps from a real person, and
-          stops when they reply.
+          contact; it sends the emails and texts from a real person, places the AI agent calls,
+          hands out the call tasks and LinkedIn steps, and stops when they reply.
         </p>
         <div className="mt-12 sm:mt-16">
           <HeroCanvas />

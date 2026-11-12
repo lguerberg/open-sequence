@@ -7,7 +7,7 @@ import { createHmac } from 'node:crypto';
 import { createAuth, AesGcmCipher, runAuthMigrations } from '@opensequence/auth';
 import { ensureBuiltins, type ProviderSet } from '@opensequence/core';
 import { connect, DEFAULT_CONFIG, DrizzleUnitOfWork, fetchWebhookTransport, runMigrations, systemClock, ulidIds, type Deps } from '@opensequence/engine';
-import { AlloDialerProvider, AlloSmsProvider, AttioCrmProvider, createMockProviders, createSmtpProviders, probeSmtpImap, type MockProviders } from '@opensequence/providers';
+import { AlloAgentCallProvider, AlloDialerProvider, AlloSmsProvider, AttioCrmProvider, createMockProviders, createSmtpProviders, probeSmtpImap, type MockProviders } from '@opensequence/providers';
 import { createQueue, queueJoinsTransaction } from '@opensequence/queue';
 import type pino from 'pino';
 import type { Env } from './config/env.js';
@@ -57,6 +57,7 @@ export async function bootstrap(env: Env, log: pino.Logger): Promise<Runtime> {
       email: smtp.email,
       sms: new AlloSmsProvider(auth),
       dialer: new AlloDialerProvider(auth),
+      calls: new AlloAgentCallProvider(auth),
       crm: new AttioCrmProvider(auth),
     };
   }

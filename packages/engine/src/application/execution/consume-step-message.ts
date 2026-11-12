@@ -6,6 +6,7 @@
 import type { QueueMessage } from '@opensequence/core';
 import type { Deps } from '../deps.js';
 import { executeEmailStep, type StepOutcome } from './execute-email-step.js';
+import { executeCallStep } from './execute-call-step.js';
 import { executeSmsStep } from './execute-sms-step.js';
 
 export type StepExecutor = (deps: Deps, runId: string, attempt: number) => Promise<StepOutcome>;
@@ -14,6 +15,7 @@ export type StepExecutor = (deps: Deps, runId: string, attempt: number) => Promi
 export const executors = new Map<string, StepExecutor>([
   ['seq_email', executeEmailStep],
   ['seq_sms', executeSmsStep],
+  ['seq_call', executeCallStep],
 ]);
 
 export function backoffMs(attempt: number): number {

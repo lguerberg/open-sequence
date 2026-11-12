@@ -94,6 +94,22 @@ describe('validateDefinition', () => {
     expect(codes(validateDefinition(ok))).not.toContain('CYCLE');
   });
 
+  it('accepts an agent call with its outcome transitions and checks its params', () => {
+    const d = good();
+    const call = { type: 'outreach', channel: 'call', action: 'agent_call', params: { agent_id: 'agt-1', allo_number: '+14155550100', title: 'Confirm the demo', description: 'Transfer if they ask for a person.', skills: { transfer: { type: 'member', user_id: 'usr-1' } } }, next: { reached: 'end_done', not_reached: 'sms_follow', completed: 'end_done' } };
+    (d.nodes as Record<string, unknown>)['ai_call'] = call;
+    d.nodes.email_intro.next.skipped = 'ai_call';
+    expect(validateDefinition(d).problems.filter((p) => p.path.startsWith('nodes.ai_call'))).toEqual([]);
+
+    const bad = good();
+    (bad.nodes as Record<string, unknown>)['ai_call'] = { ...call, params: { agent_id: 'agt-1', allo_number: '4155550100', title: 'Hi', skills: { sms: {} } }, next: { sent: 'end_done' } };
+    bad.nodes.email_intro.next.skipped = 'ai_call';
+    const problems = validateDefinition(bad).problems.filter((p) => p.path.startsWith('nodes.ai_call'));
+    expect(problems.find((p) => p.path === 'nodes.ai_call.params.allo_number')?.message).toContain('E.164');
+    expect(problems.map((p) => p.code)).toContain('NO_BRIEF'); // a skill is on but the brief never says when to use it
+    expect(problems.some((p) => p.path === 'nodes.ai_call.next.sent')).toBe(true); // `sent` is not a transition of a call
+  });
+
   it('reports an unknown channel or action in plain words', () => {
     const d = good();
     d.nodes.sms_follow.channel = 'fax';

@@ -12,7 +12,7 @@ OpenSequence sends from real people's mailboxes and phone numbers and reads thei
 |---|---|
 | Operator and projects | `SEQ_ADMIN_TOKEN` protects `/v1/admin/*` only and is compared in constant time. Project API keys protect everything else and never reach another project's data |
 | Authentication | keys are `sk_live_…` with 256 bits of entropy, stored as SHA-256 hashes, shown once, revocable, with `last_used_at`. Each key resolves to one project; every query filters on `project_id`; another project's ids answer `404` |
-| Scopes | `read` < `enroll` < `admin`. An `enroll` key cannot publish or edit a sequence, or grant SMS consent |
+| Scopes | `read` < `enroll` < `admin`. An `enroll` key cannot publish or edit a sequence, or grant outreach consent |
 | Secrets at rest | each sender's SMTP and IMAP passwords, the Allo and Attio keys and webhook signing secrets are AES-256-GCM under `SEQ_ENCRYPTION_KEYS`, and write-only: no endpoint returns them. Responses show status, key id, the last four characters and timestamps. Known secret fields are redacted from logs |
 | Mailbox passwords | checked by signing in to SMTP and IMAP before they are stored. Removing the email channel deletes them. Only the auth module and the mail adapter read them |
 | Mailbox privacy | the service reads only the inbox, and keeps only messages that answer an email it sent in the last 30 days. Reply bodies are not stored |

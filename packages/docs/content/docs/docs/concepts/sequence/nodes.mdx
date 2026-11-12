@@ -11,6 +11,7 @@ A node is one step of a sequence. Each node lists where to go next for each outc
 | `start` | none | `then` (required) | inline |
 | `outreach` `email` `send` | `subject`, `body`, `format` (`text` or `html`), `reply_in_thread`, `name` | `sent`, `skipped`, `failed` | queue `seq_email` |
 | `outreach` `sms` `send` | `body`, `name` | `sent`, `skipped`, `failed` | queue `seq_sms` |
+| `outreach` `call` `agent_call` | `agent_id`, `allo_number`, `title`, `description`, `skills`, `give_up_after`, `name` | `completed`, `reached`, `transferred`, `not_interested`, `wrong_number`, `do_not_call`, `not_reached`, `skipped`, `failed` | queue `seq_call`, then waits |
 | `wait` | `duration` | `then` (required) | inline timer |
 | `wait_for` | `events[]`, `timeout` | one per event, `timeout` | timer and signal |
 | `condition` | `mode`, `rules[]` | `yes`, `no` (both required) | inline |
@@ -58,6 +59,22 @@ Sends from the sender's mailbox over SMTP with the service's own `Message-ID`. `
 ```
 
 Gates that skip: `no_consent`, `no_phone`, `country_not_allowed`, `no_timezone`, `suppressed`, `no_sms_channel`; the quiet-hours gate (08:00 to 21:00 recipient-local) defers. Over 320 characters the validator warns (`TOO_LONG`, it is more than two segments); the hard limit is 1000. An unknown send outcome is never retried: the run goes `needs_review`.
+
+## `outreach` call
+
+```json
+"confirm_call": {
+  "type": "outreach", "channel": "call", "action": "agent_call",
+  "params": {
+    "agent_id": "agt-…", "allo_number": "+14155550100",
+    "title": "Confirm the demo with {{ contact.first_name | \"them\" }}",
+    "description": "Ask if Friday 10am still works. If not, offer Monday."
+  },
+  "next": { "reached": "end_confirmed", "not_reached": "sms_follow", "completed": "end_done" }
+}
+```
+
+An Allo Outbound agent phones the contact. The step waits for the result and follows the outcome's transition; an outcome with no transition follows `completed`. `not_reached` is also taken when `give_up_after` (default `3d`) passes. Gates that skip: `no_consent`, `no_phone`, `suppressed`. `skipped` falls back to `completed` when unwired. See [Allo agent calls](/docs/modules/calls/allo).
 
 ## `wait`
 
@@ -142,4 +159,4 @@ Ends the enrollment as `completed`. The label shows in the journey and in your c
 
 ## Which node types count as touches
 
-Only outreach sends (`email send`, `sms send`) are touches: they increment the enrollment's `touch_count`, set `last_touch_at` and are the denominators of the delivered rates. A task, LinkedIn requests included, is not a touch; a connected call is credited to the task's run as a reply.
+Only outreach steps (`email send`, `sms send`, `call agent_call`) are touches: they increment the enrollment's `touch_count`, set `last_touch_at` and are the denominators of the delivered rates. A task, LinkedIn requests included, is not a touch; a connected call is credited to the task's run as a reply. An agent call that reaches the contact is credited to its own run the same way.

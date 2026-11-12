@@ -36,6 +36,7 @@ export function stubProviders(overrides: Partial<ProviderSet> = {}): ProviderSet
     email: { send: unused, findSent: unused, health: async () => 'active' },
     sms: { send: unused, findSent: unused, verifyWebhook: unused, listNumbers: unused, listUsers: unused, health: async () => 'active' },
     dialer: { pushNumbers: unused },
+    calls: { create: unused, get: unused, find: unused, listAgents: unused },
     crm: { schema: unused, lookup: unused },
     ...overrides,
   };
@@ -108,9 +109,9 @@ export async function seedWorld(deps: Deps, exitOn: Array<'reply' | 'meeting_boo
       phone: `+1415555${tag.replace(/\D/g, '0').slice(-4).padStart(4, '0')}`,
       country: 'US',
       timezone: 'America/Los_Angeles',
-      smsConsent: true,
-      smsConsentAt: null,
-      smsConsentSource: null,
+      outreachConsent: true,
+      outreachConsentAt: null,
+      outreachConsentSource: null,
       attrs: {},
     },
     false

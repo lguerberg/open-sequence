@@ -38,7 +38,7 @@ A condition is a list of `{ field, op, value }` combined with `all` or `any` (1 
 
 | Prefix | Fields | Source |
 |---|---|---|
-| `contact.` | `country`, `timezone` (text), `has_email`, `has_phone`, `sms_consent` (bool); also `first_name`, `last_name`, `email` are readable | the contact row |
+| `contact.` | `country`, `timezone` (text), `has_email`, `has_phone`, `outreach_consent` (bool; `sms_consent` is its old name); also `first_name`, `last_name`, `email` are readable | the contact row |
 | `attrs.<path>` | anything you pushed, read as text | the contact's `attrs` |
 | `sender.` | `timezone` (text), `has_sms` (bool); also `name` | the sender and its active channels |
 | `history.` | `touches`, `days_since_last_touch`, `emails_sent`, `days_since_last_task`, `tasks_last_14d` (number), `replied_since_enrollment` (bool), `last_reply_channel` (enum: `email`, `sms`, `call`), `last_task_outcome`, `last_task_kind` (text) | the enrollment, runs, signals and tasks: one indexed query each |
