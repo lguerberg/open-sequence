@@ -4,6 +4,11 @@ What changed in each release, one section per version.
 
 The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this file says when it does.
 
+## 0.3.2
+
+- Fix: the `calls` job (reads how each agent call ended and moves the step on) and the `dialer` job never ran, because their lease rows in `seq.job_locks` were never created. A job now creates its lease row on its first run, so agent call steps leave the waiting state within a minute of the call's outcome.
+- No migration. SDK unchanged (0.3.0).
+
 ## 0.3.1
 
 - An agent call now goes out from the enrolling sender's Allo number, the one on their SMS channel, so each contact is called from their own rep's line. `allo_number` on the step is optional and fixes one line for every contact. A sender with no Allo number skips the step with `no_allo_number`. Each sender's number must be one of the agent's lines.
