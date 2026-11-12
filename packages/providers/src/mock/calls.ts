@@ -25,6 +25,6 @@ export class MockAgentCallProvider implements AgentCallProvider {
   }
 
   async listAgents(): Promise<Array<{ id: string; name: string; numbers: string[] }>> {
-    return [{ id: 'agt-mock', name: 'Mock outbound agent', numbers: ['+14155550100'] }];
+    return [{ id: 'agt-mock', name: 'Mock outbound agent', numbers: ['+15550000001'] }];
   }
 }

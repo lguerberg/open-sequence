@@ -11,7 +11,7 @@ A node is one step of a sequence. Each node lists where to go next for each outc
 | `start` | none | `then` (required) | inline |
 | `outreach` `email` `send` | `subject`, `body`, `format` (`text` or `html`), `reply_in_thread`, `name` | `sent`, `skipped`, `failed` | queue `seq_email` |
 | `outreach` `sms` `send` | `body`, `name` | `sent`, `skipped`, `failed` | queue `seq_sms` |
-| `outreach` `call` `agent_call` | `agent_id`, `allo_number`, `title`, `description`, `skills`, `give_up_after`, `name` | `completed`, `reached`, `transferred`, `not_interested`, `wrong_number`, `do_not_call`, `not_reached`, `skipped`, `failed` | queue `seq_call`, then waits |
+| `outreach` `call` `agent_call` | `agent_id`, `title`, `description`, `skills`, `give_up_after`, `name` | `completed`, `reached`, `transferred`, `not_interested`, `wrong_number`, `do_not_call`, `not_reached`, `skipped`, `failed` | queue `seq_call`, then waits |
 | `wait` | `duration` | `then` (required) | inline timer |
 | `wait_for` | `events[]`, `timeout` | one per event, `timeout` | timer and signal |
 | `condition` | `mode`, `rules[]` | `yes`, `no` (both required) | inline |
@@ -66,7 +66,7 @@ Gates that skip: `no_consent`, `no_phone`, `country_not_allowed`, `no_timezone`,
 "confirm_call": {
   "type": "outreach", "channel": "call", "action": "agent_call",
   "params": {
-    "agent_id": "agt-…", "allo_number": "+14155550100",
+    "agent_id": "agt-…",
     "title": "Confirm the demo with {{ contact.first_name | \"them\" }}",
     "description": "Ask if Friday 10am still works. If not, offer Monday."
   },
@@ -74,7 +74,7 @@ Gates that skip: `no_consent`, `no_phone`, `country_not_allowed`, `no_timezone`,
 }
 ```
 
-An Allo Outbound agent phones the contact. The step waits for the result and follows the outcome's transition; an outcome with no transition follows `completed`. `not_reached` is also taken when `give_up_after` (default `3d`) passes. Gates that skip: `no_consent`, `no_phone`, `suppressed`. `skipped` falls back to `completed` when unwired. See [Allo agent calls](/docs/modules/calls/allo).
+An Allo Outbound agent phones the contact. The step waits for the result and follows the outcome's transition; an outcome with no transition follows `completed`. `not_reached` is also taken when `give_up_after` (default `3d`) passes. The call goes out from the sender's Allo number; `allo_number` fixes another line. Gates that skip: `no_consent`, `no_phone`, `suppressed`, `no_allo_number`. `skipped` falls back to `completed` when unwired. See [Allo agent calls](/docs/modules/calls/allo).
 
 ## `wait`
 

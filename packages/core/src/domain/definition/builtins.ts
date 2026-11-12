@@ -31,8 +31,12 @@ export const agentCallParamsSchema = z
     name: z.string().max(120).optional(),
     /** The Allo Outbound agent that places the call (`agt-…`). */
     agent_id: z.string().min(1).max(64),
-    /** The line the agent calls from; one of the agent's own numbers. */
-    allo_number: e164,
+    /**
+     * A fixed line to call from. Leave it out: the call goes out from the enrolling sender's Allo
+     * number (their sms channel), so each contact hears from their own rep's line. Either way it
+     * must be one of the agent's numbers.
+     */
+    allo_number: e164.optional(),
     /** The objective of the call. */
     title: z.string().min(1).max(AGENT_CALL_LIMITS.title),
     /** The brief the agent reads as written: context, what to say, when to use each skill. */

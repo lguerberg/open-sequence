@@ -96,7 +96,7 @@ describe('validateDefinition', () => {
 
   it('accepts an agent call with its outcome transitions and checks its params', () => {
     const d = good();
-    const call = { type: 'outreach', channel: 'call', action: 'agent_call', params: { agent_id: 'agt-1', allo_number: '+14155550100', title: 'Confirm the demo', description: 'Transfer if they ask for a person.', skills: { transfer: { type: 'member', user_id: 'usr-1' } } }, next: { reached: 'end_done', not_reached: 'sms_follow', completed: 'end_done' } };
+    const call = { type: 'outreach', channel: 'call', action: 'agent_call', params: { agent_id: 'agt-1', title: 'Confirm the demo', description: 'Transfer if they ask for a person.', skills: { transfer: { type: 'member', user_id: 'usr-1' } } }, next: { reached: 'end_done', not_reached: 'sms_follow', completed: 'end_done' } };
     (d.nodes as Record<string, unknown>)['ai_call'] = call;
     d.nodes.email_intro.next.skipped = 'ai_call';
     expect(validateDefinition(d).problems.filter((p) => p.path.startsWith('nodes.ai_call'))).toEqual([]);
