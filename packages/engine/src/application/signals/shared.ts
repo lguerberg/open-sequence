@@ -71,6 +71,12 @@ export function builtInExitReason(signal: Signal): string | null {
   }
 }
 
+/**
+ * Payload key of a `call_connected` signal from an agent call step with `exit_on_connect: false`.
+ * Its value is the enrollment the call belongs to, which the signal credits and never exits.
+ */
+export const KEEPS_ENROLLMENT = 'keeps_enrollment';
+
 /** The definition's own exit choice: `exit_on` lists `reply` (a connected call counts) and `meeting_booked`. */
 export function chosenExitReason(signal: Signal, exitOn: readonly string[]): string | null {
   if (REPLY_KINDS.includes(signal.kind) && exitOn.includes('reply')) return 'replied';

@@ -1293,7 +1293,7 @@ process(signal):
   for each enrollment, in its own transaction:
     lock enrollment; skip if (signal, enrollment) already in signal_effects
     1. ATTRIBUTE   (replies and meetings, section 11)
-    2. EXIT        exit if the signal is a reply (call_connected counts as a reply) or meeting_booked AND it is listed in exit_on,
+    2. EXIT        exit if the signal is a reply (call_connected counts as a reply, except from an agent call step with exit_on_connect: false, for that step's own enrollment) or meeting_booked AND it is listed in exit_on,
                    or if it is a built-in exit (opt_out, bounce, complaint, contact_suppressed);
                    out-of-office -> pause until the stated date or +7 days ; record the reason
     3. WAKE        if the enrollment is waiting on this event (wait_for, task)

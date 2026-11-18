@@ -3,7 +3,9 @@
  * once it is over, close the step on the outcome. The flow follows the outcome's own transition,
  * else `completed`, else the sequence ends there.
  *
- *   reached, transferred       a conversation happened: also a `call_connected` signal (a reply)
+ *   reached, transferred       a conversation happened: also a `call_connected` signal (a reply),
+ *                              which exits the enrollment on `exit_on: reply` unless the step says
+ *                              `exit_on_connect: false`
  *   not_interested, wrong_number
  *   do_not_call                also suppresses calls to the contact
  *   not_reached                voicemail, no answer or busy on every attempt, or the call was cancelled
@@ -17,6 +19,7 @@ import type { Deps } from '../deps.js';
 import { advanceEnrollment } from '../enrollments/advance-enrollment.js';
 import { enrollmentPayload, finishEnrollment } from '../enrollments/shared.js';
 import { recordSignal } from '../signals/record-signal.js';
+import { KEEPS_ENROLLMENT } from '../signals/shared.js';
 import { runPayload } from './shared.js';
 
 /** Outcomes that end the call at the provider. */
@@ -86,7 +89,7 @@ export async function finishAgentCall(deps: Deps, run: Run, outcome: AgentCallOu
 
     if (outcome === 'do_not_call') await repos.contacts.suppress(run.projectId, e.contactId, 'call', 'do_not_call');
     if (CONNECTED.includes(outcome)) {
-      await recordSignal(deps, scope, { projectId: run.projectId, contactId: e.contactId, kind: 'call_connected', channel: 'call', source: run.provider ?? 'allo', externalId: `run:${run.id}:connected`, occurredAt: now, payload: { run_id: run.id, outcome } });
+      await recordSignal(deps, scope, { projectId: run.projectId, contactId: e.contactId, kind: 'call_connected', channel: 'call', source: run.provider ?? 'allo', externalId: `run:${run.id}:connected`, occurredAt: now, payload: { run_id: run.id, outcome, ...(run.result['exit_on_connect'] === false ? { [KEEPS_ENROLLMENT]: e.id } : {}) } });
     }
     return true;
   });

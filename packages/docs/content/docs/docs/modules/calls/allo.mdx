@@ -72,6 +72,7 @@ const agent = agents[0]!;
 | `description` | no | The brief the agent reads as written: context, what to say, when to use each skill. A template, up to 4,000 characters. |
 | `skills` | no | What the agent may do during the call. See [Skills](#skills). |
 | `give_up_after` | no | How long the step waits for a result. Default `3d`. |
+| `exit_on_connect` | no | `false` keeps the contact in the sequence after a call that reaches them. Default `true`. See [How the call ends](#how-the-call-ends). |
 
 </Step>
 <Step title="Record consent per contact">
@@ -118,6 +119,8 @@ The step creates the call at Allo and waits. OpenSequence reads the result once 
 | `failed` | The step is set up wrong. See [Common errors](#common-errors). |
 
 `reached` and `transferred` count as a connected call. They wake a `wait_for` on `call_connected` or `reply`, and they exit the enrollment as `replied` when the sequence lists `reply` in `exit_on`.
+
+Set `exit_on_connect: false` on the step to keep the contact in the sequence after the agent spoke to them. The sequence then follows `reached` or `transferred` and goes on with the next steps. A reply by email or text still exits. The call is still credited as a reply, so `history.replied_since_enrollment` is true afterwards. To stop for a contact who declined, wire `not_interested` to an `end` step.
 
 A contact who asks to be called back keeps the call open at Allo. The step keeps waiting until Allo closes the call or `give_up_after` passes.
 

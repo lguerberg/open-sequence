@@ -5,6 +5,7 @@ import { closeTestDb, migrateTestDb } from '../../test/db.js';
 import { makeDeps, seedEnrollment, seedWorld, stubProviders, type World } from '../../test/signals-tasks-fixtures.js';
 import { advanceEnrollment } from '../enrollments/advance-enrollment.js';
 import { JOBS } from '../scheduler/jobs.js';
+import { processSignal } from '../signals/process-signal.js';
 import { executors } from './consume-step-message.js';
 import { executeCallStep } from './execute-call-step.js';
 import { agentCallOutcome, syncAgentCalls } from './sync-agent-calls.js';
@@ -39,20 +40,21 @@ class FakeAgent implements AgentCallProvider {
 
 const NEXT = { reached: 'end_reached', not_reached: 'end_not_reached', completed: 'end_other', skipped: 'end_skipped' };
 
-function definition(params: Record<string, unknown> = {}) {
+function definition(params: Record<string, unknown> = {}, flow: { exit_on?: string[]; reached?: string } = {}) {
   return {
     schema_version: 1,
     entry: 'ai_call',
     settings: { reenroll: 'always' },
-    exit_on: [],
+    exit_on: flow.exit_on ?? [],
     nodes: {
       ai_call: {
         type: 'outreach',
         channel: 'call',
         action: 'agent_call',
         params: { agent_id: 'agt-1', title: 'Confirm the demo with {{ contact.first_name | "them" }}', description: 'Ask {{ contact.first_name | "them" }} if Friday works.', skills: { sms: { text: 'Hi {{ contact.first_name | "them" }}' }, transfer: { type: 'member', user_id: 'usr-9' } }, give_up_after: '2d', ...params },
-        next: NEXT,
+        next: { ...NEXT, ...(flow.reached ? { reached: flow.reached } : {}) },
       },
+      ...(flow.reached ? { [flow.reached]: { type: 'wait', params: { duration: '2d' }, next: { then: 'end_reached' } } } : {}),
       end_reached: { type: 'end', params: { label: 'Reached' } },
       end_not_reached: { type: 'end', params: { label: 'Not reached' } },
       end_other: { type: 'end' },
@@ -69,16 +71,16 @@ describe('agent call step', () => {
   afterAll(closeTestDb);
 
   /** A world whose published version is the call sequence, with one enrollment the executor owns. */
-  async function start(contactPatch: Record<string, unknown> = {}, params: Record<string, unknown> = {}): Promise<{ w: World; e: Enrollment; run: Run }> {
+  async function start(contactPatch: Record<string, unknown> = {}, params: Record<string, unknown> = {}, flow: Parameters<typeof definition>[1] = {}): Promise<{ w: World; e: Enrollment; run: Run }> {
     const w = await seedWorld(deps, []);
     const versionId = deps.ids.next('version');
-    await repos.sequences.createVersion({ id: versionId, projectId: w.projectId, sequenceId: w.sequenceId, tag: 'v2', status: 'published', definition: definition(params), schemaVersion: 1, lockVersion: 0, basedOnVersionId: null, createdBy: null, publishedBy: null, publishedAt: new Date(), archivedAt: null });
+    await repos.sequences.createVersion({ id: versionId, projectId: w.projectId, sequenceId: w.sequenceId, tag: 'v2', status: 'published', definition: definition(params, flow), schemaVersion: 1, lockVersion: 0, basedOnVersionId: null, createdBy: null, publishedBy: null, publishedAt: new Date(), archivedAt: null });
     if (Object.keys(contactPatch).length) await repos.contacts.patch(w.projectId, w.contact.id, contactPatch, false);
     const e = await seedEnrollment(deps, { ...w, versionId }, { currentNodeId: 'ai_call' });
     const now = deps.clock.now();
     const run = await repos.runs.insert({
       id: deps.ids.next('run'), projectId: e.projectId, enrollmentId: e.id, sequenceId: e.sequenceId, versionId, nodeId: 'ai_call', nodeType: 'outreach', channel: 'call', action: 'agent_call',
-      touchNumber: null, attempt: 1, status: 'running', idempotencyKey: `seq:${e.id}:ai_call:a1`, next: NEXT, startedAt: now, finishedAt: null, provider: null, providerRef: null, threadRef: null, branch: null, result: {}, error: null, senderId: e.senderId, enqueuedAt: now,
+      touchNumber: null, attempt: 1, status: 'running', idempotencyKey: `seq:${e.id}:ai_call:a1`, next: { ...NEXT, ...(flow.reached ? { reached: flow.reached } : {}) }, startedAt: now, finishedAt: null, provider: null, providerRef: null, threadRef: null, branch: null, result: {}, error: null, senderId: e.senderId, enqueuedAt: now,
     });
     await repos.enrollments.update(e.id, { ownerRunId: run.id, nextRunAt: null });
     return { w, e, run };
@@ -138,6 +140,35 @@ describe('agent call step', () => {
     // a second look changes nothing
     await syncAgentCalls(deps, 500);
     expect((await repos.signals.byContact(w.contact.id, 10)).length).toBe(1);
+  });
+
+  /** Reach the contact on a sequence that exits on a reply and continues to a wait after the call. */
+  async function reachOnExitingSequence(params: Record<string, unknown>): Promise<{ e: Enrollment; run: Run; payload: Record<string, unknown> }> {
+    const { w, e, run } = await start({}, params, { exit_on: ['reply'], reached: 'follow_up' });
+    await executeCallStep(deps, run.id, 1);
+    Object.assign(agent.calls.get((await repos.runs.byId(run.id))!.providerRef!)!, { attempts: 1, outcome: 'reached', status: 'closed' });
+    await syncAgentCalls(deps, 500);
+    const signal = (await repos.signals.byContact(w.contact.id, 10))[0]!;
+    await processSignal(deps, signal.id);
+    return { e: (await repos.enrollments.byId(e.id))!, run, payload: signal.payload };
+  }
+
+  it('a reached call exits a sequence that exits on a reply', async () => {
+    const { e, run, payload } = await reachOnExitingSequence({});
+    expect(payload).toEqual({ run_id: run.id, outcome: 'reached' });
+    expect(e.status).toBe('exited');
+    expect(e.exitReason).toBe('replied');
+  });
+
+  it('with `exit_on_connect: false` a reached call is credited as a reply and the sequence goes on', async () => {
+    const { e, run, payload } = await reachOnExitingSequence({ exit_on_connect: false });
+    expect(payload).toEqual({ run_id: run.id, outcome: 'reached', keeps_enrollment: e.id });
+    expect(e.status).toBe('active');
+    expect(e.exitReason).toBeNull();
+    // parked on the two-day wait that follows the call
+    expect(e.nextRunAt!.getTime() - Date.now()).toBeGreaterThan(47 * 3_600_000);
+    expect(e.repliedAt).not.toBeNull();
+    expect(e.repliedChannel).toBe('call');
   });
 
   it('do_not_call suppresses calls and, with no wire of its own, follows `completed`', async () => {
