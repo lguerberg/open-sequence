@@ -4,6 +4,7 @@ import { makeDeps, seedEnrollment, seedTouch, seedWait, seedWorld } from '../../
 import { processSignal } from './process-signal.js';
 import { recordSignal, SIGNAL_QUEUE } from './record-signal.js';
 import { reportClientEvent } from './report-client-event.js';
+import { ingestInboundEvents } from './ingest-inbound-events.js';
 
 const HOUR = 3_600_000;
 const DAY = 86_400_000;
@@ -121,6 +122,26 @@ describe('processSignal', () => {
     await processSignal(deps, second.signal.id);
     expect((await repos.signals.byId(second.signal.id))!.attribution).toBe('none');
     expect((await repos.enrollments.byId(recent.id))!.meetingBookedAt?.toISOString()).toBe(signal.occurredAt.toISOString());
+  });
+
+  it('a meeting an AI agent booked on a call, found by the number called, exits the active enrollment', async () => {
+    const w = await seedWorld(deps, ['reply', 'meeting_booked']);
+    const now = deps.clock.now();
+    const e = await seedEnrollment(deps, w);
+    await seedTouch(deps, e, 'call', new Date(now.getTime() - HOUR));
+
+    const unknown = await ingestInboundEvents(deps, w.projectId, 'allo', [{ kind: 'meeting_booked', externalId: `cll-x-${e.id}:meeting_booked`, occurredAt: now, phone: '+10000000000' }]);
+    expect(unknown).toEqual({ stored: 0, ignored: 1 });
+
+    const counts = await ingestInboundEvents(deps, w.projectId, 'allo', [{ kind: 'meeting_booked', externalId: `cll-${e.id}:meeting_booked`, occurredAt: now, phone: w.contact.phone! }]);
+    expect(counts).toEqual({ stored: 1, ignored: 0 });
+    const [signal] = (await repos.signals.byContact(w.contact.id, 10)).filter((x) => x.kind === 'meeting_booked');
+    await processSignal(deps, signal!.id);
+
+    const after = (await repos.enrollments.byId(e.id))!;
+    expect(after.status).toBe('exited');
+    expect(after.exitReason).toBe('meeting_booked');
+    expect(after.meetingBookedAt).not.toBeNull();
   });
 
   it('an out-of-office pauses an active enrollment until the stated date and never exits it', async () => {
