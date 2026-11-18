@@ -10,7 +10,7 @@ import type { Deps } from '../deps.js';
 import { advanceEnrollment } from '../enrollments/advance-enrollment.js';
 import { ACTIVE_STATUSES, closeWaitingStep, enrollmentPayload, finishEnrollment, loadDefinition } from '../enrollments/shared.js';
 import { effectiveSettings } from '../projects/shared.js';
-import { attributeSignal, builtInExitReason, chosenExitReason, contactPayload, REPLY_KINDS, signalPayload, wakeEventNames, type Credit } from './shared.js';
+import { attributeSignal, builtInExitReason, chosenExitReason, contactPayload, KEEPS_ENROLLMENT, REPLY_KINDS, signalPayload, wakeEventNames, type Credit } from './shared.js';
 
 const OOO_DEFAULT_MS = 7 * 86_400_000;
 
@@ -151,6 +151,7 @@ async function applyToEnrollment(deps: Deps, scope: TransactionScope, signal: Si
 
 async function chosenExit(repos: Repositories, signal: Signal, e: Enrollment): Promise<string | null> {
   if (!REPLY_KINDS.includes(signal.kind) && signal.kind !== 'meeting_booked') return null;
+  if (signal.payload[KEEPS_ENROLLMENT] === e.id) return null;
   const def = await loadDefinition(repos, e.projectId, e.versionId);
   return chosenExitReason(signal, def.exit_on);
 }

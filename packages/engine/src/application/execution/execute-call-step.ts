@@ -70,7 +70,7 @@ export async function executeCallStep(deps: Deps, runId: string, attempt: number
         provider: PROVIDER,
         providerRef: call.id,
         touchNumber,
-        result: { ...run.result, rendered, agent_id: p.agent_id, from, give_up_at: giveUpAt.toISOString(), call: { attempts: call.attempts, last_outcome: call.outcome, last_call_id: call.lastCallId } },
+        result: { ...run.result, rendered, agent_id: p.agent_id, from, give_up_at: giveUpAt.toISOString(), exit_on_connect: p.exit_on_connect, call: { attempts: call.attempts, last_outcome: call.outcome, last_call_id: call.lastCallId } },
       });
       // The give-up time is the wait's timeout: advance closes the run on `timeout` and follows not_reached.
       const onTimeout = run.next['not_reached'] ?? run.next['completed'];

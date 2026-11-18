@@ -58,6 +58,12 @@ export const agentCallParamsSchema = z
       .optional(),
     /** How long the step waits for a result before it takes `not_reached`. */
     give_up_after: durationSchema.default('3d'),
+    /**
+     * Whether a call that reaches the contact (`reached`, `transferred`) exits the enrollment when
+     * the sequence lists `reply` in `exit_on`. False keeps the contact in the sequence: the flow
+     * follows the outcome's transition and nothing else.
+     */
+    exit_on_connect: z.boolean().default(true),
   })
   .strict();
 
