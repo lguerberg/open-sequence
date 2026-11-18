@@ -162,6 +162,30 @@ describe('AlloSmsProvider.verifyWebhook', () => {
     ]);
   });
 
+  it('reports a meeting booked on an outbound call tagged meeting_booked, keyed by the number called', async () => {
+    const req = signed(
+      envelope('call.completed', {
+        id: 'cll_2',
+        start_date: '2026-11-18T21:21:31Z',
+        type: 'OUTBOUND',
+        from_number: '+17865519798',
+        to: '+16156371852',
+        result: 'TRANSFERRED_AI',
+        tags: ['interested', 'meeting_booked'],
+      }),
+    );
+    const events = await sms().verifyWebhook({ projectId: 'prj_1', ...req, secret: SECRET });
+    expect(events).toHaveLength(2);
+    expect(events[1]).toEqual({ kind: 'meeting_booked', externalId: 'cll_2:meeting_booked', occurredAt: new Date('2026-11-18T21:21:31Z'), phone: '+16156371852' });
+  });
+
+  it('reads tag objects and ignores the tag on inbound calls', async () => {
+    const tagged = (type: string) =>
+      signed(envelope('call.completed', { id: 'cll_3', start_date: '2026-11-18T21:21:31Z', type, from_number: '+1', to: '+16156371852', result: 'ANSWERED', tags: [{ key: 'MEETING_BOOKED' }] }));
+    expect((await sms().verifyWebhook({ projectId: 'prj_1', ...tagged('OUTBOUND'), secret: SECRET })).map((e) => e.kind)).toEqual(['call_completed', 'meeting_booked']);
+    expect((await sms().verifyWebhook({ projectId: 'prj_1', ...tagged('INBOUND'), secret: SECRET })).map((e) => e.kind)).toEqual(['call_completed']);
+  });
+
   it('ignores unknown topics', async () => {
     const req = signed(envelope('tag.added', { id: 't' }));
     expect(await sms().verifyWebhook({ projectId: 'prj_1', ...req, secret: SECRET })).toEqual([]);

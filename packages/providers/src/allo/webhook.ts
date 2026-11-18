@@ -20,6 +20,15 @@ export function verifyAlloWebhook(req: { headers: WebhookHeaders; rawBody: Buffe
   return mapAlloEvent(topic, data, id, fallbackAt);
 }
 
+/** The tag key Allo's agents put on a call that booked a meeting. */
+export const MEETING_BOOKED_TAG = 'meeting_booked';
+
+/** `tags` holds tag keys (strings) or tag objects with a `key`; `tag` is the primary one. */
+function tagKeys(data: Record<string, unknown>): string[] {
+  const raw = [...(Array.isArray(data.tags) ? data.tags : []), data.tag];
+  return raw.map((t) => (isRecord(t) ? asString(t.key) : asString(t))).filter((k): k is string => !!k).map((k) => k.toLowerCase());
+}
+
 export function mapAlloEvent(topic: string | undefined, data: Record<string, unknown>, webhookId: string, fallbackAt: Date): InboundEvent[] {
   switch (topic) {
     case 'sms.received': {
@@ -49,19 +58,27 @@ export function mapAlloEvent(topic: string | undefined, data: Record<string, unk
       const userEmail = asString(data.user_email);
       const summary = asString(data.summary);
       const durationMinutes = asNumber(data.length_in_minutes);
+      const externalId = asString(data.id) ?? webhookId;
+      const occurredAt = asDate(data.start_date) ?? fallbackAt;
+      const outbound = data.type === 'OUTBOUND';
+      const to = asString(data.to) ?? asString(data.to_number) ?? '';
+      // An AI agent that books on the call tags it `meeting_booked`: the meeting exists in the calendar, but the
+      // attendee email is whatever the contact said aloud, so the contact is the number the call went to.
+      const booked = outbound && !!to && tagKeys(data).includes(MEETING_BOOKED_TAG);
       return [
         {
           kind: 'call_completed',
-          externalId: asString(data.id) ?? webhookId,
-          occurredAt: asDate(data.start_date) ?? fallbackAt,
+          externalId,
+          occurredAt,
           from: asString(data.from_number) ?? '',
-          to: asString(data.to) ?? asString(data.to_number) ?? '',
-          direction: data.type === 'OUTBOUND' ? 'outbound' : 'inbound',
+          to,
+          direction: outbound ? 'outbound' : 'inbound',
           result: asString(data.result) ?? 'UNKNOWN',
           ...(userEmail !== undefined ? { userEmail } : {}),
           ...(summary !== undefined ? { summary } : {}),
           ...(durationMinutes !== undefined ? { durationMinutes } : {}),
         },
+        ...(booked ? [{ kind: 'meeting_booked' as const, externalId: `${externalId}:meeting_booked`, occurredAt, phone: to }] : []),
       ];
     }
     default:

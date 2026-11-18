@@ -122,6 +122,8 @@ The step creates the call at Allo and waits. OpenSequence reads the result once 
 
 Set `exit_on_connect: false` on the step to keep the contact in the sequence after the agent spoke to them. The sequence then follows `reached` or `transferred` and goes on with the next steps. A reply by email or text still exits. The call is still credited as a reply, so `history.replied_since_enrollment` is true afterwards. To stop for a contact who declined, wire `not_interested` to an `end` step.
 
+When the agent books a meeting on the call, Allo tags the call `meeting_booked`. OpenSequence reads that tag from the `call.completed` webhook and records a `meeting_booked` signal for the contact whose phone was called. A sequence that lists `meeting_booked` in `exit_on` exits, also when the step has `exit_on_connect: false`.
+
 A contact who asks to be called back keeps the call open at Allo. The step keeps waiting until Allo closes the call or `give_up_after` passes.
 
 A call step is a touch. It counts when the call is handed to the agent.

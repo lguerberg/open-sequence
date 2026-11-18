@@ -4,6 +4,11 @@ What changed in each release, one section per version.
 
 The API is additive: fields and endpoints are added, nothing is removed or repurposed without a new version path, and a definition's `schema_version` is read forever. A deprecation is marked on the affected page with a callout and a date. OpenSequence is pre-1.0, so a minor version may still change the API; this file says when it does.
 
+## 0.3.4
+
+- A meeting an Allo AI agent books on a call now counts as a booked meeting. When an outbound `call.completed` webhook carries the `meeting_booked` tag, the service records a `meeting_booked` signal for the contact whose phone was called (the attendee email is whatever the contact said aloud, so the phone is the key). A sequence that lists `meeting_booked` in `exit_on` exits, even when the call step keeps the contact in with `exit_on_connect: false`.
+- No migration. SDK unchanged (0.3.0).
+
 ## 0.3.3
 
 - An agent call step can keep the contact in the sequence after it reaches them. The new param `exit_on_connect` (default `true`, as before) decides whether a `reached` or `transferred` call exits the enrollment when the sequence lists `reply` in `exit_on`. With `false` the sequence follows the outcome's transition and goes on; a reply by email or text still exits. The call is still credited as a reply. See [How the call ends](https://docs.opensequence.dev/docs/modules/calls/allo#how-the-call-ends).

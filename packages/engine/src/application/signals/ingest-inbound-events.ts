@@ -83,9 +83,13 @@ async function ingestOne(deps: Deps, projectId: string, provider: string, settin
       return ingestCallCompleted(deps, projectId, settings, event);
     case 'meeting_booked':
       return deps.uow.transaction(async (scope) => {
-        const contact = await scope.repos.contacts.byEmail(projectId, event.attendee);
+        const contact = event.attendee
+          ? await scope.repos.contacts.byEmail(projectId, event.attendee)
+          : event.phone
+            ? await scope.repos.contacts.byPhone(projectId, event.phone)
+            : null;
         if (!contact) return false;
-        await signal(deps, scope, projectId, contact, provider, event, 'meeting_booked', null, { starts_at: event.startsAt.toISOString() });
+        await signal(deps, scope, projectId, contact, provider, event, 'meeting_booked', null, event.startsAt ? { starts_at: event.startsAt.toISOString() } : {});
         return true;
       });
     case 'channel_status':

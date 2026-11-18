@@ -24,7 +24,8 @@ export type InboundEvent =
   | { kind: 'opt_out'; channel: 'sms' | 'email'; externalId: string; occurredAt: Date; from: string; to?: string }
   | { kind: 'sent'; channel: 'sms' | 'email'; externalId: string; occurredAt: Date; from: string; to: string; body?: string }
   | { kind: 'call_completed'; externalId: string; occurredAt: Date; from: string; to: string; direction: 'inbound' | 'outbound'; result: string; userEmail?: string; summary?: string; durationMinutes?: number }
-  | { kind: 'meeting_booked'; externalId: string; occurredAt: Date; attendee: string; startsAt: Date }
+  /** A meeting with the contact, found by the attendee's email or, for a meeting an AI agent booked on a call, the phone it called. */
+  | { kind: 'meeting_booked'; externalId: string; occurredAt: Date; attendee?: string; phone?: string; startsAt?: Date }
   | { kind: 'channel_status'; externalId: string; occurredAt: Date; status: 'active' | 'credentials_needed' | 'restricted' };
 
 export interface EmailSendRequest {
